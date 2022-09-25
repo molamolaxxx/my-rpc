@@ -1,0 +1,14 @@
+server:
+  port: 8082
+spring:
+  application:
+    name: rpc-provider
+
+logging:
+  level:
+    root: info
+
+rpc:
+  server-port: 9001
+  environment: pre
+  app-name: ${spring.application.name}
