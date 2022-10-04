@@ -49,8 +49,10 @@ public class NettyServerHandler extends SimpleChannelInboundHandler<RemotingComm
         // 反射调用服务
         this.bizProcessAsyncExecutor.process(
                 () -> {
+                    // todo 前置过滤器
                     log.warn("biz-process-thread:" + Thread.currentThread().getName());
                     RemotingCommand response = null;
+                    // 反射调用
                     try {
                         Object providerBean = this.applicationContext.getBean(providerMeta.getProviderBeanName());
                         Object result = invokeMethod.invoke(providerBean);
@@ -62,9 +64,8 @@ public class NettyServerHandler extends SimpleChannelInboundHandler<RemotingComm
                     Assert.notNull(response, "response is null" + request.toString());
                     Channel channel = ctx.channel();
                     final String responseStr = response.toString();
-                    // 写入channel
                     final SocketAddress remoteAddress = channel.remoteAddress();
-                    // 发送返回到客户端
+                    // 写入channel,发送返回到客户端
                     channel.writeAndFlush(response).addListener(future -> {
                         // 返回结果成功
                         if (future.isSuccess()) {

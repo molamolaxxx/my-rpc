@@ -12,7 +12,7 @@ import java.util.Random;
 public class RandomLoadBalance implements LoadBalanceStrategy {
 
     @Override
-    public String getTargetProviderAddress(List<String> addressList,String strategyName) {
+    public String getTargetProviderAddress(List<String> addressList, String strategyName, Object[] args) {
         Random random = new Random();
         int pos = random.nextInt(addressList.size());
         while (pos >= addressList.size()) {

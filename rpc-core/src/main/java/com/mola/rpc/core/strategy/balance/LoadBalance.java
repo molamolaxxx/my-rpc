@@ -17,10 +17,14 @@ public class LoadBalance implements LoadBalanceStrategy {
     private Map<String, LoadBalanceStrategy> loadBalanceStrategyMap = Maps.newConcurrentMap();
 
     @Override
-    public String getTargetProviderAddress(List<String> addressList, String strategyName) {
+    public String getTargetProviderAddress(List<String> addressList, String strategyName, Object[] args) {
         LoadBalanceStrategy loadBalanceStrategy = loadBalanceStrategyMap.get(strategyName);
         Assert.notNull(loadBalanceStrategy, "loadBalanceStrategy is null");
-        return loadBalanceStrategy.getTargetProviderAddress(addressList, strategyName);
+        Assert.notNull(addressList, "addressList is null");
+        if (addressList.size() == 0) {
+            return null;
+        }
+        return loadBalanceStrategy.getTargetProviderAddress(addressList, strategyName, args);
     }
 
     public void setStrategy(String name, LoadBalanceStrategy strategy) {

@@ -15,5 +15,5 @@ public interface LoadBalanceStrategy {
      * @param addressList
      * @return
      */
-    String getTargetProviderAddress(List<String> addressList, String strategyName);
+    String getTargetProviderAddress(List<String> addressList, String strategyName, Object[] args);
 }

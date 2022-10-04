@@ -53,13 +53,13 @@ public class RpcProxyInvokeHandler implements InvocationHandler {
         if (CollectionUtils.isEmpty(addressInfoList)) {
             throw new RuntimeException("consumer invoke failed, addressList is empty, meta = " + JSONObject.toJSONString(consumerMeta));
         }
-        // 过滤器过滤地址（过滤器链）
+        // 过滤器责任链过滤地址
         List<String> addressList = addressInfoList.stream()
                 .map(AddressInfo::getAddress)
                 .collect(Collectors.toList());
 
         // 负载均衡策略
-        String targetProviderAddress = loadBalance.getTargetProviderAddress(addressList, consumerMeta.getLoadBalanceStrategy());
+        String targetProviderAddress = loadBalance.getTargetProviderAddress(addressList, consumerMeta.getLoadBalanceStrategy(), args);
         if (null == targetProviderAddress) {
             if (addressList.size() == 0) {
                 throw new RuntimeException("no provider available");

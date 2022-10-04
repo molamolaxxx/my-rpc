@@ -3,7 +3,7 @@ package com.mola.rpc.common.entity;
 import com.alibaba.fastjson.JSONObject;
 import com.mola.rpc.common.annotation.ConsumerSide;
 import com.mola.rpc.common.annotation.ProviderSide;
-import com.mola.rpc.common.constants.CommonConstants;
+import com.mola.rpc.common.constants.LoadBalanceConstants;
 
 import java.util.List;
 
@@ -58,7 +58,7 @@ public class RpcMetaData {
      * 负载均衡策略
      */
     @ConsumerSide
-    private String loadBalanceStrategy = CommonConstants.LOAD_BALANCE_RANDOM_STRATEGY;
+    private String loadBalanceStrategy = LoadBalanceConstants.LOAD_BALANCE_RANDOM_STRATEGY;
 
     /**
      * 服务提供者bean名称

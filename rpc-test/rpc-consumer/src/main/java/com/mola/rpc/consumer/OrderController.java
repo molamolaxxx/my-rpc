@@ -1,5 +1,6 @@
 package com.mola.rpc.consumer;
 
+import com.google.common.collect.Lists;
 import com.mola.rpc.client.Order;
 import com.mola.rpc.client.OrderService;
 import org.springframework.stereotype.Controller;
@@ -32,5 +33,10 @@ public class OrderController {
             idList.add(UUID.randomUUID().toString());
         }
         return orderService.queryOrderList("test", idList);
+    }
+
+    @GetMapping("/queryOrder")
+    public List<Order> queryOrder(@RequestParam String orderId) {
+        return orderService.queryOrderList("test", Lists.newArrayList(orderId));
     }
 }

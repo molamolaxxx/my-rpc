@@ -21,6 +21,9 @@ public class UserController {
     @Resource
     private UserService userService;
 
+    @Resource
+    private RpcConsumerConfig rpcConsumerConfig;
+
     @GetMapping("/queryUserName/{id}")
     public String queryUserName(@PathVariable String id) {
         return userService.queryUserName(id);

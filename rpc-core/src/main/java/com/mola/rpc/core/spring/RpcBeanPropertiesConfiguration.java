@@ -1,12 +1,13 @@
 package com.mola.rpc.core.spring;
 
-import com.mola.rpc.common.constants.CommonConstants;
+import com.mola.rpc.common.constants.LoadBalanceConstants;
 import com.mola.rpc.common.context.RpcContext;
 import com.mola.rpc.common.entity.RpcMetaData;
 import com.mola.rpc.core.proxy.RpcProxyInvokeHandler;
 import com.mola.rpc.core.remoting.netty.NettyConnectPool;
 import com.mola.rpc.core.remoting.netty.NettyRemoteClient;
 import com.mola.rpc.core.remoting.netty.NettyRemoteServer;
+import com.mola.rpc.core.strategy.balance.ConsistencyHashingBalance;
 import com.mola.rpc.core.strategy.balance.LoadBalance;
 import com.mola.rpc.core.strategy.balance.RandomLoadBalance;
 import com.mola.rpc.core.strategy.balance.RoundRobinBalance;
@@ -43,8 +44,9 @@ public class RpcBeanPropertiesConfiguration {
     @Bean
     public LoadBalance loadBalance() {
         LoadBalance loadBalance = new LoadBalance();
-        loadBalance.setStrategy(CommonConstants.LOAD_BALANCE_RANDOM_STRATEGY, new RandomLoadBalance());
-        loadBalance.setStrategy(CommonConstants.LOAD_BALANCE_ROUND_ROBIN_STRATEGY, new RoundRobinBalance());
+        loadBalance.setStrategy(LoadBalanceConstants.LOAD_BALANCE_RANDOM_STRATEGY, new RandomLoadBalance());
+        loadBalance.setStrategy(LoadBalanceConstants.LOAD_BALANCE_ROUND_ROBIN_STRATEGY, new RoundRobinBalance());
+        loadBalance.setStrategy(LoadBalanceConstants.CONSISTENCY_HASHING_STRATEGY, new ConsistencyHashingBalance());
         return loadBalance;
     }
 

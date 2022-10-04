@@ -8,21 +8,38 @@ package com.mola.rpc.common.constants;
  **/
 public class CommonConstants {
 
-    public static final String LOAD_BALANCE_RANDOM_STRATEGY = "RANDOM";
-
-    public static final String LOAD_BALANCE_ROUND_ROBIN_STRATEGY = "ROUND_ROBIN";
-
+    /**
+     * beanDefinition 中传递的consumer元数据
+     */
     public static final String BEAN_DEF_CONSUMER_META = "BEAN_DEF_CONSUMER_META";
 
+    /**
+     * beanDefinition 中传递的provider元数据
+     */
     public static final String BEAN_DEF_PROVIDER_META = "BEAN_DEF_PROVIDER_META";
 
+    /**
+     * 未知应用
+     */
     public static final String UNKNOWN_APP = "UNKNOWN_APP";
 
+    /**
+     * 未知环境
+     */
     public static final String UNKNOWN_ENVIRONMENT = "UNKNOWN_ENVIRONMENT";
 
+    /**
+     * zk根节点路径
+     */
     public static final String PATH_MY_RPC = "/myRpc";
 
+    /**
+     * provider节点路径
+     */
     public static final String PATH_MY_RPC_PROVIDER = "/myRpc/provider";
 
+    /**
+     * consumer节点路径
+     */
     public static final String PATH_MY_RPC_CONSUMER = "/myRpc/consumer";
 }

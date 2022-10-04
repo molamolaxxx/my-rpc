@@ -2,6 +2,7 @@ package com.mola.rpc.consumer;
 
 import com.mola.rpc.client.OrderService;
 import com.mola.rpc.common.annotation.RpcConsumer;
+import com.mola.rpc.common.constants.LoadBalanceConstants;
 import org.springframework.context.annotation.Configuration;
 
 /**
@@ -13,6 +14,6 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 public class RpcConsumerConfig {
 
-    @RpcConsumer
+    @RpcConsumer(loadBalanceStrategy = LoadBalanceConstants.CONSISTENCY_HASHING_STRATEGY)
     private OrderService orderService;
 }

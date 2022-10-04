@@ -3,7 +3,10 @@ package com.mola.rpc.provider;
 import com.mola.rpc.client.Order;
 import com.mola.rpc.client.OrderService;
 import com.mola.rpc.common.annotation.RpcProvider;
+import com.mola.rpc.core.spring.RpcProperties;
+import com.mola.rpc.core.util.NetUtils;
 
+import javax.annotation.Resource;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -16,6 +19,9 @@ import java.util.List;
 @RpcProvider(interfaceClazz = OrderService.class, inFiber = true)
 public class OrderServiceImpl implements OrderService {
 
+    @Resource
+    private RpcProperties rpcProperties;
+
     @Override
     public List<Order> queryOrderList(String code, List<String> idList) {
         List<Order> orders = new ArrayList<>();
@@ -23,7 +29,7 @@ public class OrderServiceImpl implements OrderService {
             Order order = new Order();
             order.setCode("UM1111111");
             order.setId(s);
-            order.setDesc("test");
+            order.setDesc(NetUtils.getLocalAddress().getHostAddress() + ":" + rpcProperties.getServerPort());
             orders.add(order);
         }
         return orders;
