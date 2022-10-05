@@ -92,6 +92,6 @@ public interface RpcDataManager<T extends RpcMetaData> {
      * @return
      */
     default String getRemoteProviderPath(String interfaceClazz, String group, String version, String environment) {
-        return String.format("/myRpc/provider/%s-%s-%s-%s", interfaceClazz, group, version, environment);
+        return String.format("/myRpc/provider/%s:%s:%s:%s", interfaceClazz, group, version, environment);
     }
 }

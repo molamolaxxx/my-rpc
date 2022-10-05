@@ -48,7 +48,7 @@ public class NettyServerConnectManageHandler extends ChannelDuplexHandler {
             if (evnet.state().equals(IdleState.ALL_IDLE)) {
                 final String remoteAddress = RemotingHelper.parseChannelRemoteAddr(ctx.channel());
                 // 连接空闲
-                log.error("[ServerChannelEventListener]: onChannelIdle {" + remoteAddress + "}");
+                log.warn("[ServerChannelEventListener]: onChannelIdle {" + remoteAddress + "}");
             }
         }
 

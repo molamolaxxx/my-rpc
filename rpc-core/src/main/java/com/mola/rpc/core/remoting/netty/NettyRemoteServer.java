@@ -73,12 +73,12 @@ public class NettyRemoteServer {
         });
 
         // 初始化worker，负责监听读写事件
-        this.eventLoopGroupWorker = new NioEventLoopGroup(3, new ThreadFactory() {
+        this.eventLoopGroupWorker = new NioEventLoopGroup(10, new ThreadFactory() {
             private AtomicInteger threadIndex = new AtomicInteger(0);
 
             @Override
             public Thread newThread(Runnable r) {
-                return new Thread(r, String.format("netty-worker-selector-%d-%d", 3,
+                return new Thread(r, String.format("netty-worker-selector-%d-%d", 10,
                         this.threadIndex.incrementAndGet()));
             }
         });

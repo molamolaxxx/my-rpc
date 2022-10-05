@@ -65,12 +65,11 @@ public class NettyRemoteClient {
     public NettyRemoteClient() {
         this.clientBootstrap = new Bootstrap();
         // worker 线程池
-        this.eventLoopGroupWorker = new NioEventLoopGroup(1, new ThreadFactory() {
+        this.eventLoopGroupWorker = new NioEventLoopGroup(10, new ThreadFactory() {
             private AtomicInteger threadIndex = new AtomicInteger(0);
             @Override
             public Thread newThread(Runnable r) {
-                return new Thread(r, String.format("netty-client-selector-%d",
-                        this.threadIndex.incrementAndGet()));
+                return new Thread(r, String.format("netty-client-selector-%d", this.threadIndex.incrementAndGet()));
             }
         });
     }
