@@ -60,7 +60,7 @@ public class RpcConsumerImportBeanDefinitionRegistrar implements ImportBeanDefin
                     }
                     Class<?> type = field.getType();
                     if (alreadyAddedClazzNamesSet.contains(type.getName())) {
-                        continue;
+                        throw new RuntimeException("duplicate consumer can not been register, bean name is " + field.getName());
                     }
                     BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition();
                     AbstractBeanDefinition consumerBeanDefinition = builder.getBeanDefinition();

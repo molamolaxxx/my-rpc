@@ -16,4 +16,7 @@ public class RpcConsumerConfig {
 
     @RpcConsumer(loadBalanceStrategy = LoadBalanceConstants.CONSISTENCY_HASHING_STRATEGY)
     private OrderService orderService;
+
+//    @RpcConsumer(loadBalanceStrategy = LoadBalanceConstants.CONSISTENCY_HASHING_STRATEGY)
+//    private OrderService orderService2;
 }

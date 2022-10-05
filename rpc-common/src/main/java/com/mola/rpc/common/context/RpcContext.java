@@ -17,12 +17,14 @@ public class RpcContext {
 
     /**
      * 消费者元数据
+     * @key consumer beanName
      */
     @ConsumerSide
     private Map<String, RpcMetaData> consumerMetaMap = new ConcurrentHashMap<>(256);
 
     /**
      * 服务提供者元数据
+     * @key interfaceClazzName
      */
     @ProviderSide
     private Map<String, RpcMetaData> providerMetaMap = new ConcurrentHashMap<>(256);
