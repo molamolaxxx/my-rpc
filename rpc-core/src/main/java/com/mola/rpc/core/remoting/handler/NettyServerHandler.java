@@ -44,7 +44,7 @@ public class NettyServerHandler extends SimpleChannelInboundHandler<RemotingComm
     @Override
     protected void channelRead0(ChannelHandlerContext ctx, RemotingCommand request) throws Exception {
         InvokeMethod invokeMethod = InvokeMethod.newInstance((String) BytesUtil.bytesToObject(request.getBody()));
-        RpcMetaData providerMeta = rpcContext.getProviderMeta(invokeMethod.getInterfaceClazz());
+        RpcMetaData providerMeta = rpcContext.getProviderMeta(invokeMethod.getInterfaceClazz(), request.getGroup(), request.getVersion());
         Assert.notNull(providerMeta, "providerMeta not found");
         // 反射调用服务
         this.bizProcessAsyncExecutor.process(

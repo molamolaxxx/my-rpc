@@ -26,6 +26,9 @@ public class OrderController {
     @Resource
     private OrderService orderService;
 
+    @Resource
+    private OrderService orderServiceGray;
+
     @GetMapping("/queryOrderList")
     public List<Order> queryOrderList(@RequestParam Integer time) {
         List<String> idList = new ArrayList<>();
@@ -37,6 +40,9 @@ public class OrderController {
 
     @GetMapping("/queryOrder")
     public List<Order> queryOrder(@RequestParam String orderId) {
+        if (orderId.contains("gray")) {
+            return orderServiceGray.queryOrderList("test", Lists.newArrayList(orderId));
+        }
         return orderService.queryOrderList("test", Lists.newArrayList(orderId));
     }
 }

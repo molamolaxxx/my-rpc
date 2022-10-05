@@ -39,13 +39,18 @@ public class RpcProxyInvokeHandler implements InvocationHandler {
 
     private NettyRemoteClient nettyRemoteClient;
 
+    /**
+     * 调用服务的beanName
+     */
+    private String beanName;
+
     @Override
     public Object invoke(Object obj, Method method, Object[] args) throws Throwable {
         if (Object.class.equals(method.getDeclaringClass())) {
             return method.invoke(this, args);
         }
         // 获取服务对应的元数据唯一key
-        RpcMetaData consumerMeta = rpcContext.getConsumerMeta(method.getDeclaringClass().getName());
+        RpcMetaData consumerMeta = rpcContext.getConsumerMeta(method.getDeclaringClass().getName(), beanName);
         if (null == consumerMeta) {
             throw new RuntimeException("consumer invoke failed, consumerMeta is null, clazz = " + method.getDeclaringClass().getName());
         }
@@ -68,7 +73,8 @@ public class RpcProxyInvokeHandler implements InvocationHandler {
         }
         // 构建request
         InvokeMethod invokeMethod = assemblyInvokeMethod(method, args);
-        RemotingCommand request = buildRemotingCommand(method, invokeMethod, consumerMeta.getClientTimeout(), targetProviderAddress);
+        RemotingCommand request = buildRemotingCommand(method, invokeMethod,
+                consumerMeta.getClientTimeout(), targetProviderAddress, consumerMeta);
         // 执行远程调用
         RemotingCommand response = nettyRemoteClient.syncInvoke(targetProviderAddress,
                 request, invokeMethod, consumerMeta.getClientTimeout());
@@ -91,7 +97,8 @@ public class RpcProxyInvokeHandler implements InvocationHandler {
      * @param invokeMethod 执行的方法
      * @return
      */
-    private RemotingCommand buildRemotingCommand(Method method, InvokeMethod invokeMethod, long timeout, String address) {
+    private RemotingCommand buildRemotingCommand(Method method, InvokeMethod invokeMethod,
+                                                 long timeout, String address, RpcMetaData consumerMeta) {
         RemotingCommand request = new RemotingCommand();
         // 1、构建body
         byte[] requestBody = null;
@@ -114,12 +121,14 @@ public class RpcProxyInvokeHandler implements InvocationHandler {
 
         request.setCode(RemotingCommandCode.NORMAL);
         request.setBody(requestBody);
+        request.setVersion(consumerMeta.getVersion());
+        request.setGroup(consumerMeta.getGroup());
 
         return request;
     }
 
     /**
-     * 组装InvokeMethod
+     * 组装InvokeMethodreturn beanName;
      * @return
      */
     private InvokeMethod assemblyInvokeMethod(Method method, Object[] args) {
@@ -161,5 +170,13 @@ public class RpcProxyInvokeHandler implements InvocationHandler {
 
     public void setNettyRemoteClient(NettyRemoteClient nettyRemoteClient) {
         this.nettyRemoteClient = nettyRemoteClient;
+    }
+
+    public void setBeanName(String beanName) {
+        this.beanName = beanName;
+    }
+
+    public String getBeanName() {
+        return beanName;
     }
 }

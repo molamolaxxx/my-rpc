@@ -33,26 +33,29 @@ public class RpcContext {
     @ProviderSide
     private String providerAddress;
 
-    public RpcMetaData getConsumerMeta(String consumerClazzName) {
-        if (null == consumerMetaMap || !consumerMetaMap.containsKey(consumerClazzName)) {
+    public RpcMetaData getConsumerMeta(String consumerClazzName, String beanName) {
+        String key = consumerClazzName + ":" + beanName;
+        if (null == consumerMetaMap || !consumerMetaMap.containsKey(key)) {
             return null;
         }
-        return consumerMetaMap.get(consumerClazzName);
+        return consumerMetaMap.get(key);
     }
 
-    public RpcMetaData getProviderMeta(String consumerClazzName) {
-        if (null == providerMetaMap || !providerMetaMap.containsKey(consumerClazzName)) {
+    public RpcMetaData getProviderMeta(String consumerClazzName, String group, String version) {
+        String key = consumerClazzName + ":" + group + ":" + version;
+        if (null == providerMetaMap || !providerMetaMap.containsKey(key)) {
             return null;
         }
-        return providerMetaMap.get(consumerClazzName);
+        return providerMetaMap.get(key);
     }
 
-    public void addConsumerMeta(String consumerClazzName, RpcMetaData rpcMetaData) {
-        this.consumerMetaMap.put(consumerClazzName, rpcMetaData);
+    public void addConsumerMeta(String consumerClazzName, String beanName, RpcMetaData rpcMetaData) {
+        this.consumerMetaMap.put(consumerClazzName + ":" + beanName, rpcMetaData);
     }
 
     public void addProviderMeta(String providerClazzName, RpcMetaData rpcMetaData) {
-        this.providerMetaMap.put(providerClazzName, rpcMetaData);
+        String key = providerClazzName + ":" + rpcMetaData.getGroup() + ":" + rpcMetaData.getVersion();
+        this.providerMetaMap.put(key, rpcMetaData);
     }
 
     public Map<String, RpcMetaData> getConsumerMetaMap() {

@@ -30,7 +30,16 @@ public class RemotingCommand {
      * Header 部分
      */
     private int code;
-    private int version = 0;
+
+    /**
+     * 版本
+     */
+    private String version;
+
+    /**
+     * 分组
+     */
+    private String group;
 
     /**
      * request内部标示，保证每一个r都有唯一编号对应
@@ -199,16 +208,13 @@ public class RemotingCommand {
         return RemotingCommandType.REQUEST_COMMAND;
     }
 
-
-    public int getVersion() {
+    public String getVersion() {
         return version;
     }
 
-
-    public void setVersion(int version) {
+    public void setVersion(String version) {
         this.version = version;
     }
-
 
     public int getOpaque() {
         return opaque;
@@ -270,6 +276,13 @@ public class RemotingCommand {
         extFields.put(key, value);
     }
 
+    public String getGroup() {
+        return group;
+    }
+
+    public void setGroup(String group) {
+        this.group = group;
+    }
 
     @Override
     public String toString() {

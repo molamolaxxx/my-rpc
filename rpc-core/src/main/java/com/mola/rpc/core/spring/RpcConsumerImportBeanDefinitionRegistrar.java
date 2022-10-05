@@ -27,6 +27,9 @@ import java.util.Set;
  **/
 public class RpcConsumerImportBeanDefinitionRegistrar implements ImportBeanDefinitionRegistrar {
 
+    private Set<String> consumerAlreadyAddedSet = Sets.newHashSet();
+    private Set<String> providerAlreadyAddedSet = Sets.newHashSet();
+
     @Override
     public void registerBeanDefinitions(AnnotationMetadata annotationMetadata, BeanDefinitionRegistry beanDefinitionRegistry) {
         try {
@@ -45,6 +48,11 @@ public class RpcConsumerImportBeanDefinitionRegistrar implements ImportBeanDefin
                     providerMeta.setInFiber((Boolean) annotationAttributes.get("inFiber"));
                     BeanMetadataAttribute attribute = new BeanMetadataAttribute(CommonConstants.BEAN_DEF_PROVIDER_META,providerMeta);
                     scannedGenericBeanDefinition.addMetadataAttribute(attribute);
+                    String providerKey = providerMeta.getInterfaceClazz().getName() + ":" + providerMeta.getGroup() + ":" + providerMeta.getVersion();
+                    if (providerAlreadyAddedSet.contains(providerKey)) {
+                        throw new RuntimeException("duplicate provider can not been register, key is " + providerKey);
+                    }
+                    providerAlreadyAddedSet.add(providerKey);
                 }
                 if (!metadata.getAnnotationTypes().contains(Configuration.class.getName())) {
                     continue;
@@ -52,20 +60,21 @@ public class RpcConsumerImportBeanDefinitionRegistrar implements ImportBeanDefin
                 String beanClassName = beanDefinition.getBeanClassName();
                 Class<?> clazz = Class.forName(beanClassName);
                 Field[] fields = clazz.getDeclaredFields();
-                Set<String> alreadyAddedClazzNamesSet = Sets.newHashSet();
                 for (Field field : fields) {
                     RpcConsumer annotation = field.getAnnotation(RpcConsumer.class);
                     if (null == annotation) {
                         continue;
                     }
                     Class<?> type = field.getType();
-                    if (alreadyAddedClazzNamesSet.contains(type.getName())) {
-                        throw new RuntimeException("duplicate consumer can not been register, bean name is " + field.getName());
+                    String clazzTypeNameKey = type.getName() + ":" + field.getName();
+                    if (consumerAlreadyAddedSet.contains(clazzTypeNameKey)) {
+                        throw new RuntimeException("duplicate consumer can not been register, key is " + clazzTypeNameKey);
                     }
                     BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition();
                     AbstractBeanDefinition consumerBeanDefinition = builder.getBeanDefinition();
                     consumerBeanDefinition.setBeanClass(RpcConsumerFactoryBean.class);
                     consumerBeanDefinition.getConstructorArgumentValues().addGenericArgumentValue(type);
+                    consumerBeanDefinition.getConstructorArgumentValues().addGenericArgumentValue(field.getName());
                     RpcMetaData clientMeta = RpcMetaData.of(annotation.group(), annotation.version(), type);
                     clientMeta.setClientTimeout(annotation.timeout());
                     clientMeta.setLoadBalanceStrategy(annotation.loadBalanceStrategy());
@@ -74,7 +83,7 @@ public class RpcConsumerImportBeanDefinitionRegistrar implements ImportBeanDefin
                     consumerBeanDefinition.addMetadataAttribute(attribute);
                     // 添加beanDefinition
                     beanDefinitionRegistry.registerBeanDefinition(field.getName(), consumerBeanDefinition);
-                    alreadyAddedClazzNamesSet.add(type.getName());
+                    consumerAlreadyAddedSet.add(clazzTypeNameKey);
                 }
             }
         } catch (Exception e) {

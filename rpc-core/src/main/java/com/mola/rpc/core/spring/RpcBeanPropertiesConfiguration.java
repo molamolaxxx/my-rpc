@@ -3,7 +3,6 @@ package com.mola.rpc.core.spring;
 import com.mola.rpc.common.constants.LoadBalanceConstants;
 import com.mola.rpc.common.context.RpcContext;
 import com.mola.rpc.common.entity.RpcMetaData;
-import com.mola.rpc.core.proxy.RpcProxyInvokeHandler;
 import com.mola.rpc.core.remoting.netty.NettyConnectPool;
 import com.mola.rpc.core.remoting.netty.NettyRemoteClient;
 import com.mola.rpc.core.remoting.netty.NettyRemoteServer;
@@ -63,18 +62,6 @@ public class RpcBeanPropertiesConfiguration {
         nettyRemoteClient.setRpcContext(rpcContext);
         nettyRemoteClient.start();
         return nettyRemoteClient;
-    }
-
-
-    @Bean
-    public RpcProxyInvokeHandler nettyProxyInvokeHandler(RpcContext rpcContext, LoadBalance loadBalance,
-                                                         NettyConnectPool nettyConnectPool, NettyRemoteClient nettyRemoteClient) {
-        RpcProxyInvokeHandler rpcProxyInvokeHandler = new RpcProxyInvokeHandler();
-        rpcProxyInvokeHandler.setRpcContext(rpcContext);
-        rpcProxyInvokeHandler.setLoadBalance(loadBalance);
-        rpcProxyInvokeHandler.setNettyConnectPool(nettyConnectPool);
-        rpcProxyInvokeHandler.setNettyRemoteClient(nettyRemoteClient);
-        return rpcProxyInvokeHandler;
     }
 
     @Bean

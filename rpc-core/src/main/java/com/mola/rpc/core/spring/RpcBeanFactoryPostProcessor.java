@@ -26,7 +26,7 @@ public class RpcBeanFactoryPostProcessor implements BeanFactoryPostProcessor {
                 if (null != beanDefinition.getAttribute(CommonConstants.BEAN_DEF_CONSUMER_META)) {
                     RpcMetaData rpcMetaData = (RpcMetaData) beanDefinition.getAttribute(CommonConstants.BEAN_DEF_CONSUMER_META);
                     // 初始化客户端meta
-                    rpcContext.addConsumerMeta(rpcMetaData.getInterfaceClazz().getName(), rpcMetaData);
+                    rpcContext.addConsumerMeta(rpcMetaData.getInterfaceClazz().getName(), beanDefinitionName, rpcMetaData);
                 } else if (null != beanDefinition.getAttribute(CommonConstants.BEAN_DEF_PROVIDER_META)) {
                     // 初始化服务端meta
                     RpcMetaData rpcMetaData = (RpcMetaData) beanDefinition.getAttribute(CommonConstants.BEAN_DEF_PROVIDER_META);
