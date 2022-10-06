@@ -35,7 +35,7 @@ public class Async<T> {
      * 注册监听器
      * @param consumer
      */
-    public void register(Consumer<T> consumer) {
+    public void consume(Consumer<T> consumer) {
         try {
             AsyncResponseFuture<T> responseFuture = asyncFutureThreadLocal.get();
             Assert.notNull(responseFuture, "responseFuture is null");

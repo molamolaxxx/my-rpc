@@ -44,7 +44,7 @@ public class OrderController {
     public List<Order> queryOrder(@RequestParam String orderId) {
         if (orderId.contains("gray")) {
             Async.from(orderServiceGray.queryOrderList("test", Lists.newArrayList(orderId)))
-                    .register(list -> {
+                    .consume(list -> {
                         System.out.println(JSONObject.toJSONString(list) + ":" + Thread.currentThread().getName());
                     });
         }
@@ -54,7 +54,7 @@ public class OrderController {
     @GetMapping("/queryOrderAsync")
     public List<Order> queryOrderAsync(@RequestParam String orderId) {
         Async.from(orderServiceGray.queryOrderList("test", Lists.newArrayList(orderId)))
-                .register(list -> {
+                .consume(list -> {
                     System.out.println(Thread.currentThread());
                     System.out.println(JSONObject.toJSONString(list));
                 });
