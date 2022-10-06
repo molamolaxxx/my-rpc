@@ -1,8 +1,10 @@
 package com.mola.rpc.consumer;
 
+import com.alibaba.fastjson.JSONObject;
 import com.google.common.collect.Lists;
 import com.mola.rpc.client.Order;
 import com.mola.rpc.client.OrderService;
+import com.mola.rpc.core.remoting.Async;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -41,8 +43,21 @@ public class OrderController {
     @GetMapping("/queryOrder")
     public List<Order> queryOrder(@RequestParam String orderId) {
         if (orderId.contains("gray")) {
-            return orderServiceGray.queryOrderList("test", Lists.newArrayList(orderId));
+            Async.from(orderServiceGray.queryOrderList("test", Lists.newArrayList(orderId)))
+                    .register(list -> {
+                        System.out.println(JSONObject.toJSONString(list) + ":" + Thread.currentThread().getName());
+                    });
         }
-        return orderService.queryOrderList("test", Lists.newArrayList(orderId));
+        return orderServiceGray.queryOrderList("test", Lists.newArrayList(orderId));
+    }
+
+    @GetMapping("/queryOrderAsync")
+    public List<Order> queryOrderAsync(@RequestParam String orderId) {
+        Async.from(orderServiceGray.queryOrderList("test", Lists.newArrayList(orderId)))
+                .register(list -> {
+                    System.out.println(Thread.currentThread());
+                    System.out.println(JSONObject.toJSONString(list));
+                });
+        return Lists.newArrayList();
     }
 }

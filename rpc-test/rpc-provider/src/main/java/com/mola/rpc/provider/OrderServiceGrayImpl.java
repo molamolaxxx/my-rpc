@@ -24,6 +24,11 @@ public class OrderServiceGrayImpl implements OrderService {
     @Override
     public List<Order> queryOrderList(String code, List<String> idList) {
         List<Order> orders = new ArrayList<>();
+        try {
+            Thread.sleep(6000);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
         for (String s : idList) {
             Order order = new Order();
             order.setCode("UM1111111");

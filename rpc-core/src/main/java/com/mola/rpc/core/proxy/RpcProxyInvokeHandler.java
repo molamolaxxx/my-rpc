@@ -4,6 +4,8 @@ import com.alibaba.fastjson.JSONObject;
 import com.mola.rpc.common.entity.AddressInfo;
 import com.mola.rpc.common.context.RpcContext;
 import com.mola.rpc.common.entity.RpcMetaData;
+import com.mola.rpc.core.remoting.Async;
+import com.mola.rpc.core.remoting.AsyncResponseFuture;
 import com.mola.rpc.core.remoting.netty.NettyConnectPool;
 import com.mola.rpc.core.remoting.netty.NettyRemoteClient;
 import com.mola.rpc.core.remoting.protocol.RemotingCommand;
@@ -19,6 +21,7 @@ import org.springframework.util.CollectionUtils;
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
@@ -73,11 +76,14 @@ public class RpcProxyInvokeHandler implements InvocationHandler {
         }
         // 构建request
         InvokeMethod invokeMethod = assemblyInvokeMethod(method, args);
-        RemotingCommand request = buildRemotingCommand(method, invokeMethod,
-                consumerMeta.getClientTimeout(), targetProviderAddress, consumerMeta);
+        RemotingCommand request = buildRemotingCommand(method, invokeMethod, consumerMeta.getClientTimeout(), targetProviderAddress, consumerMeta);
         // 执行远程调用
-        RemotingCommand response = nettyRemoteClient.syncInvoke(targetProviderAddress,
-                request, invokeMethod, consumerMeta.getClientTimeout());
+        if (isAsyncExecute(consumerMeta, method)) {
+            AsyncResponseFuture asyncResponseFuture = nettyRemoteClient.asyncInvoke(targetProviderAddress, request, invokeMethod, method);
+            Async.addFuture(asyncResponseFuture);
+            return null;
+        }
+        RemotingCommand response = nettyRemoteClient.syncInvoke(targetProviderAddress, request, invokeMethod, consumerMeta.getClientTimeout());
         // 服务端执行异常
         if (response.getCode() == RemotingCommandCode.SYSTEM_ERROR) {
             throw new RuntimeException(response.getRemark());
@@ -125,6 +131,22 @@ public class RpcProxyInvokeHandler implements InvocationHandler {
         request.setGroup(consumerMeta.getGroup());
 
         return request;
+    }
+
+    /**
+     * 是否异步执行
+     * @param consumerMeta
+     * @return
+     */
+    private Boolean isAsyncExecute(RpcMetaData consumerMeta, Method method) {
+        Set<String> asyncExecuteMethods = consumerMeta.getAsyncExecuteMethods();
+        if (CollectionUtils.isEmpty(asyncExecuteMethods)) {
+            return Boolean.FALSE;
+        }
+        if (asyncExecuteMethods.contains("*") || asyncExecuteMethods.contains(method.getName())) {
+            return Boolean.TRUE;
+        }
+        return Boolean.FALSE;
     }
 
     /**

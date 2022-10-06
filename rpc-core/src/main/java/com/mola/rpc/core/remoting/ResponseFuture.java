@@ -15,31 +15,21 @@ public class ResponseFuture {
     private volatile boolean sendRequestOK = true;
     private volatile Throwable cause;
     private final int opaque;
-    private final long timeoutMillis;
     private final long beginTimestamp = System.currentTimeMillis();
 
-    // 用于监听response的发令枪
+    /**
+     * 用于监听response的发令枪
+     */
     private final CountDownLatch countDownLatch = new CountDownLatch(1);
-
 
     /**
      * 保证回调的callback方法至多至少只被执行一次
      */
     private final AtomicBoolean executeCallbackOnlyOnce = new AtomicBoolean(false);
 
-
-    public ResponseFuture(int opaque, long timeoutMillis) {
+    public ResponseFuture(int opaque) {
         this.opaque = opaque;
-        this.timeoutMillis = timeoutMillis;
     }
-
-
-
-    public boolean isTimeout() {
-        long diff = System.currentTimeMillis() - this.beginTimestamp;
-        return diff > this.timeoutMillis;
-    }
-
 
     public RemotingCommand waitResponse(final long timeoutMillis) throws InterruptedException {
         this.countDownLatch.await(timeoutMillis, TimeUnit.MILLISECONDS);
@@ -51,7 +41,6 @@ public class ResponseFuture {
         this.responseCommand = responseCommand;
         this.countDownLatch.countDown();
     }
-
 
     public long getBeginTimestamp() {
         return beginTimestamp;
@@ -65,11 +54,6 @@ public class ResponseFuture {
 
     public void setSendRequestOK(boolean sendRequestOK) {
         this.sendRequestOK = sendRequestOK;
-    }
-
-
-    public long getTimeoutMillis() {
-        return timeoutMillis;
     }
 
 
@@ -101,7 +85,7 @@ public class ResponseFuture {
     @Override
     public String toString() {
         return "ResponseFuture [responseCommand=" + responseCommand + ", sendRequestOK=" + sendRequestOK
-                + ", cause=" + cause + ", opaque=" + opaque + ", timeoutMillis=" + timeoutMillis
+                + ", cause=" + cause + ", opaque=" + opaque
                 + ", beginTimestamp=" + beginTimestamp
                 + ", countDownLatch=" + countDownLatch + "]";
     }

@@ -78,6 +78,7 @@ public class RpcConsumerImportBeanDefinitionRegistrar implements ImportBeanDefin
                     RpcMetaData clientMeta = RpcMetaData.of(annotation.group(), annotation.version(), type);
                     clientMeta.setClientTimeout(annotation.timeout());
                     clientMeta.setLoadBalanceStrategy(annotation.loadBalanceStrategy());
+                    clientMeta.setAsyncExecuteMethods(Sets.newHashSet(annotation.asyncMethods()));
                     BeanMetadataAttribute attribute = new BeanMetadataAttribute(CommonConstants.BEAN_DEF_CONSUMER_META,
                             clientMeta);
                     consumerBeanDefinition.addMetadataAttribute(attribute);

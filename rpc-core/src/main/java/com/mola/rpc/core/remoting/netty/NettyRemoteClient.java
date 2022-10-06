@@ -3,6 +3,7 @@ package com.mola.rpc.core.remoting.netty;
 import com.alibaba.fastjson.JSONObject;
 import com.mola.rpc.common.context.RpcContext;
 import com.mola.rpc.core.proxy.InvokeMethod;
+import com.mola.rpc.core.remoting.AsyncResponseFuture;
 import com.mola.rpc.core.remoting.ResponseFuture;
 import com.mola.rpc.core.remoting.handler.NettyClientHandler;
 import com.mola.rpc.core.remoting.handler.NettyDecoder;
@@ -21,6 +22,7 @@ import io.netty.util.concurrent.DefaultEventExecutorGroup;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.lang.reflect.Method;
 import java.net.SocketAddress;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -57,10 +59,16 @@ public class NettyRemoteClient {
     private RpcContext rpcContext;
 
     /**
-     * 缓存对外所有请求
+     * 缓存对外所有同步请求
      * opaque -> ResponseFuture
      */
     protected final Map<Integer, ResponseFuture> responseMap = new ConcurrentHashMap<>(256);
+
+    /**
+     * 缓存对外所有异步请求
+     * opaque -> ResponseFuture
+     */
+    protected final Map<Integer, AsyncResponseFuture> asyncResponseMap = new ConcurrentHashMap<>(256);
 
     public NettyRemoteClient() {
         this.clientBootstrap = new Bootstrap();
@@ -87,7 +95,7 @@ public class NettyRemoteClient {
                     AtomicInteger threadIndex = new AtomicInteger(0);
                     @Override
                     public Thread newThread(Runnable r) {
-                        return new Thread(r, "netty-server-worker-thread-" + this.threadIndex.incrementAndGet());
+                        return new Thread(r, "netty-client-worker-thread-" + this.threadIndex.incrementAndGet());
                     }
                 }
         );
@@ -174,7 +182,7 @@ public class NettyRemoteClient {
                 this.closeChannel(address, channel);
                 throw new RuntimeException("channel is exception, address = " + address);
             }
-            ResponseFuture responseFuture = new ResponseFuture(request.getOpaque(), timeout);
+            ResponseFuture responseFuture = new ResponseFuture(request.getOpaque());
             // 缓存对外请求
             this.responseMap.put(request.getOpaque(), responseFuture);
             // 写入channel
@@ -214,6 +222,50 @@ public class NettyRemoteClient {
         }
     }
 
+
+    /**
+     * 异步调用远程服务
+     * @param address
+     * @param request
+     * @return
+     */
+    public AsyncResponseFuture asyncInvoke(String address, RemotingCommand request, InvokeMethod invokeMethod, Method method) {
+        try {
+            Channel channel = nettyConnectPool.getChannel(address);
+            if (null == channel) {
+                channel = createChannel(address);
+            }
+            // 连接有问题，关闭连接，抛出异常
+            if (null == channel || !channel.isActive()) {
+                this.closeChannel(address, channel);
+                throw new RuntimeException("channel is exception, address = " + address);
+            }
+            AsyncResponseFuture responseFuture = new AsyncResponseFuture(request.getOpaque());
+            responseFuture.setMethod(method);
+            // 缓存对外请求
+            this.asyncResponseMap.put(request.getOpaque(), responseFuture);
+            // 写入channel
+            final SocketAddress remoteAddress = channel.remoteAddress();
+            channel.writeAndFlush(request).addListener(future -> {
+                // 调用成功
+                if (future.isSuccess()) {
+                    responseFuture.setSendRequestOK(true);
+                    return;
+                }
+                // 调用失败
+                responseFuture.setSendRequestOK(false);
+                asyncResponseMap.remove(request.getOpaque());
+                responseFuture.setCause(future.cause());
+                responseFuture.putResponse(null);
+                log.warn("send a request command to channel <" + remoteAddress + "> failed. request = " + request);
+            });
+            return responseFuture;
+        } catch (Exception e) {
+            log.warn("asyncInvoke failed remote host[{" + address + "}], request" + request , e);
+            throw new RuntimeException(e);
+        }
+    }
+
     /**
      * 关闭channel，从缓存中移除wrapper
      * @param address
@@ -246,8 +298,18 @@ public class NettyRemoteClient {
      * @param responseCommand
      */
     public void putResponse(RemotingCommand responseCommand) {
+        // 同步缓存
         ResponseFuture responseFuture = responseMap.get(responseCommand.getOpaque());
-        responseFuture.putResponse(responseCommand);
+        if (null != responseFuture) {
+            responseFuture.putResponse(responseCommand);
+            return;
+        }
+        // 异步缓存
+        AsyncResponseFuture asyncResponseFuture = asyncResponseMap.get(responseCommand.getOpaque());
+        if (null != asyncResponseFuture) {
+            asyncResponseFuture.putResponse(responseCommand);
+            asyncResponseMap.remove(responseCommand.getOpaque());
+        }
     }
 
     public RpcContext getRpcContext() {

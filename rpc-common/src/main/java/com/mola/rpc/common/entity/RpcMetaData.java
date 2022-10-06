@@ -6,6 +6,7 @@ import com.mola.rpc.common.annotation.ProviderSide;
 import com.mola.rpc.common.constants.LoadBalanceConstants;
 
 import java.util.List;
+import java.util.Set;
 
 /**
  * @author : molamola
@@ -71,6 +72,12 @@ public class RpcMetaData {
      */
     @ProviderSide
     private String providerBeanClazz;
+
+    /**
+     * 异步调用方法
+     */
+    @ConsumerSide
+    private Set<String> asyncExecuteMethods;
 
 
     public static RpcMetaData of(String group, String version, Class<?> clazzType) {
@@ -151,6 +158,14 @@ public class RpcMetaData {
 
     public void setInFiber(Boolean inFiber) {
         this.inFiber = inFiber;
+    }
+
+    public Set<String> getAsyncExecuteMethods() {
+        return asyncExecuteMethods;
+    }
+
+    public void setAsyncExecuteMethods(Set<String> asyncExecuteMethods) {
+        this.asyncExecuteMethods = asyncExecuteMethods;
     }
 
     @Override
