@@ -25,7 +25,7 @@ public class OrderServiceGrayImpl implements OrderService {
     public List<Order> queryOrderList(String code, List<String> idList) {
         List<Order> orders = new ArrayList<>();
         try {
-            Thread.sleep(2000);
+            Thread.sleep(3000);
         } catch (InterruptedException e) {
             e.printStackTrace();
         }

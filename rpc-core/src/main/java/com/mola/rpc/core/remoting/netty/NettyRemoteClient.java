@@ -229,7 +229,7 @@ public class NettyRemoteClient {
      * @param request
      * @return
      */
-    public AsyncResponseFuture asyncInvoke(String address, RemotingCommand request, InvokeMethod invokeMethod, Method method) {
+    public AsyncResponseFuture asyncInvoke(String address, RemotingCommand request, InvokeMethod invokeMethod, Method method, long timeout) {
         try {
             Channel channel = nettyConnectPool.getChannel(address);
             if (null == channel) {
@@ -240,7 +240,7 @@ public class NettyRemoteClient {
                 this.closeChannel(address, channel);
                 throw new RuntimeException("channel is exception, address = " + address);
             }
-            AsyncResponseFuture responseFuture = new AsyncResponseFuture(request.getOpaque());
+            AsyncResponseFuture responseFuture = new AsyncResponseFuture(request.getOpaque(), timeout);
             responseFuture.setMethod(method);
             // 缓存对外请求
             this.asyncResponseMap.put(request.getOpaque(), responseFuture);

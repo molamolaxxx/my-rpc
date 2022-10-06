@@ -45,11 +45,11 @@ public class Async<T> {
         }
     }
 
-    public T sync(long timeout) {
+    public T get() {
         try {
             AsyncResponseFuture<T> responseFuture = asyncFutureThreadLocal.get();
             Assert.notNull(responseFuture, "responseFuture is null");
-            return responseFuture.get(timeout);
+            return responseFuture.get();
         } catch (InterruptedException e) {
             throw new RuntimeException(e);
         } finally {

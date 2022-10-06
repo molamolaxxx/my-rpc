@@ -15,7 +15,7 @@ public @interface RpcConsumer {
 
     String group() default "default";
 
-    long timeout() default 3000L;
+    long timeout() default 10000L;
 
     String loadBalanceStrategy() default LoadBalanceConstants.LOAD_BALANCE_RANDOM_STRATEGY;
 

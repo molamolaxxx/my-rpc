@@ -23,8 +23,11 @@ public class AsyncResponseFuture<T> extends ResponseFuture{
      */
     private Method method;
 
-    public AsyncResponseFuture(int opaque) {
+    private long timeout;
+
+    public AsyncResponseFuture(int opaque, long timeout) {
         super(opaque);
+        this.timeout = timeout;
     }
 
     @Override
@@ -38,8 +41,11 @@ public class AsyncResponseFuture<T> extends ResponseFuture{
         }
     }
 
-    public T get(long timeout) throws InterruptedException {
-        RemotingCommand remotingCommand = super.waitResponse(timeout);
+    public T get() throws InterruptedException {
+        RemotingCommand remotingCommand = getResponseCommand();
+        if (null == getResponseCommand()) {
+            remotingCommand = super.waitResponse(timeout);
+        }
         // response转换成对象
         String body = (String) BytesUtil.bytesToObject(remotingCommand.getBody());
         Object res = RemotingSerializableUtil.fromJson(body, method.getReturnType());
@@ -52,5 +58,9 @@ public class AsyncResponseFuture<T> extends ResponseFuture{
 
     public void setMethod(Method method) {
         this.method = method;
+    }
+
+    public void setTimeout(long timeout) {
+        this.timeout = timeout;
     }
 }
