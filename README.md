@@ -10,11 +10,11 @@ https://github.com/molamolaxxx/my-rpc
 
 #### 1、rpc结构图
 
-![image-20221005114124660](/home/mola/.config/Typora/typora-user-images/image-20221005114124660.png)
+![image-20221005114124660](https://raw.githubusercontent.com/molamolaxxx/my-img/master/image-20221005114124660.png)
 
 #### 2、代码结构图
 
-![image-20221005115155479](/home/mola/.config/Typora/typora-user-images/image-20221005115155479.png)
+![image-20221005115155479](https://raw.githubusercontent.com/molamolaxxx/my-img/master/image-20221005115155479.png)
 
 ## 二、功能拆解和实现
 
@@ -178,7 +178,7 @@ public Object invoke(Object obj, Method method, Object[] args) throws Throwable 
 - round robin
 - 一致性hash算法
 
-![image-20221005120116566](/home/mola/.config/Typora/typora-user-images/image-20221005120116566.png)
+![image-20221005120116566](https://raw.githubusercontent.com/molamolaxxx/my-img/master/image-20221005120116566.png)
 
 #后代表虚拟节点，默认为每个地址分配10个虚拟节点
 
@@ -239,13 +239,13 @@ private void rebuildHash(List<String> addressList) {
 
 #### 3、网络模型
 
-![image-20221005145943988](/home/mola/.config/Typora/typora-user-images/image-20221005145943988.png)
+![image-20221005145943988](https://raw.githubusercontent.com/molamolaxxx/my-img/master/image-20221005145943988.png)
 
 采用基于reactor模式的netty框架实现，客户端使用worker-pipeline线程模型，服务端使用boss-worker-pipeline-biz线程模型
 
 #### 4、协议与序列化
 
-![image-20221005153253534](/home/mola/.config/Typora/typora-user-images/image-20221005153253534.png)
+![image-20221005153253534](https://raw.githubusercontent.com/molamolaxxx/my-img/master/image-20221005153253534.png)
 
 tcp连接存在分包粘包的问题，所以需要通过报文头（header）和报文体（body）划分数据报
 
@@ -314,7 +314,7 @@ public class InvokeMethod {
 
 consumer中看似同步的调用其实是异步的网络请求，但是需要给用户看上去是同步的调用（非用户使用异步的场景下），发送请求的同时，需要阻塞线程等待返回
 
-![image-20221005155430801](/home/mola/.config/Typora/typora-user-images/image-20221005155430801.png)
+![image-20221005155430801](https://raw.githubusercontent.com/molamolaxxx/my-img/master/image-20221005155430801.png)
 
 在客户端发送请求的同时，生成一个ResponseFuture，并以opaqueId为key存储在map中
 
