@@ -100,7 +100,7 @@ public class ZkRpcDataManager implements RpcDataManager<RpcMetaData> {
         if (StringUtils.isEmpty(address)) {
             return;
         }
-        ProviderConfigData providerConfigData = ProviderConfigData.create(appName);
+        ProviderConfigData providerConfigData = ProviderConfigData.create(appName, providerMetaData.getHost());
         String childPath = remoteProviderParentPath + "/" + address;
         if (!zkClient.exists(childPath)) {
             zkClient.create(childPath, providerConfigData.toString(), CreateMode.EPHEMERAL);

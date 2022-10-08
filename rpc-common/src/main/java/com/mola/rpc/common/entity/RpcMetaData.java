@@ -79,6 +79,9 @@ public class RpcMetaData {
     @ConsumerSide
     private Set<String> asyncExecuteMethods;
 
+    @ProviderSide
+    private String host;
+
 
     public static RpcMetaData of(String group, String version, Class<?> clazzType) {
         RpcMetaData rpcMetaData = new RpcMetaData();
@@ -166,6 +169,14 @@ public class RpcMetaData {
 
     public void setAsyncExecuteMethods(Set<String> asyncExecuteMethods) {
         this.asyncExecuteMethods = asyncExecuteMethods;
+    }
+
+    public void setHost(String host) {
+        this.host = host;
+    }
+
+    public String getHost() {
+        return host;
     }
 
     @Override

@@ -20,10 +20,16 @@ public class ProviderConfigData {
      */
     private Long providerLastHeartBeatTime;
 
-    public static ProviderConfigData create(String appName) {
+    /**
+     * 服务ip所在域名
+     */
+    private String host;
+
+    public static ProviderConfigData create(String appName, String host) {
         ProviderConfigData providerConfigData = new ProviderConfigData();
         providerConfigData.appName = appName;
         providerConfigData.providerLastHeartBeatTime = System.currentTimeMillis();
+        providerConfigData.host = host;
         return providerConfigData;
     }
 
@@ -41,6 +47,14 @@ public class ProviderConfigData {
 
     public void setProviderLastHeartBeatTime(Long providerLastHeartBeatTime) {
         this.providerLastHeartBeatTime = providerLastHeartBeatTime;
+    }
+
+    public String getHost() {
+        return host;
+    }
+
+    public void setHost(String host) {
+        this.host = host;
     }
 
     @Override
