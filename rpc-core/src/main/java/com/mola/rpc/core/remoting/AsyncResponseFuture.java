@@ -46,6 +46,9 @@ public class AsyncResponseFuture<T> extends ResponseFuture{
         if (null == getResponseCommand()) {
             remotingCommand = super.waitResponse(timeout);
         }
+        if (null == remotingCommand) {
+            return null;
+        }
         // response转换成对象
         String body = (String) BytesUtil.bytesToObject(remotingCommand.getBody());
         Object res = RemotingSerializableUtil.fromJson(body, method.getReturnType());

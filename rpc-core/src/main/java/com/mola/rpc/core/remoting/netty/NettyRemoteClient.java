@@ -24,8 +24,6 @@ import org.slf4j.LoggerFactory;
 
 import java.lang.reflect.Method;
 import java.net.SocketAddress;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -54,21 +52,15 @@ public class NettyRemoteClient {
      */
     private DefaultEventExecutorGroup defaultEventExecutorGroup;
 
+    /**
+     * 响应回调管理
+     */
+    private ResponseFutureManager responseFutureManager;
+
     private NettyConnectPool nettyConnectPool;
 
     private RpcContext rpcContext;
 
-    /**
-     * 缓存对外所有同步请求
-     * opaque -> ResponseFuture
-     */
-    protected final Map<Integer, ResponseFuture> responseMap = new ConcurrentHashMap<>(256);
-
-    /**
-     * 缓存对外所有异步请求
-     * opaque -> ResponseFuture
-     */
-    protected final Map<Integer, AsyncResponseFuture> asyncResponseMap = new ConcurrentHashMap<>(256);
 
     public NettyRemoteClient() {
         this.clientBootstrap = new Bootstrap();
@@ -80,6 +72,8 @@ public class NettyRemoteClient {
                 return new Thread(r, String.format("netty-client-selector-%d", this.threadIndex.incrementAndGet()));
             }
         });
+        this.responseFutureManager = new ResponseFutureManager();
+        this.responseFutureManager.initResponseFutureMonitor();
     }
 
     public void start() {
@@ -184,7 +178,7 @@ public class NettyRemoteClient {
             }
             ResponseFuture responseFuture = new ResponseFuture(request.getOpaque());
             // 缓存对外请求
-            this.responseMap.put(request.getOpaque(), responseFuture);
+            this.responseFutureManager.putSyncResponseFuture(request.getOpaque(), responseFuture);
             // 写入channel
             final SocketAddress remoteAddress = channel.remoteAddress();
             channel.writeAndFlush(request).addListener(future -> {
@@ -195,7 +189,7 @@ public class NettyRemoteClient {
                 }
                 // 调用失败
                 responseFuture.setSendRequestOK(false);
-                responseMap.remove(request.getOpaque());
+                this.responseFutureManager.removeSyncResponseFuture(request.getOpaque());
                 responseFuture.setCause(future.cause());
                 responseFuture.putResponse(null);
                 log.warn("send a request command to channel <" + remoteAddress + "> failed. request = " + request);
@@ -218,7 +212,7 @@ public class NettyRemoteClient {
             log.warn("syncInvoke failed remote host[{" + address + "}], request" + request , e);
             throw new RuntimeException(e);
         } finally {
-            this.responseMap.remove(request.getOpaque());
+            this.responseFutureManager.removeSyncResponseFuture(request.getOpaque());
         }
     }
 
@@ -243,7 +237,7 @@ public class NettyRemoteClient {
             AsyncResponseFuture responseFuture = new AsyncResponseFuture(request.getOpaque(), timeout);
             responseFuture.setMethod(method);
             // 缓存对外请求
-            this.asyncResponseMap.put(request.getOpaque(), responseFuture);
+            this.responseFutureManager.putAsyncResponseFuture(request.getOpaque(), responseFuture);
             // 写入channel
             final SocketAddress remoteAddress = channel.remoteAddress();
             channel.writeAndFlush(request).addListener(future -> {
@@ -254,7 +248,7 @@ public class NettyRemoteClient {
                 }
                 // 调用失败
                 responseFuture.setSendRequestOK(false);
-                asyncResponseMap.remove(request.getOpaque());
+                this.responseFutureManager.removeAsyncResponseFuture(request.getOpaque());
                 responseFuture.setCause(future.cause());
                 responseFuture.putResponse(null);
                 log.warn("send a request command to channel <" + remoteAddress + "> failed. request = " + request);
@@ -299,16 +293,16 @@ public class NettyRemoteClient {
      */
     public void putResponse(RemotingCommand responseCommand) {
         // 同步缓存
-        ResponseFuture responseFuture = responseMap.get(responseCommand.getOpaque());
+        ResponseFuture responseFuture = this.responseFutureManager.getSyncResponseFuture(responseCommand.getOpaque());
         if (null != responseFuture) {
             responseFuture.putResponse(responseCommand);
             return;
         }
         // 异步缓存
-        AsyncResponseFuture asyncResponseFuture = asyncResponseMap.get(responseCommand.getOpaque());
+        AsyncResponseFuture asyncResponseFuture = this.responseFutureManager.getAsyncResponseFuture(responseCommand.getOpaque());
         if (null != asyncResponseFuture) {
             asyncResponseFuture.putResponse(responseCommand);
-            asyncResponseMap.remove(responseCommand.getOpaque());
+            this.responseFutureManager.removeAsyncResponseFuture(responseCommand.getOpaque());
         }
     }
 

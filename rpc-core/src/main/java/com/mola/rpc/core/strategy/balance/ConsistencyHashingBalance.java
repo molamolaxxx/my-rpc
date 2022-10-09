@@ -21,9 +21,9 @@ public class ConsistencyHashingBalance implements LoadBalanceStrategy {
     private SortedMap<Integer, String> virtualAddressNodeMap = new TreeMap<>();
 
     /**
-     * 虚拟节点个数
+     * 总虚拟节点个数
      */
-    private static final int VIRTUAL_NODE_NUM = 10;
+    private static final int TOTAL_VIRTUAL_NODE_NUM = 1500;
 
     private Set<String> addressSet = Sets.newHashSet();
 
@@ -73,11 +73,12 @@ public class ConsistencyHashingBalance implements LoadBalanceStrategy {
             }
             addressSet = new HashSet<>(addressList.size());
             virtualAddressNodeMap = new TreeMap<>();
+            int totalNodeNum = TOTAL_VIRTUAL_NODE_NUM / addressList.size();
             for (String address : addressList) {
                 if (addressSet.contains(address)) {
                     continue;
                 }
-                for (int i = 0; i < VIRTUAL_NODE_NUM; i++) {
+                for (int i = 0; i < totalNodeNum; i++) {
                     String virtualAddress = String.format("%s#%s", address, UUID.randomUUID());
                     virtualAddressNodeMap.put(getHash(virtualAddress), virtualAddress);
                 }

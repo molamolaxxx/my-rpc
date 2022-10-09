@@ -1,6 +1,6 @@
 # my-rpc
 my-rpc is a rpc framework based on netty
- 
+
 
 # My-Rpc原理解析
 
@@ -210,8 +210,8 @@ public String getTargetProviderAddress(List<String> addressList, String strategy
 }
 
 /**
-* 重建hash索引
-* @param addressList
+ * 重建hash索引
+ * @param addressList
 */
 private void rebuildHash(List<String> addressList) {
     rebuildHashLock.lock();
@@ -221,14 +221,15 @@ private void rebuildHash(List<String> addressList) {
         }
         addressSet = new HashSet<>(addressList.size());
         virtualAddressNodeMap = new TreeMap<>();
+        int totalNodeNum = TOTAL_VIRTUAL_NODE_NUM / addressList.size();
         for (String address : addressList) {
             if (addressSet.contains(address)) {
                 continue;
             }
-            for (int i = 0; i < VIRTUAL_NODE_NUM; i++) {
+            for (int i = 0; i < totalNodeNum; i++) {
                 String virtualAddress = String.format("%s#%s", address, UUID.randomUUID());
                 virtualAddressNodeMap.put(getHash(virtualAddress), virtualAddress);
-            }mox
+            }
             addressSet.add(address);
         }
     } finally {
