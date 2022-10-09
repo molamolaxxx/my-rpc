@@ -67,7 +67,7 @@ public class RpcProxyInvokeHandler implements InvocationHandler {
                 .collect(Collectors.toList());
 
         // 负载均衡策略
-        String targetProviderAddress = loadBalance.getTargetProviderAddress(addressList, consumerMeta.getLoadBalanceStrategy(), args);
+        String targetProviderAddress = loadBalance.getTargetProviderAddress(consumerMeta, args);
         if (null == targetProviderAddress) {
             if (addressList.size() == 0) {
                 throw new RuntimeException("no provider available");

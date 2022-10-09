@@ -61,8 +61,6 @@ public class OrderController {
         long start = System.currentTimeMillis();
         Async<List<Order>> async = Async.from(orderServiceGray.queryOrderList("test", Lists.newArrayList(orderId)));
         System.out.println(System.currentTimeMillis() - start);
-        Thread.sleep(5000);
-        System.out.println(System.currentTimeMillis() - start);
         List<Order> orders = async.get();
         System.out.println(System.currentTimeMillis() - start);
         return orders;

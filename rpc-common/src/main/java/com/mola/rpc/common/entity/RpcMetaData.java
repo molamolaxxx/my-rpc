@@ -7,6 +7,8 @@ import com.mola.rpc.common.constants.LoadBalanceConstants;
 
 import java.util.List;
 import java.util.Set;
+import java.util.SortedMap;
+import java.util.TreeMap;
 
 /**
  * @author : molamola
@@ -81,6 +83,13 @@ public class RpcMetaData {
 
     @ProviderSide
     private String host;
+
+    /**
+     * 哈希环，hash => ip#idx
+     * 用于负载均衡
+     */
+    @ConsumerSide
+    private SortedMap<Integer, String> virtualAddressNodeMap = new TreeMap<>();
 
 
     public static RpcMetaData of(String group, String version, Class<?> clazzType) {
@@ -182,5 +191,13 @@ public class RpcMetaData {
     @Override
     public String toString() {
         return JSONObject.toJSONString(this);
+    }
+
+    public SortedMap<Integer, String> getVirtualAddressNodeMap() {
+        return virtualAddressNodeMap;
+    }
+
+    public void setVirtualAddressNodeMap(SortedMap<Integer, String> virtualAddressNodeMap) {
+        this.virtualAddressNodeMap = virtualAddressNodeMap;
     }
 }

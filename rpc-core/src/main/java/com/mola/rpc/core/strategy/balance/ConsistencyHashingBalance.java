@@ -1,11 +1,18 @@
 package com.mola.rpc.core.strategy.balance;
 
 import com.alibaba.fastjson.JSONObject;
-import com.google.common.collect.Sets;
+import com.mola.rpc.common.constants.LoadBalanceConstants;
+import com.mola.rpc.common.entity.AddressInfo;
+import com.mola.rpc.common.entity.RpcMetaData;
+import com.mola.rpc.data.config.listener.AddressChangeListener;
+import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
 
-import java.util.*;
-import java.util.concurrent.locks.ReentrantLock;
+import java.util.List;
+import java.util.SortedMap;
+import java.util.TreeMap;
+import java.util.UUID;
+import java.util.stream.Collectors;
 
 /**
  * @author : molamola
@@ -13,31 +20,17 @@ import java.util.concurrent.locks.ReentrantLock;
  * @Description: 哈希一致性负载均衡
  * @date : 2022-10-04 12:29
  **/
-public class ConsistencyHashingBalance implements LoadBalanceStrategy {
-
-    /**
-     * 哈希环，hash => ip#idx
-     */
-    private SortedMap<Integer, String> virtualAddressNodeMap = new TreeMap<>();
+public class ConsistencyHashingBalance implements LoadBalanceStrategy, AddressChangeListener {
 
     /**
      * 总虚拟节点个数
      */
-    private static final int TOTAL_VIRTUAL_NODE_NUM = 1500;
-
-    private Set<String> addressSet = Sets.newHashSet();
-
-    /**
-     * 重建hash索引的锁
-     */
-    private ReentrantLock rebuildHashLock = new ReentrantLock();
+    private static final int TOTAL_VIRTUAL_NODE_NUM = 1000;
 
     @Override
-    public String getTargetProviderAddress(List<String> addressList, String strategyName, Object[] args) {
-        if (needRebuildHash(addressList)) {
-            rebuildHash(addressList);
-        }
-        if (virtualAddressNodeMap.size() == 0) {
+    public String getTargetProviderAddress(RpcMetaData consumerMeta, Object[] args) {
+        SortedMap<Integer, String> virtualAddressNodeMap = consumerMeta.getVirtualAddressNodeMap();
+        if (null == virtualAddressNodeMap || virtualAddressNodeMap.size() == 0) {
             throw new RuntimeException("virtualAddressNodeMap is empty");
         }
         int hash = getHash(JSONObject.toJSONString(args));
@@ -63,47 +56,25 @@ public class ConsistencyHashingBalance implements LoadBalanceStrategy {
 
     /**
      * 重建hash索引
-     * @param addressList
+     * @param consumerMeta
      */
-    private void rebuildHash(List<String> addressList) {
-        rebuildHashLock.lock();
-        try {
-            if (!needRebuildHash(addressList)) {
+    public void rebuildHash(RpcMetaData consumerMeta) {
+        synchronized (consumerMeta) {
+            List<String> addressList = consumerMeta.getAddressList().stream().map(AddressInfo::getAddress).collect(Collectors.toList());
+            if (CollectionUtils.isEmpty(addressList)) {
+                consumerMeta.setVirtualAddressNodeMap(null);
                 return;
             }
-            addressSet = new HashSet<>(addressList.size());
-            virtualAddressNodeMap = new TreeMap<>();
+            SortedMap<Integer, String> virtualAddressNodeMap = new TreeMap<>();
             int totalNodeNum = TOTAL_VIRTUAL_NODE_NUM / addressList.size();
             for (String address : addressList) {
-                if (addressSet.contains(address)) {
-                    continue;
-                }
                 for (int i = 0; i < totalNodeNum; i++) {
                     String virtualAddress = String.format("%s#%s", address, UUID.randomUUID());
                     virtualAddressNodeMap.put(getHash(virtualAddress), virtualAddress);
                 }
-                addressSet.add(address);
             }
-        } finally {
-            rebuildHashLock.unlock();
+            consumerMeta.setVirtualAddressNodeMap(virtualAddressNodeMap);
         }
-    }
-
-    /**
-     * 是否需要重建hash索引
-     * @param addressList
-     * @return
-     */
-    private Boolean needRebuildHash(List<String> addressList) {
-        if (addressList.size() != addressSet.size()) {
-            return true;
-        }
-        for (String address : addressList) {
-            if (!addressSet.contains(address)) {
-                return true;
-            }
-        }
-        return false;
     }
 
     /**
@@ -111,7 +82,7 @@ public class ConsistencyHashingBalance implements LoadBalanceStrategy {
      * @param str
      * @return
      */
-    private int getHash(String str) {
+    private static int getHash(String str) {
         final int p = 16777619;
         int hash = (int) 2166136261L;
         for (int i = 0; i < str.length(); i++) {
@@ -127,5 +98,12 @@ public class ConsistencyHashingBalance implements LoadBalanceStrategy {
             hash = Math.abs(hash);
         }
         return hash;
+    }
+
+    @Override
+    public void afterAddressChange(RpcMetaData consumerMetaData) {
+        if (LoadBalanceConstants.CONSISTENCY_HASHING_STRATEGY.equals(consumerMetaData.getLoadBalanceStrategy())) {
+            this.rebuildHash(consumerMetaData);
+        }
     }
 }

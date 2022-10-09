@@ -1,9 +1,10 @@
 package com.mola.rpc.core.strategy.balance;
 
 import com.google.common.collect.Maps;
+import com.mola.rpc.common.entity.RpcMetaData;
 import org.springframework.util.Assert;
 
-import java.util.List;
+import java.util.Collection;
 import java.util.Map;
 
 /**
@@ -17,17 +18,21 @@ public class LoadBalance implements LoadBalanceStrategy {
     private Map<String, LoadBalanceStrategy> loadBalanceStrategyMap = Maps.newConcurrentMap();
 
     @Override
-    public String getTargetProviderAddress(List<String> addressList, String strategyName, Object[] args) {
-        LoadBalanceStrategy loadBalanceStrategy = loadBalanceStrategyMap.get(strategyName);
+    public String getTargetProviderAddress(RpcMetaData consumerMeta, Object[] args) {
+        LoadBalanceStrategy loadBalanceStrategy = loadBalanceStrategyMap.get(consumerMeta.getLoadBalanceStrategy());
         Assert.notNull(loadBalanceStrategy, "loadBalanceStrategy is null");
-        Assert.notNull(addressList, "addressList is null");
-        if (addressList.size() == 0) {
+        Assert.notNull(consumerMeta.getAddressList(), "addressList is null");
+        if (consumerMeta.getAddressList().size() == 0) {
             return null;
         }
-        return loadBalanceStrategy.getTargetProviderAddress(addressList, strategyName, args);
+        return loadBalanceStrategy.getTargetProviderAddress(consumerMeta, args);
     }
 
     public void setStrategy(String name, LoadBalanceStrategy strategy) {
         this.loadBalanceStrategyMap.put(name, strategy);
+    }
+
+    public Collection<LoadBalanceStrategy> getStrategyCollection() {
+        return this.loadBalanceStrategyMap.values();
     }
 }

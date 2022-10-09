@@ -1,8 +1,10 @@
 package com.mola.rpc.data.config.spring;
 
+import com.google.common.collect.Lists;
 import com.mola.rpc.common.context.RpcContext;
 import com.mola.rpc.common.entity.AddressInfo;
 import com.mola.rpc.common.entity.RpcMetaData;
+import com.mola.rpc.data.config.listener.AddressChangeListener;
 import com.mola.rpc.data.config.manager.RpcDataManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -41,9 +43,14 @@ public class RpcProviderDataInitBean {
      */
     private RpcDataManager<RpcMetaData> rpcDataManager;
 
+    /**
+     * 地址变更监听器
+     */
+    private List<AddressChangeListener> addressChangeListeners = Lists.newArrayList();
 
     public void init() {
         Assert.notNull(rpcContext, "拉取数据失败，上下文为空");
+        rpcDataManager.setAddressChangeListener(addressChangeListeners);
         // 上报提供的provider数据
         Collection<RpcMetaData> providerMetaDataCollection = rpcContext.getProviderMetaMap().values();
         for (RpcMetaData providerMetaData : providerMetaDataCollection) {
@@ -70,6 +77,7 @@ public class RpcProviderDataInitBean {
                 continue;
             }
             consumerMetaData.setAddressList(addressInfoList);
+            addressChangeListeners.forEach(addressChangeListener -> addressChangeListener.afterAddressChange(consumerMetaData));
         }
     }
 
@@ -103,5 +111,9 @@ public class RpcProviderDataInitBean {
 
     public void setRpcDataManager(RpcDataManager<RpcMetaData> rpcDataManager) {
         this.rpcDataManager = rpcDataManager;
+    }
+
+    public void addAddressChangeListener(AddressChangeListener addressChangeListener) {
+        this.addressChangeListeners.add(addressChangeListener);
     }
 }

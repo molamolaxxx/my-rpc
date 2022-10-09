@@ -5,6 +5,7 @@ import com.mola.rpc.common.constants.CommonConstants;
 import com.mola.rpc.common.entity.AddressInfo;
 import com.mola.rpc.common.entity.ProviderConfigData;
 import com.mola.rpc.common.entity.RpcMetaData;
+import com.mola.rpc.data.config.listener.AddressChangeListener;
 import com.mola.rpc.data.config.listener.ZkProviderConfigChangeListenerImpl;
 import com.mola.rpc.data.config.manager.RpcDataManager;
 import org.I0Itec.zkclient.ZkClient;
@@ -41,6 +42,11 @@ public class ZkRpcDataManager implements RpcDataManager<RpcMetaData> {
      * 超时时间
      */
     private Integer connectTimeout;
+
+    /**
+     * 地址变更监听器
+     */
+    private List<AddressChangeListener> addressChangeListeners;
 
     public ZkRpcDataManager(String configServerIpPort, Integer connectTimeout) {
         this.configServerIpPort = configServerIpPort;
@@ -79,7 +85,7 @@ public class ZkRpcDataManager implements RpcDataManager<RpcMetaData> {
     public void registerProviderDataListener(String interfaceClazz, String group, String version, String environment, RpcMetaData consumerMetaData) {
         String remoteProviderPath = getRemoteProviderPath(interfaceClazz, group, version, environment);
         zkClient.subscribeChildChanges(remoteProviderPath, new ZkProviderConfigChangeListenerImpl(
-                consumerMetaData, zkClient
+                consumerMetaData, zkClient, addressChangeListeners
         ));
     }
 
@@ -148,5 +154,10 @@ public class ZkRpcDataManager implements RpcDataManager<RpcMetaData> {
 
     @Override
     public void uploadConsumerData(RpcMetaData consumerMetaData) {
+    }
+
+    @Override
+    public void setAddressChangeListener(List<AddressChangeListener> addressChangeListeners) {
+        this.addressChangeListeners = addressChangeListeners;
     }
 }

@@ -14,9 +14,9 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 public class RpcConsumerConfig {
 
-    @RpcConsumer(loadBalanceStrategy = LoadBalanceConstants.CONSISTENCY_HASHING_STRATEGY)
+    @RpcConsumer(loadBalanceStrategy = LoadBalanceConstants.LOAD_BALANCE_RANDOM_STRATEGY)
     private OrderService orderService;
 
-    @RpcConsumer(loadBalanceStrategy = LoadBalanceConstants.LOAD_BALANCE_ROUND_ROBIN_STRATEGY, group = "gray", asyncMethods = {"queryOrderList"})
+    @RpcConsumer(loadBalanceStrategy = LoadBalanceConstants.CONSISTENCY_HASHING_STRATEGY, group = "gray", asyncMethods = {"queryOrderList"})
     private OrderService orderServiceGray;
 }

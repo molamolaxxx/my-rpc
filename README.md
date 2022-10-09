@@ -187,53 +187,87 @@ public Object invoke(Object obj, Method method, Object[] args) throws Throwable 
 具体实现使用treemap：
 
 ```java
-/**
- * 哈希环，hash => ip#idx
- */
-private SortedMap<Integer, String> virtualAddressNodeMap = new TreeMap<>();
+public class ConsistencyHashingBalance implements LoadBalanceStrategy, AddressChangeListener {
 
-@Override
-public String getTargetProviderAddress(List<String> addressList, String strategyName, Object[] args) {
-    if (needRebuildHash(addressList)) {
-        rebuildHash(addressList);
-    }
-    if (virtualAddressNodeMap.size() == 0) {
-        throw new RuntimeException("virtualAddressNodeMap is empty");
-    }
-    int hash = getHash(JSONObject.toJSONString(args));
-    // sort map截取
-    SortedMap<Integer, String> tailMap = virtualAddressNodeMap.tailMap(hash);
-    if (tailMap.size() == 0) {
-        return getAddressFromVirtualNode(virtualAddressNodeMap.get(virtualAddressNodeMap.firstKey()));
-    }
-    return getAddressFromVirtualNode(tailMap.get(tailMap.firstKey()));
-}
+    /**
+     * 总虚拟节点个数
+     */
+    private static final int TOTAL_VIRTUAL_NODE_NUM = 1000;
 
-/**
- * 重建hash索引
- * @param addressList
-*/
-private void rebuildHash(List<String> addressList) {
-    rebuildHashLock.lock();
-    try {
-        if (!needRebuildHash(addressList)) {
-            return;
+    @Override
+    public String getTargetProviderAddress(RpcMetaData consumerMeta, Object[] args) {
+        SortedMap<Integer, String> virtualAddressNodeMap = consumerMeta.getVirtualAddressNodeMap();
+        if (null == virtualAddressNodeMap || virtualAddressNodeMap.size() == 0) {
+            throw new RuntimeException("virtualAddressNodeMap is empty");
         }
-        addressSet = new HashSet<>(addressList.size());
-        virtualAddressNodeMap = new TreeMap<>();
-        int totalNodeNum = TOTAL_VIRTUAL_NODE_NUM / addressList.size();
-        for (String address : addressList) {
-            if (addressSet.contains(address)) {
-                continue;
-            }
-            for (int i = 0; i < totalNodeNum; i++) {
-                String virtualAddress = String.format("%s#%s", address, UUID.randomUUID());
-                virtualAddressNodeMap.put(getHash(virtualAddress), virtualAddress);
-            }
-            addressSet.add(address);
+        int hash = getHash(JSONObject.toJSONString(args));
+        SortedMap<Integer, String> tailMap = virtualAddressNodeMap.tailMap(hash);
+        if (tailMap.size() == 0) {
+            return getAddressFromVirtualNode(virtualAddressNodeMap.get(virtualAddressNodeMap.firstKey()));
         }
-    } finally {
-        rebuildHashLock.unlock();
+        return getAddressFromVirtualNode(tailMap.get(tailMap.firstKey()));
+    }
+
+    /**
+     * 截取虚拟节点，获取真实地址
+     * @param virtualAddressNode
+     * @return
+     */
+    private String getAddressFromVirtualNode(String virtualAddressNode) {
+        String[] split = StringUtils.split(virtualAddressNode, "#");
+        if (split.length == 2) {
+            return split[0];
+        }
+        throw new RuntimeException("getAddressFromVirtualNode failed");
+    }
+
+    /**
+     * 重建hash索引
+     * @param consumerMeta
+     */
+    public void rebuildHash(RpcMetaData consumerMeta) {
+        synchronized (consumerMeta) {
+            List<String> addressList = consumerMeta.getAddressList().stream().map(AddressInfo::getAddress).collect(Collectors.toList());
+            SortedMap<Integer, String> virtualAddressNodeMap = new TreeMap<>();
+            int totalNodeNum = TOTAL_VIRTUAL_NODE_NUM / addressList.size();
+            for (String address : addressList) {
+                for (int i = 0; i < totalNodeNum; i++) {
+                    String virtualAddress = String.format("%s#%s", address, UUID.randomUUID());
+                    virtualAddressNodeMap.put(getHash(virtualAddress), virtualAddress);
+                }
+            }
+            consumerMeta.setVirtualAddressNodeMap(virtualAddressNodeMap);
+        }
+    }
+
+    /**
+     * FNV1_32_HASH算法
+     * @param str
+     * @return
+     */
+    private static int getHash(String str) {
+        final int p = 16777619;
+        int hash = (int) 2166136261L;
+        for (int i = 0; i < str.length(); i++) {
+            hash = (hash ^ str.charAt(i)) * p;
+        }
+        hash += hash << 13;
+        hash ^= hash >> 7;
+        hash += hash << 3;
+        hash ^= hash >> 17;
+        hash += hash << 5;
+        //如果算出来的值为负数则取其绝对值
+        if (hash < 0) {
+            hash = Math.abs(hash);
+        }
+        return hash;
+    }
+
+    @Override
+    public void afterAddressChange(RpcMetaData consumerMetaData) {
+        if (LoadBalanceConstants.CONSISTENCY_HASHING_STRATEGY.equals(consumerMetaData.getLoadBalanceStrategy())) {
+            this.rebuildHash(consumerMetaData);
+        }
     }
 }
 ```

@@ -4,6 +4,7 @@ import com.mola.rpc.common.annotation.ConsumerSide;
 import com.mola.rpc.common.annotation.ProviderSide;
 import com.mola.rpc.common.entity.AddressInfo;
 import com.mola.rpc.common.entity.RpcMetaData;
+import com.mola.rpc.data.config.listener.AddressChangeListener;
 
 import java.util.List;
 
@@ -94,4 +95,6 @@ public interface RpcDataManager<T extends RpcMetaData> {
     default String getRemoteProviderPath(String interfaceClazz, String group, String version, String environment) {
         return String.format("/myRpc/provider/%s:%s:%s:%s", interfaceClazz, group, version, environment);
     }
+
+    void setAddressChangeListener(List<AddressChangeListener> addressChangeListeners);
 }

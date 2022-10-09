@@ -1,6 +1,6 @@
 package com.mola.rpc.core.strategy.balance;
 
-import java.util.List;
+import com.mola.rpc.common.entity.RpcMetaData;
 
 /**
  * @author : molamola
@@ -12,8 +12,8 @@ public interface LoadBalanceStrategy {
 
     /**
      * 获取provider的地址
-     * @param addressList
+     * @param consumerMeta
      * @return
      */
-    String getTargetProviderAddress(List<String> addressList, String strategyName, Object[] args);
+    String getTargetProviderAddress(RpcMetaData consumerMeta, Object[] args);
 }

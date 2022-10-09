@@ -6,11 +6,9 @@ import com.mola.rpc.common.entity.RpcMetaData;
 import com.mola.rpc.core.remoting.netty.NettyConnectPool;
 import com.mola.rpc.core.remoting.netty.NettyRemoteClient;
 import com.mola.rpc.core.remoting.netty.NettyRemoteServer;
-import com.mola.rpc.core.strategy.balance.ConsistencyHashingBalance;
-import com.mola.rpc.core.strategy.balance.LoadBalance;
-import com.mola.rpc.core.strategy.balance.RandomLoadBalance;
-import com.mola.rpc.core.strategy.balance.RoundRobinBalance;
+import com.mola.rpc.core.strategy.balance.*;
 import com.mola.rpc.core.util.NetUtils;
+import com.mola.rpc.data.config.listener.AddressChangeListener;
 import com.mola.rpc.data.config.manager.RpcDataManager;
 import com.mola.rpc.data.config.manager.zk.ZkRpcDataManager;
 import com.mola.rpc.data.config.spring.RpcProviderDataInitBean;
@@ -82,7 +80,7 @@ public class RpcBeanPropertiesConfiguration {
     }
 
     @Bean
-    public RpcProviderDataInitBean rpcProviderDataPuller(RpcContext rpcContext, RpcProperties rpcProperties, ApplicationContext applicationContext) {
+    public RpcProviderDataInitBean rpcProviderDataPuller(RpcContext rpcContext, RpcProperties rpcProperties, ApplicationContext applicationContext, LoadBalance loadBalance) {
         RpcProviderDataInitBean rpcProviderDataInitBean = new RpcProviderDataInitBean();
         rpcContext.setProviderAddress(NetUtils.getLocalAddress().getHostAddress() + ":" + rpcProperties.getServerPort());
         rpcProviderDataInitBean.setRpcContext(rpcContext);
@@ -97,6 +95,11 @@ public class RpcBeanPropertiesConfiguration {
         Assert.notNull(rpcDataManager, "rpcDataManager is null");
         rpcDataManager.init();
         rpcProviderDataInitBean.setRpcDataManager(rpcDataManager);
+        for (LoadBalanceStrategy loadBalanceStrategy : loadBalance.getStrategyCollection()) {
+            if (loadBalanceStrategy instanceof AddressChangeListener) {
+                rpcProviderDataInitBean.addAddressChangeListener((AddressChangeListener) loadBalanceStrategy);
+            }
+        }
         rpcProviderDataInitBean.init();
         return rpcProviderDataInitBean;
     }

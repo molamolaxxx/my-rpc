@@ -7,6 +7,7 @@ import org.I0Itec.zkclient.IZkChildListener;
 import org.I0Itec.zkclient.ZkClient;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.util.CollectionUtils;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -25,9 +26,15 @@ public class ZkProviderConfigChangeListenerImpl implements IZkChildListener {
 
     private ZkClient zkClient;
 
-    public ZkProviderConfigChangeListenerImpl(RpcMetaData consumerMetaData, ZkClient zkClient) {
+    /**
+     * 地址变更监听器
+     */
+    private List<AddressChangeListener> addressChangeListeners;
+
+    public ZkProviderConfigChangeListenerImpl(RpcMetaData consumerMetaData, ZkClient zkClient, List<AddressChangeListener> addressChangeListeners) {
         this.consumerMetaData = consumerMetaData;
         this.zkClient = zkClient;
+        this.addressChangeListeners = addressChangeListeners;
     }
 
     @Override
@@ -38,5 +45,8 @@ public class ZkProviderConfigChangeListenerImpl implements IZkChildListener {
                 .setAddressList(childList.stream()
                 .map(path -> new AddressInfo(path))
                         .collect(Collectors.toList()));
+        if (!CollectionUtils.isEmpty(addressChangeListeners)) {
+            addressChangeListeners.forEach(listener -> listener.afterAddressChange(consumerMetaData));
+        }
     }
 }
