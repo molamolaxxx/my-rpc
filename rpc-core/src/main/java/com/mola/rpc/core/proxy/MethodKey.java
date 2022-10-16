@@ -31,14 +31,11 @@ public class MethodKey {
         if(null == object) {
             return false;
         }
-        if(! (object instanceof MethodKey)) {
+        if(!(object instanceof MethodKey)) {
             return false;
         }
-        MethodKey methodKey = (MethodKey)object;
-        if(!methodKey.toString().equals(this.toString())) {
-            return false;
-        }
-        return true;
+        MethodKey methodKey = (MethodKey) object;
+        return methodKey.toString().equals(this.toString());
     }
 
     /**

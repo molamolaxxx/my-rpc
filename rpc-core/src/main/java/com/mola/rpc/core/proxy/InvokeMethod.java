@@ -5,8 +5,6 @@ import com.mola.rpc.core.util.BytesUtil;
 import com.mola.rpc.core.util.RemotingSerializableUtil;
 import org.springframework.util.Assert;
 
-import java.lang.reflect.Method;
-
 /**
  * RPC调用方法抽象
  */
@@ -117,9 +115,8 @@ public class InvokeMethod {
 			for (int i = 0; i < this.serializedArguments.length; i++) {
 				args[i] = BytesUtil.bytesToObject((this.serializedArguments[i]));
 			}
-			Method method = providerBean.getClass().getMethod(this.methodName, paramTypes);
-			// 3、反射调用provider
-			return method.invoke(providerBean, args);
+			// 3、反射调用，带方法缓存
+			return MethodInvokeHelper.invokeMethod(providerBean, this.methodName, paramTypes, args);
 		} catch (Exception e) {
 			throw new RuntimeException(e);
 		}
