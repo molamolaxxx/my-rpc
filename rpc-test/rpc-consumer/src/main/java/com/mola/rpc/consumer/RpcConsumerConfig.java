@@ -17,6 +17,7 @@ public class RpcConsumerConfig {
     @RpcConsumer(loadBalanceStrategy = LoadBalanceConstants.LOAD_BALANCE_RANDOM_STRATEGY)
     private OrderService orderService;
 
-    @RpcConsumer(loadBalanceStrategy = LoadBalanceConstants.CONSISTENCY_HASHING_STRATEGY, group = "gray", asyncMethods = {"queryOrderList"})
+    @RpcConsumer(loadBalanceStrategy = LoadBalanceConstants.CONSISTENCY_HASHING_STRATEGY, group = "gray",
+            asyncMethods = {"queryOrderList","searchOrderListWithUser"})
     private OrderService orderServiceGray;
 }

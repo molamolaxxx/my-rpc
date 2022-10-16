@@ -1,5 +1,7 @@
 package com.mola.rpc.client;
 
+import lombok.Data;
+
 import java.util.Date;
 
 /**
@@ -8,6 +10,7 @@ import java.util.Date;
  * @Description:
  * @date : 2022-07-25 23:26
  **/
+@Data
 public class Order {
 
     private String id;
@@ -18,35 +21,15 @@ public class Order {
 
     private String code;
 
-    public String getId() {
-        return id;
+    private String operator;
+
+    public Order() {
     }
 
-    public void setId(String id) {
+    public Order(String id, Date gmtCreate, String desc, String code) {
         this.id = id;
-    }
-
-    public Date getGmtCreate() {
-        return gmtCreate;
-    }
-
-    public void setGmtCreate(Date gmtCreate) {
         this.gmtCreate = gmtCreate;
-    }
-
-    public String getDesc() {
-        return desc;
-    }
-
-    public void setDesc(String desc) {
         this.desc = desc;
-    }
-
-    public String getCode() {
-        return code;
-    }
-
-    public void setCode(String code) {
         this.code = code;
     }
 }

@@ -2,8 +2,10 @@ package com.mola.rpc.consumer;
 
 import com.alibaba.fastjson.JSONObject;
 import com.google.common.collect.Lists;
+import com.mola.rpc.client.OperateUser;
 import com.mola.rpc.client.Order;
 import com.mola.rpc.client.OrderService;
+import com.mola.rpc.client.ServerResponse;
 import com.mola.rpc.core.remoting.Async;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -37,7 +39,9 @@ public class OrderController {
         for (int i = 0; i < time; i++) {
             idList.add(UUID.randomUUID().toString());
         }
-        return orderService.queryOrderList("test", idList);
+        List<Order> test = orderService.queryOrderList("test", idList);
+        Order order = test.get(0);
+        return test;
     }
 
     @GetMapping("/queryOrder")
@@ -64,5 +68,44 @@ public class OrderController {
         List<Order> orders = async.get();
         System.out.println(System.currentTimeMillis() - start);
         return orders;
+    }
+
+    @GetMapping("/saveOrder")
+    public Boolean saveOrder() throws InterruptedException {
+        List<Order> orders = Lists.newArrayList();
+        Order order = new Order();
+        order.setDesc("aaaa");
+        order.setId("1111");
+        order.setCode("kkkk");
+        orders.add(order);
+        return orderService.saveOrder(orders);
+    }
+
+    @GetMapping("/searchOrderListWithUser")
+    public ServerResponse<List<Order>> searchOrderListWithUser(@RequestParam String desc, @RequestParam String code, @RequestParam String userName, @RequestParam Boolean async) {
+        Order order = new Order();
+        order.setDesc(desc);
+        order.setId(UUID.randomUUID().toString());
+        order.setCode(code);
+        ServerResponse<List<Order>> listServerResponse = null;
+        if (async) {
+            Async<ServerResponse<List<Order>>> from = Async.from(
+                    orderServiceGray
+                            .searchOrderListWithUser(order, new OperateUser(UUID.randomUUID().toString(), userName)));
+            from.consume(response -> {
+                List<Order> data = response.getData();
+                for (Order datum : data) {
+                    System.out.println(JSONObject.toJSONString(datum));
+                }
+            });
+            return ServerResponse.createBySuccess();
+        } else {
+            listServerResponse = orderService.searchOrderListWithUser(order, new OperateUser(UUID.randomUUID().toString(), userName));
+        }
+        List<Order> data = listServerResponse.getData();
+        for (Order datum : data) {
+            System.out.println(JSONObject.toJSONString(datum));
+        }
+        return listServerResponse;
     }
 }

@@ -1,13 +1,18 @@
 package com.mola.rpc.provider;
 
+import com.alibaba.fastjson.JSONObject;
+import com.mola.rpc.client.OperateUser;
 import com.mola.rpc.client.Order;
 import com.mola.rpc.client.OrderService;
+import com.mola.rpc.client.ServerResponse;
 import com.mola.rpc.common.annotation.RpcProvider;
 import com.mola.rpc.core.spring.RpcProperties;
 
 import javax.annotation.Resource;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
+import java.util.UUID;
 
 /**
  * @author : molamola
@@ -37,5 +42,31 @@ public class OrderServiceGrayImpl implements OrderService {
             orders.add(order);
         }
         return orders;
+    }
+
+    @Override
+    public Boolean saveOrder(List<Order> orderList) {
+        for (Order order : orderList) {
+            System.out.println(JSONObject.toJSONString(order));
+        }
+        return Boolean.TRUE;
+    }
+
+    @Override
+    public ServerResponse<List<Order>> searchOrderListWithUser(Order order, OperateUser operateUser) {
+        try {
+            List<Order> orders = new ArrayList<>();
+            orders.add(new Order(UUID.randomUUID().toString() + "-async", new Date(), order.getDesc(), order.getCode()));
+            orders.add(new Order(UUID.randomUUID().toString() + "-async", new Date(), order.getDesc(), order.getCode()));
+            orders.add(new Order(UUID.randomUUID().toString() + "-async", new Date(), order.getDesc(), order.getCode()));
+            orders.add(new Order(UUID.randomUUID().toString() + "-async", new Date(), order.getDesc(), order.getCode()));
+            orders.add(new Order(UUID.randomUUID().toString() + "-async", new Date(), order.getDesc(), order.getCode()));
+            for (Order o : orders) {
+                o.setOperator(operateUser.getUserName());
+            }
+            return ServerResponse.createBySuccess(orders);
+        } catch (Exception e) {
+            return ServerResponse.createByErrorCodeMessage(500, e.getMessage());
+        }
     }
 }

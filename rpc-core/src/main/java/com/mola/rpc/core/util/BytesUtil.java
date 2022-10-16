@@ -41,6 +41,7 @@ public class BytesUtil {
 		ByteArrayOutputStream byteArrayOutputStream =
 				new ByteArrayOutputStream();
 		HessianOutput hessianOutput = new HessianOutput(byteArrayOutputStream);
+		hessianOutput.getSerializerFactory().setAllowNonSerializable(true);
 		try {
 			hessianOutput.writeObject(object);
 		} catch (Exception e) {
@@ -60,6 +61,7 @@ public class BytesUtil {
 		}
 		ByteArrayInputStream byteArrayInputStream = new ByteArrayInputStream(bytes);
 		HessianInput hessianInput = new HessianInput(byteArrayInputStream);
+		hessianInput.getSerializerFactory().setAllowNonSerializable(true);
 		Object object = null;
 		try {
 			object = hessianInput.readObject();

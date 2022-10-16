@@ -1,6 +1,7 @@
 package com.mola.rpc.core.proxy;
 
 
+import com.mola.rpc.core.util.BytesUtil;
 import com.mola.rpc.core.util.RemotingSerializableUtil;
 import org.springframework.util.Assert;
 
@@ -18,7 +19,7 @@ public class InvokeMethod {
 	private String[] parameterTypes;
 
 	/** 参数 */
-	private String[] arguments;
+	private byte[][] serializedArguments;
 
 	/** 返回类型 */
 	private String returnType;
@@ -31,10 +32,14 @@ public class InvokeMethod {
 	public InvokeMethod() {
 	}
 
-	public InvokeMethod(String methodName, String[] parameterTypes, String[] arguments, String returnType, String interfaceClazz) {
+	public InvokeMethod(String methodName, String[] parameterTypes, Object[] arguments, String returnType, String interfaceClazz) {
 		this.methodName = methodName;
 		this.parameterTypes = parameterTypes;
-		this.arguments = arguments;
+		// 进行参数序列化
+		this.serializedArguments = new byte[arguments.length][];
+		for (int i = 0; i < arguments.length; i++) {
+			this.serializedArguments[i] = BytesUtil.objectToBytes(arguments[i]);
+		}
 		this.returnType = returnType;
 		this.interfaceClazz = interfaceClazz;
 	}
@@ -74,13 +79,6 @@ public class InvokeMethod {
 		this.parameterTypes = parameterTypes;
 	}
 
-	public String[] getArguments() {
-		return arguments;
-	}
-
-	public void setArguments(String[] arguments) {
-		this.arguments = arguments;
-	}
 
 	public String getReturnType() {
 		return returnType;
@@ -98,6 +96,14 @@ public class InvokeMethod {
 		this.interfaceClazz = interfaceClazz;
 	}
 
+	public byte[][] getSerializedArguments() {
+		return serializedArguments;
+	}
+
+	public void setSerializedArguments(byte[][] serializedArguments) {
+		this.serializedArguments = serializedArguments;
+	}
+
 	public Object invoke(Object providerBean) {
 		try {
 			Assert.notNull(providerBean, "providerBean is null, name = " + providerBean);
@@ -107,9 +113,9 @@ public class InvokeMethod {
 				paramTypes[i] = Class.forName(this.parameterTypes[i]);
 			}
 			// 2、反序列化参数
-			Object[] args = new Object[this.arguments.length];
-			for (int i = 0; i < this.arguments.length; i++) {
-				args[i] = RemotingSerializableUtil.fromJson(this.arguments[i], paramTypes[i]);
+			Object[] args = new Object[this.serializedArguments.length];
+			for (int i = 0; i < this.serializedArguments.length; i++) {
+				args[i] = BytesUtil.bytesToObject((this.serializedArguments[i]));
 			}
 			Method method = providerBean.getClass().getMethod(this.methodName, paramTypes);
 			// 3、反射调用provider

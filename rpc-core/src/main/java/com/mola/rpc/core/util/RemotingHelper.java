@@ -101,7 +101,7 @@ public class RemotingHelper {
     }
 
     public static void buildParameter(Object[] args, Class<?>[] parameterTypesClass, String[] parameterTypesString,
-                               String[] actualParameterTypesString, String[] arguments) {
+                               String[] actualParameterTypesString) {
         for(int i = 0 ; i < parameterTypesClass.length ; i ++) {
             parameterTypesString[i] = parameterTypesClass[i].getName();
             if (null != args[i]) {
@@ -109,7 +109,6 @@ public class RemotingHelper {
             }else {
                 actualParameterTypesString[i] = parameterTypesClass[i].getName();
             }
-            arguments[i] = RemotingSerializableUtil.toJson(args[i], false);
         }
     }
 

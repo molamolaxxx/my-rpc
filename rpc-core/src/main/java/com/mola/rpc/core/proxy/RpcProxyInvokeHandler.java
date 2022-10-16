@@ -1,8 +1,8 @@
 package com.mola.rpc.core.proxy;
 
 import com.alibaba.fastjson.JSONObject;
-import com.mola.rpc.common.entity.AddressInfo;
 import com.mola.rpc.common.context.RpcContext;
+import com.mola.rpc.common.entity.AddressInfo;
 import com.mola.rpc.common.entity.RpcMetaData;
 import com.mola.rpc.core.remoting.Async;
 import com.mola.rpc.core.remoting.AsyncResponseFuture;
@@ -13,7 +13,6 @@ import com.mola.rpc.core.remoting.protocol.RemotingCommandCode;
 import com.mola.rpc.core.strategy.balance.LoadBalance;
 import com.mola.rpc.core.util.BytesUtil;
 import com.mola.rpc.core.util.RemotingHelper;
-import com.mola.rpc.core.util.RemotingSerializableUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.util.CollectionUtils;
@@ -93,9 +92,8 @@ public class RpcProxyInvokeHandler implements InvocationHandler {
             return null;
         }
         // response转换成对象
-        String body = (String) BytesUtil.bytesToObject(response.getBody());
-        Object res = RemotingSerializableUtil.fromJson(body, method.getReturnType());
-        return res;
+        Object invokeResult = BytesUtil.bytesToObject(response.getBody());
+        return invokeResult;
     }
 
     /**
@@ -160,18 +158,15 @@ public class RpcProxyInvokeHandler implements InvocationHandler {
         String[] parameterTypesString = new String[parameterTypesClass.length];
         // 3、真实的变量类型string
         String[] actualParameterTypesString = new String[parameterTypesClass.length];
-        // 4、变量的string表示
-        String[] arguments = new String[parameterTypesClass.length];
         // 构建参数
         RemotingHelper.buildParameter(args,
                 parameterTypesClass,
                 parameterTypesString,
-                actualParameterTypesString,
-                arguments);
+                actualParameterTypesString);
         // 构建invokeMethod
         InvokeMethod invokeMethod = new InvokeMethod(method.getName(),
                 parameterTypesString,
-                arguments,
+                args,
                 method.getReturnType().getName(),
                 method.getDeclaringClass().getName());
         return invokeMethod;

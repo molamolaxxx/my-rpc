@@ -90,7 +90,7 @@ public class NettyServerHandler extends SimpleChannelInboundHandler<RemotingComm
         // 1、构建body
         byte[] responseBody = null;
         try {
-            responseBody = BytesUtil.objectToBytes(RemotingSerializableUtil.toJson(result, false));
+            responseBody = BytesUtil.objectToBytes(result);
         } catch (Throwable e) {
             log.error("[NettyServerHandler]: objectToBytes error"
                     + ", result:" + RemotingSerializableUtil.toJson(result, false), e);

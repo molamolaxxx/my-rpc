@@ -3,7 +3,6 @@ package com.mola.rpc.core.remoting;
 
 import com.mola.rpc.core.remoting.protocol.RemotingCommand;
 import com.mola.rpc.core.util.BytesUtil;
-import com.mola.rpc.core.util.RemotingSerializableUtil;
 
 import java.lang.reflect.Method;
 import java.util.function.Consumer;
@@ -35,9 +34,7 @@ public class AsyncResponseFuture<T> extends ResponseFuture{
         super.putResponse(responseCommand);
         if (null != consumer) {
             // response转换成对象
-            String body = (String) BytesUtil.bytesToObject(responseCommand.getBody());
-            Object res = RemotingSerializableUtil.fromJson(body, method.getReturnType());
-            consumer.accept((T) res);
+            consumer.accept((T) BytesUtil.bytesToObject(responseCommand.getBody()));
         }
     }
 
@@ -50,9 +47,7 @@ public class AsyncResponseFuture<T> extends ResponseFuture{
             return null;
         }
         // response转换成对象
-        String body = (String) BytesUtil.bytesToObject(remotingCommand.getBody());
-        Object res = RemotingSerializableUtil.fromJson(body, method.getReturnType());
-        return (T) res;
+        return (T) BytesUtil.bytesToObject(remotingCommand.getBody());
     }
 
     public void setConsumer(Consumer<T> consumer) {
