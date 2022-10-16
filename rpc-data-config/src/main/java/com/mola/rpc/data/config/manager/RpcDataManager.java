@@ -2,6 +2,7 @@ package com.mola.rpc.data.config.manager;
 
 import com.mola.rpc.common.annotation.ConsumerSide;
 import com.mola.rpc.common.annotation.ProviderSide;
+import com.mola.rpc.common.context.RpcContext;
 import com.mola.rpc.common.entity.AddressInfo;
 import com.mola.rpc.common.entity.RpcMetaData;
 import com.mola.rpc.data.config.listener.AddressChangeListener;
@@ -19,7 +20,7 @@ public interface RpcDataManager<T extends RpcMetaData> {
     /**
      * 初始化
      */
-    void init();
+    void init(RpcContext rpcContext);
 
     /**
      * 获取服务提供者数据
@@ -67,15 +68,6 @@ public interface RpcDataManager<T extends RpcMetaData> {
      */
     @ProviderSide
     void deleteRemoteProviderData(T providerMetaData, String environment, String appName, String address);
-
-    /**
-     * 上报心跳
-     * @param providerMetaData
-     * @param environment
-     * @param address
-     */
-    @ProviderSide
-    void updateProviderHeartBeat(T providerMetaData, String environment, String address);
 
     /**
      * 上报服务订阅元数据

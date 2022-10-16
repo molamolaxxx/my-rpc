@@ -93,8 +93,9 @@ public class RpcBeanPropertiesConfiguration {
             rpcDataManager = applicationContext.getBean(rpcProperties.getConfigServerBeanName(), RpcDataManager.class);
         }
         Assert.notNull(rpcDataManager, "rpcDataManager is null");
-        rpcDataManager.init();
+        rpcDataManager.init(rpcContext);
         rpcProviderDataInitBean.setRpcDataManager(rpcDataManager);
+        // 负载均衡监听变化
         for (LoadBalanceStrategy loadBalanceStrategy : loadBalance.getStrategyCollection()) {
             if (loadBalanceStrategy instanceof AddressChangeListener) {
                 rpcProviderDataInitBean.addAddressChangeListener((AddressChangeListener) loadBalanceStrategy);

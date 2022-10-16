@@ -60,7 +60,9 @@ public class RpcProxyInvokeHandler implements InvocationHandler {
         if (CollectionUtils.isEmpty(addressInfoList)) {
             throw new RuntimeException("consumer invoke failed, addressList is empty, meta = " + JSONObject.toJSONString(consumerMeta));
         }
-        // 过滤器责任链过滤地址
+        // 过滤掉无效的地址
+        // 1、不可用服务（心跳超时、主动下线、规则下线）
+        // 2、路由脚本过滤服务
         List<String> addressList = addressInfoList.stream()
                 .map(AddressInfo::getAddress)
                 .collect(Collectors.toList());

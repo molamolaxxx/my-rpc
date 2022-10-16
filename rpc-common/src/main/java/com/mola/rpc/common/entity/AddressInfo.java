@@ -13,11 +13,23 @@ public class AddressInfo {
      */
     private String address;
 
-    public AddressInfo(String address) {
+    /**
+     * 服务端上报数据
+     */
+    private ProviderConfigData providerConfigData;
+
+    public AddressInfo(String address, ProviderConfigData providerConfigData) {
         this.address = address;
+        this.providerConfigData = providerConfigData;
     }
 
     public String getAddress() {
         return address;
     }
+
+    public ProviderConfigData getProviderConfigData() {
+        return providerConfigData;
+    }
+
+
 }

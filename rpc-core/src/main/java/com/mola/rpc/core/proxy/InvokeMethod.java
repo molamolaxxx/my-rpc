@@ -18,7 +18,7 @@ public class InvokeMethod {
 	/** 参数类型 */
 	private String[] parameterTypes;
 
-	/** 参数 */
+	/** 序列化参数 */
 	private byte[][] serializedArguments;
 
 	/** 返回类型 */

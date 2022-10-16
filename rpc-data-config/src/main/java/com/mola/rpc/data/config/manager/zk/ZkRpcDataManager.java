@@ -2,12 +2,14 @@ package com.mola.rpc.data.config.manager.zk;
 
 import com.alibaba.fastjson.JSONObject;
 import com.mola.rpc.common.constants.CommonConstants;
+import com.mola.rpc.common.context.RpcContext;
 import com.mola.rpc.common.entity.AddressInfo;
 import com.mola.rpc.common.entity.ProviderConfigData;
 import com.mola.rpc.common.entity.RpcMetaData;
+import com.mola.rpc.common.entity.SystemInfo;
 import com.mola.rpc.data.config.listener.AddressChangeListener;
 import com.mola.rpc.data.config.listener.ZkProviderConfigChangeListenerImpl;
-import com.mola.rpc.data.config.manager.RpcDataManager;
+import com.mola.rpc.data.config.manager.BaseRpcDataManager;
 import org.I0Itec.zkclient.ZkClient;
 import org.apache.zookeeper.CreateMode;
 import org.slf4j.Logger;
@@ -24,7 +26,7 @@ import java.util.stream.Collectors;
  * provider: myRpc/provider/{providerPath}/ip
  * @date : 2022-08-27 20:42
  **/
-public class ZkRpcDataManager implements RpcDataManager<RpcMetaData> {
+public class ZkRpcDataManager extends BaseRpcDataManager {
 
     private static final Logger log = LoggerFactory.getLogger(ZkRpcDataManager.class);
 
@@ -54,7 +56,8 @@ public class ZkRpcDataManager implements RpcDataManager<RpcMetaData> {
     }
 
     @Override
-    public void init() {
+    public void init(RpcContext rpcContext) {
+        super.init(rpcContext);
         ZkClient zkClient = null;
         try {
             zkClient = new ZkClient(this.configServerIpPort, this.connectTimeout);
@@ -77,7 +80,8 @@ public class ZkRpcDataManager implements RpcDataManager<RpcMetaData> {
     public List<AddressInfo> getRemoteProviderAddress(String interfaceClazz, String group, String version, String environment) {
         String remoteProviderPath = getRemoteProviderPath(interfaceClazz, group, version, environment);
         return zkClient.getChildren(remoteProviderPath).stream()
-                .map(path -> new AddressInfo(path)).collect(Collectors.toList());
+                .map(path -> new AddressInfo(path,
+                        JSONObject.parseObject(zkClient.readData(remoteProviderPath + "/" + path), ProviderConfigData.class))).collect(Collectors.toList());
 
     }
 
@@ -106,14 +110,16 @@ public class ZkRpcDataManager implements RpcDataManager<RpcMetaData> {
         if (StringUtils.isEmpty(address)) {
             return;
         }
-        ProviderConfigData providerConfigData = ProviderConfigData.create(appName, providerMetaData.getHost());
+        ProviderConfigData providerConfigData = ProviderConfigData.create(remoteProviderParentPath,
+                appName, providerMetaData.getHost(), address);
         String childPath = remoteProviderParentPath + "/" + address;
         if (!zkClient.exists(childPath)) {
             zkClient.create(childPath, providerConfigData.toString(), CreateMode.EPHEMERAL);
         }
-        zkClient.updateDataSerialized(remoteProviderParentPath, data -> {
+        zkClient.updateDataSerialized(remoteProviderParentPath + "/" + address, data -> {
             ProviderConfigData providerConfig = JSONObject.parseObject((String) data, ProviderConfigData.class);
             providerConfig.setProviderLastHeartBeatTime(System.currentTimeMillis());
+            providerConfig.setSystemInfo(SystemInfo.get());
             return providerConfig.toString();
         });
     }
@@ -130,26 +136,6 @@ public class ZkRpcDataManager implements RpcDataManager<RpcMetaData> {
             return;
         }
         zkClient.delete(childPath);
-    }
-
-    @Override
-    public void updateProviderHeartBeat(RpcMetaData providerMetaData, String environment, String address) {
-        String remoteProviderParentPath = getRemoteProviderPath(providerMetaData.getInterfaceClazz().getName(), providerMetaData.getGroup(),
-                providerMetaData.getVersion(), environment);
-        if (!zkClient.exists(remoteProviderParentPath)) {
-            log.warn("remoteProviderParentPath not exist! path = " + remoteProviderParentPath);
-            return;
-        }
-        String childPath = remoteProviderParentPath + "/" + address;
-        if (!zkClient.exists(childPath)) {
-            log.warn("remoteProviderParentPath not exist! path = " + childPath);
-            return;
-        }
-        zkClient.updateDataSerialized(childPath, data -> {
-            ProviderConfigData providerConfig = JSONObject.parseObject((String) data, ProviderConfigData.class);
-            providerConfig.setProviderLastHeartBeatTime(System.currentTimeMillis());
-            return providerConfig.toString();
-        });
     }
 
     @Override

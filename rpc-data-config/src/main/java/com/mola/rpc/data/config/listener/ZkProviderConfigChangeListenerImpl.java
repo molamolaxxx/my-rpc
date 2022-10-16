@@ -1,7 +1,10 @@
 package com.mola.rpc.data.config.listener;
 
 import com.alibaba.fastjson.JSONObject;
+import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
 import com.mola.rpc.common.entity.AddressInfo;
+import com.mola.rpc.common.entity.ProviderConfigData;
 import com.mola.rpc.common.entity.RpcMetaData;
 import org.I0Itec.zkclient.IZkChildListener;
 import org.I0Itec.zkclient.ZkClient;
@@ -10,7 +13,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.util.CollectionUtils;
 
 import java.util.List;
-import java.util.stream.Collectors;
+import java.util.Map;
 
 /**
  * @author : molamola
@@ -40,11 +43,22 @@ public class ZkProviderConfigChangeListenerImpl implements IZkChildListener {
     @Override
     public void handleChildChange(String parentPath, List<String> childList) throws Exception {
         log.warn(this.consumerMetaData.getInterfaceClazz().getName() + ":" + JSONObject.toJSONString(childList));
-        // 遍历子节点
-        consumerMetaData
-                .setAddressList(childList.stream()
-                .map(path -> new AddressInfo(path))
-                        .collect(Collectors.toList()));
+        List<AddressInfo> addressList = consumerMetaData.getAddressList();
+        Map<String, AddressInfo> addressInfoMap = Maps.newHashMap();
+        addressList.forEach(addressInfo -> addressInfoMap.put(addressInfo.getAddress(), addressInfo));
+        List<AddressInfo> newAddressInfo = Lists.newArrayList();
+        childList.forEach(
+                addressStr -> {
+                    if (!addressInfoMap.containsKey(addressStr)) {
+                        newAddressInfo.add(new AddressInfo(addressStr,
+                                JSONObject.parseObject(zkClient.readData(parentPath + "/" + addressStr), ProviderConfigData.class)));
+                    } else {
+                        newAddressInfo.add(addressInfoMap.get(addressStr));
+                    }
+                }
+        );
+        consumerMetaData.setAddressList(newAddressInfo);
+        // 监听器回调
         if (!CollectionUtils.isEmpty(addressChangeListeners)) {
             addressChangeListeners.forEach(listener -> listener.afterAddressChange(consumerMetaData));
         }

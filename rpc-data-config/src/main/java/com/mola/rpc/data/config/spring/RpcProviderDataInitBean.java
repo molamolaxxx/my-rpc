@@ -12,6 +12,11 @@ import org.springframework.util.Assert;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ThreadFactory;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * @author : molamola
@@ -48,6 +53,17 @@ public class RpcProviderDataInitBean {
      */
     private List<AddressChangeListener> addressChangeListeners = Lists.newArrayList();
 
+
+    /**
+     * 定时上报服务端配置
+     */
+    private ScheduledExecutorService providerInfoUploadMonitorService;
+
+    /**
+     * 定时下载客户端配置
+     */
+    private ScheduledExecutorService consumerInfoDownloadMonitorService;
+
     public void init() {
         Assert.notNull(rpcContext, "拉取数据失败，上下文为空");
         rpcDataManager.setAddressChangeListener(addressChangeListeners);
@@ -57,6 +73,30 @@ public class RpcProviderDataInitBean {
             rpcDataManager.uploadRemoteProviderData(providerMetaData, environment, appName, rpcContext.getProviderAddress());
         }
         // 拉取订阅的provider数据，填充到上下文
+        pullProviderData();
+        // 注册监听器
+        registerProviderDataListeners();
+        // 上报服务线程
+        startProviderInfoUploadMonitor();
+        // 刷新consumer线程
+        startConsumerInfoDownloadMonitor();
+    }
+
+    private void registerProviderDataListeners() {
+        Collection<RpcMetaData> consumerMetaDataCollection = rpcContext.getConsumerMetaMap().values();
+        for (RpcMetaData consumerMetaData : consumerMetaDataCollection) {
+            // 服务名
+            String serviceName = consumerMetaData.getInterfaceClazz().getName();
+            // group
+            String group = consumerMetaData.getGroup();
+            // version
+            String version = consumerMetaData.getVersion();
+            // 从配置中心上拉取配置，注册监听器
+            rpcDataManager.registerProviderDataListener(serviceName, group, version, environment, consumerMetaData);
+        }
+    }
+
+    private void pullProviderData() {
         Collection<RpcMetaData> consumerMetaDataCollection = rpcContext.getConsumerMetaMap().values();
         for (RpcMetaData consumerMetaData : consumerMetaDataCollection) {
             // 服务名
@@ -69,8 +109,6 @@ public class RpcProviderDataInitBean {
             if (!rpcDataManager.isProviderExist(serviceName, group, version, environment)) {
                 throw new RuntimeException("provider not exist! meta = " + consumerMetaData.toString());
             }
-            // 从配置中心上拉取配置，注册监听器
-            rpcDataManager.registerProviderDataListener(serviceName, group, version, environment, consumerMetaData);
             List<AddressInfo> addressInfoList = rpcDataManager.getRemoteProviderAddress(serviceName, group, version, environment);
             if (null == addressInfoList) {
                 log.warn("addressInfoList is null , meta : " + consumerMetaData.toString());
@@ -79,6 +117,40 @@ public class RpcProviderDataInitBean {
             consumerMetaData.setAddressList(addressInfoList);
             addressChangeListeners.forEach(addressChangeListener -> addressChangeListener.afterAddressChange(consumerMetaData));
         }
+    }
+
+    private void startProviderInfoUploadMonitor() {
+        this.providerInfoUploadMonitorService = Executors.newScheduledThreadPool(1,
+                new ThreadFactory() {
+                    AtomicInteger threadIndex = new AtomicInteger(0);
+                    @Override
+                    public Thread newThread(Runnable r) {
+                        return new Thread(r, "provider-info-upload-monitor-thread-" + this.threadIndex.incrementAndGet());
+                    }
+                });
+        this.providerInfoUploadMonitorService.scheduleAtFixedRate(() -> {
+            // 获取所有提供服务信息
+            for (RpcMetaData rpcMetaData : rpcContext.getProviderMetaMap().values()) {
+                // 获取主机运行状态
+                // 上报信息
+                rpcDataManager.uploadRemoteProviderData(rpcMetaData, environment, appName, rpcContext.getProviderAddress());
+            }
+        },90, 60, TimeUnit.SECONDS);
+    }
+
+    private void startConsumerInfoDownloadMonitor() {
+        this.consumerInfoDownloadMonitorService = Executors.newScheduledThreadPool(1,
+                new ThreadFactory() {
+                    AtomicInteger threadIndex = new AtomicInteger(0);
+                    @Override
+                    public Thread newThread(Runnable r) {
+                        return new Thread(r, "consumer-info-download-monitor-thread-" + this.threadIndex.incrementAndGet());
+                    }
+                });
+        this.consumerInfoDownloadMonitorService.scheduleAtFixedRate(() -> {
+            // 获取所有客户端信息
+            pullProviderData();
+        },30, 60, TimeUnit.SECONDS);
     }
 
     public RpcContext getRpcContext() {
