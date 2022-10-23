@@ -1,7 +1,7 @@
 package com.mola.rpc.core.biz;
 
 import co.paralleluniverse.fibers.Fiber;
-import com.mola.rpc.core.spring.RpcProperties;
+import com.mola.rpc.common.properties.RpcProperties;
 
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicInteger;

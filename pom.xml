@@ -14,6 +14,7 @@
         <module>rpc-data-config</module>
         <module>rpc-common</module>
         <module>rpc-test</module>
+        <module>spring-boot-starter-rpc</module>
     </modules>
     <parent>
         <groupId>org.springframework.boot</groupId>
@@ -48,6 +49,11 @@
             <dependency>
                 <groupId>com.mola</groupId>
                 <artifactId>rpc-provider</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.mola</groupId>
+                <artifactId>spring-boot-starter-rpc</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>

@@ -2,11 +2,11 @@ package com.mola.rpc.core.remoting.handler;
 
 import com.mola.rpc.common.context.RpcContext;
 import com.mola.rpc.common.entity.RpcMetaData;
+import com.mola.rpc.common.properties.RpcProperties;
 import com.mola.rpc.core.biz.BizProcessAsyncExecutor;
 import com.mola.rpc.core.proxy.InvokeMethod;
 import com.mola.rpc.core.remoting.protocol.RemotingCommand;
 import com.mola.rpc.core.remoting.protocol.RemotingCommandCode;
-import com.mola.rpc.core.spring.RpcProperties;
 import com.mola.rpc.core.util.BytesUtil;
 import com.mola.rpc.core.util.RemotingSerializableUtil;
 import io.netty.channel.Channel;

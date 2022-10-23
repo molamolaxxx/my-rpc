@@ -1,7 +1,6 @@
-package com.mola.rpc.core.spring;
+package com.mola.rpc.common.properties;
 
 import com.mola.rpc.common.constants.CommonConstants;
-import org.springframework.boot.context.properties.ConfigurationProperties;
 
 /**
  * @author : molamola
@@ -9,7 +8,7 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
  * @Description:
  * @date : 2022-07-30 18:42
  **/
-@ConfigurationProperties(prefix = "rpc")
+//@ConfigurationProperties(prefix = "rpc")
 public class RpcProperties {
 
     /**

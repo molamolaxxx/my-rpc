@@ -1,0 +1,4 @@
+# Auto Configure
+org.springframework.boot.autoconfigure.EnableAutoConfiguration=\
+    com.mola.rpc.spring.RpcBeanPropertiesConfiguration, \
+    com.mola.rpc.spring.ApplicationDestroyHookConfiguration

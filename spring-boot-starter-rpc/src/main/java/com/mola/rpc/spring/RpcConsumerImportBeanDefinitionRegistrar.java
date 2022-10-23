@@ -1,4 +1,4 @@
-package com.mola.rpc.core.spring;
+package com.mola.rpc.spring;
 
 import com.google.common.collect.Sets;
 import com.mola.rpc.common.annotation.RpcConsumer;

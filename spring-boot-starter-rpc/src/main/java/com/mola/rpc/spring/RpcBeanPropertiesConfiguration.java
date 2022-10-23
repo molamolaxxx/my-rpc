@@ -1,4 +1,4 @@
-package com.mola.rpc.core.spring;
+package com.mola.rpc.spring;
 
 import com.mola.rpc.common.constants.LoadBalanceConstants;
 import com.mola.rpc.common.context.RpcContext;
@@ -28,7 +28,7 @@ import org.springframework.util.StringUtils;
  * @date : 2022-07-30 18:21
  **/
 @Configuration
-@EnableConfigurationProperties(RpcProperties.class)
+@EnableConfigurationProperties(RpcSpringConfigurationProperties.class)
 @Import({RpcConsumerImportBeanDefinitionRegistrar.class})
 public class RpcBeanPropertiesConfiguration {
 
@@ -63,7 +63,7 @@ public class RpcBeanPropertiesConfiguration {
     }
 
     @Bean
-    public NettyRemoteServer nettyRemoteServer(RpcProperties rpcProperties, RpcContext rpcContext, ApplicationContext applicationContext) {
+    public NettyRemoteServer nettyRemoteServer(RpcSpringConfigurationProperties rpcProperties, RpcContext rpcContext, ApplicationContext applicationContext) {
         NettyRemoteServer nettyRemoteServer = new NettyRemoteServer();
         nettyRemoteServer.setRpcProperties(rpcProperties);
         nettyRemoteServer.setRpcContext(rpcContext);
@@ -80,7 +80,7 @@ public class RpcBeanPropertiesConfiguration {
     }
 
     @Bean
-    public RpcProviderDataInitBean rpcProviderDataPuller(RpcContext rpcContext, RpcProperties rpcProperties, ApplicationContext applicationContext, LoadBalance loadBalance) {
+    public RpcProviderDataInitBean rpcProviderDataPuller(RpcContext rpcContext, RpcSpringConfigurationProperties rpcProperties, ApplicationContext applicationContext, LoadBalance loadBalance) {
         RpcProviderDataInitBean rpcProviderDataInitBean = new RpcProviderDataInitBean();
         rpcContext.setProviderAddress(NetUtils.getLocalAddress().getHostAddress() + ":" + rpcProperties.getServerPort());
         rpcProviderDataInitBean.setRpcContext(rpcContext);

@@ -1,4 +1,4 @@
-package com.mola.rpc.core.spring;
+package com.mola.rpc.spring;
 
 import com.mola.rpc.common.constants.CommonConstants;
 import com.mola.rpc.common.context.RpcContext;

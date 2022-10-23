@@ -3,13 +3,13 @@
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <parent>
-        <artifactId>rpc-test</artifactId>
+        <artifactId>my-rpc</artifactId>
         <groupId>com.mola</groupId>
         <version>0.0.1-SNAPSHOT</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
-    <artifactId>rpc-provider</artifactId>
+    <artifactId>spring-boot-starter-rpc</artifactId>
 
     <properties>
         <maven.compiler.source>8</maven.compiler.source>
@@ -18,20 +18,21 @@
 
     <dependencies>
         <dependency>
-            <groupId>com.mola</groupId>
-            <artifactId>rpc-client</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>com.mola</groupId>
-            <artifactId>spring-boot-starter-rpc</artifactId>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-configuration-processor</artifactId>
+            <optional>true</optional>
         </dependency>
         <dependency>
             <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter</artifactId>
+            <artifactId>spring-boot-autoconfigure</artifactId>
         </dependency>
         <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-web</artifactId>
+            <groupId>com.mola</groupId>
+            <artifactId>rpc-core</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.mola</groupId>
+            <artifactId>rpc-data-config</artifactId>
         </dependency>
     </dependencies>
 

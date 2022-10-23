@@ -1,11 +1,11 @@
 package com.mola.rpc.core.remoting.netty;
 
 import com.mola.rpc.common.context.RpcContext;
+import com.mola.rpc.common.properties.RpcProperties;
 import com.mola.rpc.core.remoting.handler.NettyDecoder;
 import com.mola.rpc.core.remoting.handler.NettyEncoder;
 import com.mola.rpc.core.remoting.handler.NettyServerConnectManageHandler;
 import com.mola.rpc.core.remoting.handler.NettyServerHandler;
-import com.mola.rpc.core.spring.RpcProperties;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelInitializer;

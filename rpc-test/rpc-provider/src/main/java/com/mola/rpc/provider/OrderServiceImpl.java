@@ -6,7 +6,7 @@ import com.mola.rpc.client.Order;
 import com.mola.rpc.client.OrderService;
 import com.mola.rpc.client.ServerResponse;
 import com.mola.rpc.common.annotation.RpcProvider;
-import com.mola.rpc.core.spring.RpcProperties;
+import com.mola.rpc.common.properties.RpcProperties;
 import com.mola.rpc.core.util.NetUtils;
 
 import javax.annotation.Resource;

@@ -9,6 +9,6 @@ logging:
     root: info
 
 rpc:
-  server-port: 9001
+  server-port: 10248
   environment: pre
   app-name: ${spring.application.name}

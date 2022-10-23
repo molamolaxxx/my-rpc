@@ -42,7 +42,7 @@ public class ZkProviderConfigChangeListenerImpl implements IZkChildListener {
 
     @Override
     public void handleChildChange(String parentPath, List<String> childList) throws Exception {
-        log.warn(this.consumerMetaData.getInterfaceClazz().getName() + ":" + JSONObject.toJSONString(childList));
+        log.warn("remote address available , service is " + this.consumerMetaData.getInterfaceClazz().getName() + ":" + JSONObject.toJSONString(childList));
         List<AddressInfo> addressList = consumerMetaData.getAddressList();
         Map<String, AddressInfo> addressInfoMap = Maps.newHashMap();
         addressList.forEach(addressInfo -> addressInfoMap.put(addressInfo.getAddress(), addressInfo));
