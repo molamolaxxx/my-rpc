@@ -1,14 +1,18 @@
 package com.mola.rpc.core.proto;
 
 import com.mola.rpc.common.context.RpcContext;
+import com.mola.rpc.common.entity.AddressInfo;
 import com.mola.rpc.common.entity.RpcMetaData;
 import com.mola.rpc.core.properties.RpcProperties;
 import com.mola.rpc.core.proxy.RpcProxyInvokeHandler;
 import com.mola.rpc.core.remoting.netty.NettyRemoteClient;
 import com.mola.rpc.core.remoting.netty.NettyRemoteServer;
 import com.mola.rpc.data.config.spring.RpcProviderDataInitBean;
+import org.springframework.util.Assert;
 
 import java.lang.reflect.Proxy;
+import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * @author : molamola
@@ -26,6 +30,24 @@ public class RpcInvoker {
      * @param <T>
      * @return
      */
+    public static <T> T consume(Class<T> consumerInterface) {
+        return consume(consumerInterface, new RpcMetaData());
+    }
+
+    /**
+     * 消费单点服务
+     * @param consumerInterface
+     * @param <T>
+     */
+    public static <T> T consumeSingleNode(Class<T> consumerInterface, List<String> addressList) {
+        ProtoRpcConfigFactory protoRpcConfigFactory = ProtoRpcConfigFactory.get();
+        RpcProperties rpcProperties = protoRpcConfigFactory.getRpcProperties();
+        Assert.isTrue(!rpcProperties.getStartConfigServer(), "please close config server in single node mode!");
+        RpcMetaData rpcMetaData = new RpcMetaData();
+        rpcMetaData.setAddressList(addressList.stream().map(add -> new AddressInfo(add, null)).collect(Collectors.toList()));
+        return consume(consumerInterface, rpcMetaData);
+    }
+
     public static <T> T consume(Class<T> consumerInterface, RpcMetaData rpcMetaData) {
         if (!ProtoRpcConfigFactory.INIT_FLAG.get()) {
             throw new RuntimeException("please init rpc config in proto mode!");
@@ -66,6 +88,23 @@ public class RpcInvoker {
      * @param <T>
      * @return
      */
+    public static <T> void provide(Class<T> consumerInterface,T providerObject) {
+        provide(consumerInterface, providerObject, new RpcMetaData());
+    }
+
+    /**
+     * 提供单点服务，不注册服务
+     * @param consumerInterface
+     * @param providerObject
+     * @param <T>
+     */
+    public static <T> void provideSingleNode(Class<T> consumerInterface, T providerObject) {
+        ProtoRpcConfigFactory protoRpcConfigFactory = ProtoRpcConfigFactory.get();
+        RpcProperties rpcProperties = protoRpcConfigFactory.getRpcProperties();
+        Assert.isTrue(!rpcProperties.getStartConfigServer(), "please close config server in single node mode!");
+        provide(consumerInterface, providerObject, new RpcMetaData());
+    }
+
     public static <T> void provide(Class<T> consumerInterface,T providerObject, RpcMetaData rpcMetaData) {
         if (!ProtoRpcConfigFactory.INIT_FLAG.get()) {
             throw new RuntimeException("please init rpc config in proto mode!");
