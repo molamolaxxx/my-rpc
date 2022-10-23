@@ -12,6 +12,8 @@ import com.mola.rpc.data.config.listener.AddressChangeListener;
 import com.mola.rpc.data.config.manager.RpcDataManager;
 import com.mola.rpc.data.config.manager.zk.ZkRpcDataManager;
 import com.mola.rpc.data.config.spring.RpcProviderDataInitBean;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.config.BeanFactoryPostProcessor;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.ApplicationContext;
@@ -31,6 +33,8 @@ import org.springframework.util.StringUtils;
 @EnableConfigurationProperties(RpcSpringConfigurationProperties.class)
 @Import({RpcConsumerImportBeanDefinitionRegistrar.class})
 public class RpcBeanPropertiesConfiguration {
+
+    private static final Logger log = LoggerFactory.getLogger(RpcBeanPropertiesConfiguration.class);
 
     @Bean
     public RpcContext rpcContext() {
@@ -82,6 +86,10 @@ public class RpcBeanPropertiesConfiguration {
     @Bean
     public RpcProviderDataInitBean rpcProviderDataPuller(RpcContext rpcContext, RpcSpringConfigurationProperties rpcProperties, ApplicationContext applicationContext, LoadBalance loadBalance) {
         RpcProviderDataInitBean rpcProviderDataInitBean = new RpcProviderDataInitBean();
+        if (!rpcProperties.getStartConfigServer()) {
+            log.error("will not start config server! startConfigServer = false");
+            return rpcProviderDataInitBean;
+        }
         rpcContext.setProviderAddress(NetUtils.getLocalAddress().getHostAddress() + ":" + rpcProperties.getServerPort());
         rpcProviderDataInitBean.setRpcContext(rpcContext);
         rpcProviderDataInitBean.setAppName(rpcProperties.getAppName());
