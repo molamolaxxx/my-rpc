@@ -3,6 +3,7 @@ package com.mola.rpc.common.entity;
 import com.alibaba.fastjson.JSONObject;
 import com.mola.rpc.common.annotation.ConsumerSide;
 import com.mola.rpc.common.annotation.ProviderSide;
+import com.mola.rpc.common.constants.LoadBalanceConstants;
 
 import java.util.List;
 import java.util.Set;
@@ -22,14 +23,14 @@ public class RpcMetaData {
      */
     @ProviderSide
     @ConsumerSide
-    private String group;
+    private String group = "default";
 
     /**
      * 服务提供版本
      */
     @ProviderSide
     @ConsumerSide
-    private String version;
+    private String version = "1.0.0";
 
     /**
      * 接口名
@@ -42,7 +43,7 @@ public class RpcMetaData {
      * 是否使用纤程
      */
     @ProviderSide
-    private Boolean inFiber;
+    private Boolean inFiber = false;
 
     /**
      * 服务提供者ip:port
@@ -54,19 +55,25 @@ public class RpcMetaData {
      * 客户端超时时间
      */
     @ConsumerSide
-    private long clientTimeout = 3000;
+    private long clientTimeout = 10000;
 
     /**
      * 负载均衡策略
      */
     @ConsumerSide
-    private String loadBalanceStrategy;
+    private String loadBalanceStrategy = LoadBalanceConstants.LOAD_BALANCE_RANDOM_STRATEGY;
 
     /**
      * 服务提供者bean名称
      */
     @ProviderSide
     private String providerBeanName;
+
+    /**
+     * 服务提供者对象
+     */
+    @ProviderSide
+    private Object providerObject;
 
     /**
      * 服务提供者类名
@@ -198,5 +205,13 @@ public class RpcMetaData {
 
     public void setVirtualAddressNodeMap(SortedMap<Integer, String> virtualAddressNodeMap) {
         this.virtualAddressNodeMap = virtualAddressNodeMap;
+    }
+
+    public Object getProviderObject() {
+        return providerObject;
+    }
+
+    public void setProviderObject(Object providerObject) {
+        this.providerObject = providerObject;
     }
 }

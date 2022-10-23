@@ -70,10 +70,10 @@ public class RpcProviderDataInitBean {
         // 上报提供的provider数据
         Collection<RpcMetaData> providerMetaDataCollection = rpcContext.getProviderMetaMap().values();
         for (RpcMetaData providerMetaData : providerMetaDataCollection) {
-            rpcDataManager.uploadRemoteProviderData(providerMetaData, environment, appName, rpcContext.getProviderAddress());
+            uploadRemoteProviderData(providerMetaData);
         }
         // 拉取订阅的provider数据，填充到上下文
-        pullProviderData();
+        pullProviderDataList();
         // 注册监听器
         registerProviderDataListeners();
         // 上报服务线程
@@ -82,41 +82,53 @@ public class RpcProviderDataInitBean {
         startConsumerInfoDownloadMonitor();
     }
 
+    public void uploadRemoteProviderData(RpcMetaData providerMetaData) {
+        rpcDataManager.uploadRemoteProviderData(providerMetaData, environment, appName, rpcContext.getProviderAddress());
+    }
+
     private void registerProviderDataListeners() {
         Collection<RpcMetaData> consumerMetaDataCollection = rpcContext.getConsumerMetaMap().values();
         for (RpcMetaData consumerMetaData : consumerMetaDataCollection) {
-            // 服务名
-            String serviceName = consumerMetaData.getInterfaceClazz().getName();
-            // group
-            String group = consumerMetaData.getGroup();
-            // version
-            String version = consumerMetaData.getVersion();
-            // 从配置中心上拉取配置，注册监听器
-            rpcDataManager.registerProviderDataListener(serviceName, group, version, environment, consumerMetaData);
+            registerProviderDataListener(consumerMetaData);
         }
     }
 
-    private void pullProviderData() {
+    public void registerProviderDataListener(RpcMetaData consumerMetaData) {
+        // 服务名
+        String serviceName = consumerMetaData.getInterfaceClazz().getName();
+        // group
+        String group = consumerMetaData.getGroup();
+        // version
+        String version = consumerMetaData.getVersion();
+        // 从配置中心上拉取配置，注册监听器
+        rpcDataManager.registerProviderDataListener(serviceName, group, version, environment, consumerMetaData);
+    }
+
+    private void pullProviderDataList() {
         Collection<RpcMetaData> consumerMetaDataCollection = rpcContext.getConsumerMetaMap().values();
         for (RpcMetaData consumerMetaData : consumerMetaDataCollection) {
-            // 服务名
-            String serviceName = consumerMetaData.getInterfaceClazz().getName();
-            // group
-            String group = consumerMetaData.getGroup();
-            // version
-            String version = consumerMetaData.getVersion();
-            // 判断服务是否存在
-            if (!rpcDataManager.isProviderExist(serviceName, group, version, environment)) {
-                throw new RuntimeException("provider not exist! meta = " + consumerMetaData.toString());
-            }
-            List<AddressInfo> addressInfoList = rpcDataManager.getRemoteProviderAddress(serviceName, group, version, environment);
-            if (null == addressInfoList) {
-                log.warn("addressInfoList is null , meta : " + consumerMetaData.toString());
-                continue;
-            }
-            consumerMetaData.setAddressList(addressInfoList);
-            addressChangeListeners.forEach(addressChangeListener -> addressChangeListener.afterAddressChange(consumerMetaData));
+            pullProviderData(consumerMetaData);
         }
+    }
+
+    public void pullProviderData(RpcMetaData consumerMetaData) {
+        // 服务名
+        String serviceName = consumerMetaData.getInterfaceClazz().getName();
+        // group
+        String group = consumerMetaData.getGroup();
+        // version
+        String version = consumerMetaData.getVersion();
+        // 判断服务是否存在
+        if (!rpcDataManager.isProviderExist(serviceName, group, version, environment)) {
+            throw new RuntimeException("provider not exist! env = " + environment + ", meta = " + consumerMetaData.toString());
+        }
+        List<AddressInfo> addressInfoList = rpcDataManager.getRemoteProviderAddress(serviceName, group, version, environment);
+        if (null == addressInfoList) {
+            log.warn("addressInfoList is null , meta : " + consumerMetaData.toString());
+            return;
+        }
+        consumerMetaData.setAddressList(addressInfoList);
+        addressChangeListeners.forEach(addressChangeListener -> addressChangeListener.afterAddressChange(consumerMetaData));
     }
 
     private void startProviderInfoUploadMonitor() {
@@ -149,7 +161,7 @@ public class RpcProviderDataInitBean {
                 });
         this.consumerInfoDownloadMonitorService.scheduleAtFixedRate(() -> {
             // 获取所有客户端信息
-            pullProviderData();
+            pullProviderDataList();
         },30, 60, TimeUnit.SECONDS);
     }
 

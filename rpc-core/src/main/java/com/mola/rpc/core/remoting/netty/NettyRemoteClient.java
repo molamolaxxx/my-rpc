@@ -25,6 +25,7 @@ import org.slf4j.LoggerFactory;
 import java.lang.reflect.Method;
 import java.net.SocketAddress;
 import java.util.concurrent.ThreadFactory;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**
@@ -60,6 +61,8 @@ public class NettyRemoteClient {
     private NettyConnectPool nettyConnectPool;
 
     private RpcContext rpcContext;
+
+    private AtomicBoolean startFlag = new AtomicBoolean(false);
 
 
     public NettyRemoteClient() {
@@ -117,6 +120,7 @@ public class NettyRemoteClient {
                     }
                 });
         log.info("[NettyRemoteClient]: netty client start");
+        this.startFlag.compareAndSet(false, true);
     }
 
     /**
@@ -312,5 +316,9 @@ public class NettyRemoteClient {
 
     public void setRpcContext(RpcContext rpcContext) {
         this.rpcContext = rpcContext;
+    }
+
+    public boolean isStart() {
+        return this.startFlag.get();
     }
 }

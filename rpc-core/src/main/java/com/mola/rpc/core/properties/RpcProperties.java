@@ -1,6 +1,8 @@
-package com.mola.rpc.common.properties;
+package com.mola.rpc.core.properties;
 
 import com.mola.rpc.common.constants.CommonConstants;
+import com.mola.rpc.common.entity.RpcMetaData;
+import com.mola.rpc.data.config.manager.RpcDataManager;
 
 /**
  * @author : molamola
@@ -8,7 +10,6 @@ import com.mola.rpc.common.constants.CommonConstants;
  * @Description:
  * @date : 2022-07-30 18:42
  **/
-//@ConfigurationProperties(prefix = "rpc")
 public class RpcProperties {
 
     /**
@@ -55,6 +56,13 @@ public class RpcProperties {
      * 自定义注册中心bean
      */
     private String configServerBeanName;
+
+    /**
+     * 自定义configure server实现
+     */
+    private RpcDataManager<RpcMetaData> rpcDataManager;
+
+    private Boolean startConfigServer = Boolean.TRUE;
 
 
     public String getConfigServerAddress() {
@@ -127,5 +135,21 @@ public class RpcProperties {
 
     public String getConfigServerBeanName() {
         return configServerBeanName;
+    }
+
+    public RpcDataManager<RpcMetaData> getRpcDataManager() {
+        return rpcDataManager;
+    }
+
+    public void setRpcDataManager(RpcDataManager<RpcMetaData> rpcDataManager) {
+        this.rpcDataManager = rpcDataManager;
+    }
+
+    public Boolean getStartConfigServer() {
+        return startConfigServer;
+    }
+
+    public void setStartConfigServer(Boolean startConfigServer) {
+        this.startConfigServer = startConfigServer;
     }
 }

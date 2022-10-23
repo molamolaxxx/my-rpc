@@ -1,7 +1,8 @@
 package com.mola.rpc.core.remoting.netty;
 
 import com.mola.rpc.common.context.RpcContext;
-import com.mola.rpc.common.properties.RpcProperties;
+import com.mola.rpc.core.properties.RpcProperties;
+import com.mola.rpc.core.proto.ObjectFetcher;
 import com.mola.rpc.core.remoting.handler.NettyDecoder;
 import com.mola.rpc.core.remoting.handler.NettyEncoder;
 import com.mola.rpc.core.remoting.handler.NettyServerConnectManageHandler;
@@ -18,10 +19,10 @@ import io.netty.handler.timeout.IdleStateHandler;
 import io.netty.util.concurrent.DefaultEventExecutorGroup;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.context.ApplicationContext;
 
 import java.net.InetSocketAddress;
 import java.util.concurrent.ThreadFactory;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**
@@ -58,7 +59,9 @@ public class NettyRemoteServer {
 
     private RpcContext rpcContext;
 
-    private ApplicationContext applicationContext;
+    private ObjectFetcher providerFetcher;
+
+    private AtomicBoolean startFlag = new AtomicBoolean(false);
 
     public NettyRemoteServer() {
         this.serverBootstrap = new ServerBootstrap();
@@ -124,7 +127,7 @@ public class NettyRemoteServer {
                                 new NettyDecoder(),
                                 new IdleStateHandler(0, 0, 120),
                                 new NettyServerConnectManageHandler(), // 监听与连接相关的事件
-                                new NettyServerHandler(rpcContext, applicationContext, rpcProperties));
+                                new NettyServerHandler(rpcContext, providerFetcher, rpcProperties));
                     }
                 });
 
@@ -138,6 +141,7 @@ public class NettyRemoteServer {
         catch (InterruptedException e1) {
             throw new RuntimeException("this.serverBootstrap.bind().sync() InterruptedException", e1);
         }
+        this.startFlag.compareAndSet(false, true);
     }
 
     public RpcProperties getRpcProperties() {
@@ -156,11 +160,15 @@ public class NettyRemoteServer {
         this.rpcContext = rpcContext;
     }
 
-    public ApplicationContext getApplicationContext() {
-        return applicationContext;
+    public ObjectFetcher getProviderFetcher() {
+        return providerFetcher;
     }
 
-    public void setApplicationContext(ApplicationContext applicationContext) {
-        this.applicationContext = applicationContext;
+    public void setProviderFetcher(ObjectFetcher providerFetcher) {
+        this.providerFetcher = providerFetcher;
+    }
+
+    public boolean isStart() {
+        return this.startFlag.get();
     }
 }

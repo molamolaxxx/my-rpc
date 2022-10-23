@@ -35,9 +35,9 @@ public class BytesUtil {
 	 * @return
 	 */
 	public static byte[] objectToBytes(Object object) {
-		if(null == object) {
-			throw new RuntimeException("object is null");
-		}
+//		if(null == object) {
+//			throw new RuntimeException("object is null");
+//		}
 		ByteArrayOutputStream byteArrayOutputStream =
 				new ByteArrayOutputStream();
 		HessianOutput hessianOutput = new HessianOutput(byteArrayOutputStream);

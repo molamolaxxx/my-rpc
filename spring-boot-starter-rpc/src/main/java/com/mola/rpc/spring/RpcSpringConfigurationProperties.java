@@ -1,6 +1,6 @@
 package com.mola.rpc.spring;
 
-import com.mola.rpc.common.properties.RpcProperties;
+import com.mola.rpc.core.properties.RpcProperties;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 
 /**

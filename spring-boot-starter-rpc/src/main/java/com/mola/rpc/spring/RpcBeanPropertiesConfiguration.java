@@ -67,7 +67,7 @@ public class RpcBeanPropertiesConfiguration {
         NettyRemoteServer nettyRemoteServer = new NettyRemoteServer();
         nettyRemoteServer.setRpcProperties(rpcProperties);
         nettyRemoteServer.setRpcContext(rpcContext);
-        nettyRemoteServer.setApplicationContext(applicationContext);
+        nettyRemoteServer.setProviderFetcher(providerName -> applicationContext.getBean(providerName));
         nettyRemoteServer.start();
         return nettyRemoteServer;
     }

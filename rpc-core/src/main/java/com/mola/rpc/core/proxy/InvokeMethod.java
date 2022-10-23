@@ -104,7 +104,7 @@ public class InvokeMethod {
 
 	public Object invoke(Object providerBean) {
 		try {
-			Assert.notNull(providerBean, "providerBean is null, name = " + providerBean);
+			Assert.notNull(providerBean, "providerBean not exist, name = " + providerBean);
 			// 1、反序列化类型
 			Class<?>[] paramTypes = new Class<?>[this.parameterTypes.length];
 			for (int i = 0; i < this.parameterTypes.length; i++) {

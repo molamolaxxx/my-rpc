@@ -2,8 +2,9 @@ package com.mola.rpc.core.remoting.handler;
 
 import com.mola.rpc.common.context.RpcContext;
 import com.mola.rpc.common.entity.RpcMetaData;
-import com.mola.rpc.common.properties.RpcProperties;
+import com.mola.rpc.core.properties.RpcProperties;
 import com.mola.rpc.core.biz.BizProcessAsyncExecutor;
+import com.mola.rpc.core.proto.ObjectFetcher;
 import com.mola.rpc.core.proxy.InvokeMethod;
 import com.mola.rpc.core.remoting.protocol.RemotingCommand;
 import com.mola.rpc.core.remoting.protocol.RemotingCommandCode;
@@ -14,7 +15,6 @@ import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.context.ApplicationContext;
 import org.springframework.util.Assert;
 
 import java.net.SocketAddress;
@@ -31,13 +31,13 @@ public class NettyServerHandler extends SimpleChannelInboundHandler<RemotingComm
 
     private RpcContext rpcContext;
 
-    private ApplicationContext applicationContext;
+    private ObjectFetcher providerFetcher;
 
     private BizProcessAsyncExecutor bizProcessAsyncExecutor;
 
-    public NettyServerHandler(RpcContext rpcContext, ApplicationContext applicationContext, RpcProperties rpcProperties) {
+    public NettyServerHandler(RpcContext rpcContext, ObjectFetcher providerFetcher, RpcProperties rpcProperties) {
         this.rpcContext = rpcContext;
-        this.applicationContext = applicationContext;
+        this.providerFetcher = providerFetcher;
         this.bizProcessAsyncExecutor = new BizProcessAsyncExecutor(rpcProperties);
     }
 
@@ -54,7 +54,10 @@ public class NettyServerHandler extends SimpleChannelInboundHandler<RemotingComm
                     RemotingCommand response = null;
                     // 反射调用
                     try {
-                        Object providerBean = this.applicationContext.getBean(providerMeta.getProviderBeanName());
+                        Object providerBean = providerMeta.getProviderObject();
+                        if (null == providerBean) {
+                            providerBean = this.providerFetcher.getObject(providerMeta.getProviderBeanName());
+                        }
                         Object result = invokeMethod.invoke(providerBean);
                         response = buildRemotingCommand(request, result, RemotingCommandCode.SUCCESS, null);
                     } catch (Exception e) {

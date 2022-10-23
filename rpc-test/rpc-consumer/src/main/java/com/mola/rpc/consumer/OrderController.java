@@ -102,10 +102,10 @@ public class OrderController {
         } else {
             listServerResponse = orderService.searchOrderListWithUser(order, new OperateUser(UUID.randomUUID().toString(), userName));
         }
-        List<Order> data = listServerResponse.getData();
-        for (Order datum : data) {
-            System.out.println(JSONObject.toJSONString(datum));
-        }
+//        List<Order> data = listServerResponse.getData();
+//        for (Order datum : data) {
+//            System.out.println(JSONObject.toJSONString(datum));
+//        }
         return listServerResponse;
     }
 }
