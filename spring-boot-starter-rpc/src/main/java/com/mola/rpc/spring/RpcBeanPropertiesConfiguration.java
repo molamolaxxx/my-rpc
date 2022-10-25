@@ -84,6 +84,12 @@ public class RpcBeanPropertiesConfiguration {
     }
 
     @Bean
+    public RpcConsumerInjectBeanProcessor rpcConsumerInjectBeanProcessor(){
+        RpcConsumerInjectBeanProcessor rpcConsumerInjectBeanProcessor = new RpcConsumerInjectBeanProcessor();
+        return rpcConsumerInjectBeanProcessor;
+    }
+
+    @Bean
     public RpcProviderDataInitBean rpcProviderDataPuller(RpcContext rpcContext, RpcSpringConfigurationProperties rpcProperties, ApplicationContext applicationContext, LoadBalance loadBalance) {
         RpcProviderDataInitBean rpcProviderDataInitBean = new RpcProviderDataInitBean();
         if (!rpcProperties.getStartConfigServer()) {

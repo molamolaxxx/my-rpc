@@ -1,12 +1,11 @@
 package com.mola.rpc.provider;
 
 import com.mola.rpc.client.UserService;
+import com.mola.rpc.common.annotation.RpcConsumer;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.ResponseBody;
-
-import javax.annotation.Resource;
 
 /**
  * @author : molamola
@@ -18,11 +17,8 @@ import javax.annotation.Resource;
 @ResponseBody
 public class UserController {
 
-    @Resource
+    @RpcConsumer
     private UserService userService;
-
-    @Resource
-    private RpcConsumerConfig rpcConsumerConfig;
 
     @GetMapping("/queryUserName/{id}")
     public String queryUserName(@PathVariable String id) {

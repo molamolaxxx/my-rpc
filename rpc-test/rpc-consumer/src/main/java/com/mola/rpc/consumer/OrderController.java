@@ -33,6 +33,13 @@ public class OrderController {
     @Resource
     private OrderService orderServiceGray;
 
+//    @RpcConsumer(loadBalanceStrategy = LoadBalanceConstants.CONSISTENCY_HASHING_STRATEGY)
+//    private OrderService orderService;
+//
+//    @RpcConsumer(loadBalanceStrategy = LoadBalanceConstants.CONSISTENCY_HASHING_STRATEGY, group = "gray",
+//            asyncMethods = {"queryOrderList","searchOrderListWithUser"})
+//    private OrderService orderServiceGray;
+
     @GetMapping("/queryOrderList")
     public List<Order> queryOrderList(@RequestParam Integer time) {
         List<String> idList = new ArrayList<>();

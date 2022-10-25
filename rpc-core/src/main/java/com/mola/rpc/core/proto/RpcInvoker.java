@@ -30,8 +30,8 @@ public class RpcInvoker {
      * @param <T>
      * @return
      */
-    public static <T> T consume(Class<T> consumerInterface) {
-        return consume(consumerInterface, new RpcMetaData());
+    public static <T> T consumer(Class<T> consumerInterface) {
+        return consumer(consumerInterface, new RpcMetaData());
     }
 
     /**
@@ -39,16 +39,16 @@ public class RpcInvoker {
      * @param consumerInterface
      * @param <T>
      */
-    public static <T> T consumeSingleNode(Class<T> consumerInterface, List<String> addressList) {
+    public static <T> T singleNodeConsumer(Class<T> consumerInterface, List<String> addressList) {
         ProtoRpcConfigFactory protoRpcConfigFactory = ProtoRpcConfigFactory.get();
         RpcProperties rpcProperties = protoRpcConfigFactory.getRpcProperties();
         Assert.isTrue(!rpcProperties.getStartConfigServer(), "please close config server in single node mode!");
         RpcMetaData rpcMetaData = new RpcMetaData();
         rpcMetaData.setAddressList(addressList.stream().map(add -> new AddressInfo(add, null)).collect(Collectors.toList()));
-        return consume(consumerInterface, rpcMetaData);
+        return consumer(consumerInterface, rpcMetaData);
     }
 
-    public static <T> T consume(Class<T> consumerInterface, RpcMetaData rpcMetaData) {
+    public static <T> T consumer(Class<T> consumerInterface, RpcMetaData rpcMetaData) {
         if (!ProtoRpcConfigFactory.INIT_FLAG.get()) {
             throw new RuntimeException("please init rpc config in proto mode!");
         }
@@ -88,8 +88,8 @@ public class RpcInvoker {
      * @param <T>
      * @return
      */
-    public static <T> void provide(Class<T> consumerInterface,T providerObject) {
-        provide(consumerInterface, providerObject, new RpcMetaData());
+    public static <T> void provider(Class<T> consumerInterface, T providerObject) {
+        provider(consumerInterface, providerObject, new RpcMetaData());
     }
 
     /**
@@ -98,14 +98,14 @@ public class RpcInvoker {
      * @param providerObject
      * @param <T>
      */
-    public static <T> void provideSingleNode(Class<T> consumerInterface, T providerObject) {
+    public static <T> void singleNodeProvider(Class<T> consumerInterface, T providerObject) {
         ProtoRpcConfigFactory protoRpcConfigFactory = ProtoRpcConfigFactory.get();
         RpcProperties rpcProperties = protoRpcConfigFactory.getRpcProperties();
         Assert.isTrue(!rpcProperties.getStartConfigServer(), "please close config server in single node mode!");
-        provide(consumerInterface, providerObject, new RpcMetaData());
+        provider(consumerInterface, providerObject, new RpcMetaData());
     }
 
-    public static <T> void provide(Class<T> consumerInterface,T providerObject, RpcMetaData rpcMetaData) {
+    public static <T> void provider(Class<T> consumerInterface, T providerObject, RpcMetaData rpcMetaData) {
         if (!ProtoRpcConfigFactory.INIT_FLAG.get()) {
             throw new RuntimeException("please init rpc config in proto mode!");
         }

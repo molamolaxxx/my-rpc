@@ -10,7 +10,6 @@ import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.support.AbstractBeanDefinition;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.support.BeanDefinitionRegistry;
-import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.ImportBeanDefinitionRegistrar;
 import org.springframework.context.annotation.ScannedGenericBeanDefinition;
 import org.springframework.core.type.AnnotationMetadata;
@@ -54,9 +53,9 @@ public class RpcConsumerImportBeanDefinitionRegistrar implements ImportBeanDefin
                     }
                     providerAlreadyAddedSet.add(providerKey);
                 }
-                if (!metadata.getAnnotationTypes().contains(Configuration.class.getName())) {
-                    continue;
-                }
+//                if (!metadata.getAnnotationTypes().contains(Configuration.class.getName())) {
+//                    continue;
+//                }
                 String beanClassName = beanDefinition.getBeanClassName();
                 Class<?> clazz = Class.forName(beanClassName);
                 Field[] fields = clazz.getDeclaredFields();

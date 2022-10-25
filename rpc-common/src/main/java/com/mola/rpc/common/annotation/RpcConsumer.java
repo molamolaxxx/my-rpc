@@ -2,6 +2,7 @@ package com.mola.rpc.common.annotation;
 
 import com.mola.rpc.common.constants.LoadBalanceConstants;
 
+import javax.annotation.Resource;
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
@@ -9,6 +10,7 @@ import java.lang.annotation.Target;
 
 @Target({ElementType.TYPE, ElementType.FIELD, ElementType.METHOD})
 @Retention(RetentionPolicy.RUNTIME)
+@Resource
 public @interface RpcConsumer {
 
     String version() default "1.0.0";
