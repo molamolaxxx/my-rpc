@@ -12,7 +12,6 @@ import com.mola.rpc.core.remoting.protocol.RemotingCommand;
 import com.mola.rpc.core.remoting.protocol.RemotingCommandCode;
 import com.mola.rpc.core.strategy.balance.LoadBalance;
 import com.mola.rpc.core.util.BytesUtil;
-import com.mola.rpc.core.util.RemotingHelper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.util.CollectionUtils;
@@ -33,18 +32,30 @@ public class RpcProxyInvokeHandler implements InvocationHandler {
 
     private static final Logger log = LoggerFactory.getLogger(RpcProxyInvokeHandler.class);
 
-    private RpcContext rpcContext;
+    /**
+     * rpc全局上下文
+     */
+    protected RpcContext rpcContext;
 
-    private LoadBalance loadBalance;
+    /**
+     * 负载均衡器
+     */
+    protected LoadBalance loadBalance;
 
-    private NettyConnectPool nettyConnectPool;
+    /**
+     * 网络连接池
+     */
+    protected NettyConnectPool nettyConnectPool;
 
-    private NettyRemoteClient nettyRemoteClient;
+    /**
+     * netty客户端
+     */
+    protected NettyRemoteClient nettyRemoteClient;
 
     /**
      * 调用服务的beanName
      */
-    private String beanName;
+    protected String beanName;
 
     @Override
     public Object invoke(Object obj, Method method, Object[] args) throws Throwable {
@@ -52,7 +63,7 @@ public class RpcProxyInvokeHandler implements InvocationHandler {
             return method.invoke(this, args);
         }
         // 获取服务对应的元数据唯一key
-        RpcMetaData consumerMeta = rpcContext.getConsumerMeta(method.getDeclaringClass().getName(), beanName);
+        RpcMetaData consumerMeta = rpcContext.getConsumerMeta(getConsumerClazzName(method, args), beanName);
         if (null == consumerMeta) {
             throw new RuntimeException("consumer invoke failed, consumerMeta is null, clazz = " + method.getDeclaringClass().getName());
         }
@@ -96,6 +107,16 @@ public class RpcProxyInvokeHandler implements InvocationHandler {
         // response转换成对象
         Object invokeResult = BytesUtil.bytesToObject(response.getBody());
         return invokeResult;
+    }
+
+    /**
+     * 读取服务接口全限定名
+     * @param method
+     * @param args
+     * @return
+     */
+    protected String getConsumerClazzName(Method method, Object[] args) {
+        return method.getDeclaringClass().getName();
     }
 
     /**
@@ -153,22 +174,17 @@ public class RpcProxyInvokeHandler implements InvocationHandler {
      * 组装InvokeMethodreturn beanName;
      * @return
      */
-    private InvokeMethod assemblyInvokeMethod(Method method, Object[] args) {
-        // 1、变量class类型
-        Class<?>[] parameterTypesClass = method.getParameterTypes();
-        // 2、变量class类型的string表示
-        String[] parameterTypesString = new String[parameterTypesClass.length];
-        // 3、真实的变量类型string
-        String[] actualParameterTypesString = new String[parameterTypesClass.length];
+    protected InvokeMethod assemblyInvokeMethod(Method method, Object[] args) {
+        // 变量class类型的string表示
+        String[] parameterTypesString = new String[method.getParameterTypes().length];
         // 构建参数
-        RemotingHelper.buildParameter(args,
-                parameterTypesClass,
-                parameterTypesString,
-                actualParameterTypesString);
+        for(int i = 0 ; i < method.getParameterTypes().length ; i ++) {
+            parameterTypesString[i] = method.getParameterTypes()[i].getName();
+        }
         // 构建invokeMethod
         InvokeMethod invokeMethod = new InvokeMethod(method.getName(),
                 parameterTypesString,
-                args,
+                null == args ? new Object[]{} : args,
                 method.getReturnType().getName(),
                 method.getDeclaringClass().getName());
         return invokeMethod;

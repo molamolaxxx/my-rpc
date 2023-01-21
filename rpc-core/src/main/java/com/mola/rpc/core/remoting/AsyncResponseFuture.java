@@ -6,7 +6,6 @@ import com.mola.rpc.core.util.BytesUtil;
 
 import java.lang.reflect.Method;
 import java.util.function.Consumer;
-import java.util.function.Supplier;
 
 /**
  * 异步请求应答封装
@@ -14,8 +13,6 @@ import java.util.function.Supplier;
 public class AsyncResponseFuture<T> extends ResponseFuture{
 
     private Consumer<T> consumer;
-
-    private Supplier<Void> sender;
 
     /**
      * consumer调用方法

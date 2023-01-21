@@ -1,9 +1,10 @@
 package com.mola.rpc.core.proto;
 
+import com.mola.rpc.common.constants.LoadBalanceConstants;
 import com.mola.rpc.common.context.RpcContext;
-import com.mola.rpc.common.entity.AddressInfo;
 import com.mola.rpc.common.entity.RpcMetaData;
 import com.mola.rpc.core.properties.RpcProperties;
+import com.mola.rpc.core.proxy.GenericRpcServiceProxyFactory;
 import com.mola.rpc.core.proxy.RpcProxyInvokeHandler;
 import com.mola.rpc.core.remoting.netty.NettyRemoteClient;
 import com.mola.rpc.core.remoting.netty.NettyRemoteServer;
@@ -12,7 +13,6 @@ import org.springframework.util.Assert;
 
 import java.lang.reflect.Proxy;
 import java.util.List;
-import java.util.stream.Collectors;
 
 /**
  * @author : molamola
@@ -25,7 +25,7 @@ public class RpcInvoker {
     private static final String PROTO_MODE_CONSUMER = "PROTO_MODE_CONSUMER";
 
     /**
-     * 创建消费者接口代理
+     * 创建消费者接口代理（建议在应用初始化的时候完成）
      * @param consumerInterface
      * @param <T>
      * @return
@@ -35,17 +35,42 @@ public class RpcInvoker {
     }
 
     /**
-     * 消费单点服务
+     * 指定服务提供地址的消费者（建议在应用初始化的时候完成）
      * @param consumerInterface
      * @param <T>
      */
-    public static <T> T singleNodeConsumer(Class<T> consumerInterface, List<String> addressList) {
+    public static <T> T appointedAddressConsumer(Class<T> consumerInterface, List<String> addressList) {
         ProtoRpcConfigFactory protoRpcConfigFactory = ProtoRpcConfigFactory.get();
         RpcProperties rpcProperties = protoRpcConfigFactory.getRpcProperties();
-        Assert.isTrue(!rpcProperties.getStartConfigServer(), "please close config server in single node mode!");
         RpcMetaData rpcMetaData = new RpcMetaData();
-        rpcMetaData.setAddressList(addressList.stream().map(add -> new AddressInfo(add, null)).collect(Collectors.toList()));
+        // 指定provider的服务提供者
+        rpcMetaData.setAppointedAddress(addressList);
+        rpcMetaData.setLoadBalanceStrategy(LoadBalanceConstants.LOAD_BALANCE_APPOINTED_RANDOM_STRATEGY);
         return consumer(consumerInterface, rpcMetaData);
+    }
+
+    /**
+     * 泛化调用消费者，接口维度全局单例（建议在应用初始化的时候完成）
+     * @param interfaceClazzName
+     * @return
+     */
+    public static GenericRpcService genericConsumer(String interfaceClazzName) {
+        return GenericRpcServiceProxyFactory.getProxy(interfaceClazzName, new RpcMetaData());
+    }
+
+    /**
+     * 泛化调用消费者，接口维度全局单例（建议在应用初始化的时候完成）
+     * 指定服务提供者
+     * @param interfaceClazzName
+     * @param addressList
+     * @return
+     */
+    public static GenericRpcService genericConsumer(String interfaceClazzName, List<String> addressList) {
+        RpcMetaData rpcMetaData = new RpcMetaData();
+        // 指定provider的服务提供者
+        rpcMetaData.setAppointedAddress(addressList);
+        rpcMetaData.setLoadBalanceStrategy(LoadBalanceConstants.LOAD_BALANCE_APPOINTED_RANDOM_STRATEGY);
+        return GenericRpcServiceProxyFactory.getProxy(interfaceClazzName, rpcMetaData);
     }
 
     public static <T> T consumer(Class<T> consumerInterface, RpcMetaData rpcMetaData) {
@@ -60,9 +85,7 @@ public class RpcInvoker {
         rpcContext.addConsumerMeta(consumerInterface.getName(), PROTO_MODE_CONSUMER, rpcMetaData);
         // 启动client
         NettyRemoteClient nettyRemoteClient = protoRpcConfigFactory.getNettyRemoteClient();
-        if (!nettyRemoteClient.isStart()) {
-            nettyRemoteClient.start();
-        }
+        Assert.isTrue(nettyRemoteClient.isStart(), "nettyRemoteClient has not been start! please call ProtoRpcConfigFactory.configure first");
         // config server 动态注册
         if (rpcProperties.getStartConfigServer()) {
             RpcProviderDataInitBean rpcProviderDataInitBean = protoRpcConfigFactory.getRpcProviderDataInitBean();

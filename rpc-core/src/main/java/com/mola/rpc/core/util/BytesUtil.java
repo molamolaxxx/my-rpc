@@ -71,6 +71,22 @@ public class BytesUtil {
 		return object;
 	}
 
+	public static Object bytesToObject(byte[] bytes, Class clazz) {
+		if(null == bytes) {
+			throw new RuntimeException("bytes is null");
+		}
+		ByteArrayInputStream byteArrayInputStream = new ByteArrayInputStream(bytes);
+		HessianInput hessianInput = new HessianInput(byteArrayInputStream);
+		hessianInput.getSerializerFactory().setAllowNonSerializable(true);
+		Object object = null;
+		try {
+			object = hessianInput.readObject(clazz);
+		} catch (Exception e) {
+			throw new RuntimeException("read object error", e);
+		}
+		return object;
+	}
+
 	/**
 	 * 将byte数组计算MD5
 	 * @param bytes

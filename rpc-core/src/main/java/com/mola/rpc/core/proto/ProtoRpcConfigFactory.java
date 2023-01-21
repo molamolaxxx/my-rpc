@@ -29,7 +29,7 @@ public class ProtoRpcConfigFactory {
 
     private static final Logger log = LoggerFactory.getLogger(ProtoRpcConfigFactory.class);
 
-    static AtomicBoolean INIT_FLAG = new AtomicBoolean(false);
+    public static AtomicBoolean INIT_FLAG = new AtomicBoolean(false);
 
     /**
      * 全局rpc上下文
@@ -118,17 +118,18 @@ public class ProtoRpcConfigFactory {
         loadBalance.setStrategy(LoadBalanceConstants.LOAD_BALANCE_RANDOM_STRATEGY, new RandomLoadBalance());
         loadBalance.setStrategy(LoadBalanceConstants.LOAD_BALANCE_ROUND_ROBIN_STRATEGY, new RoundRobinBalance());
         loadBalance.setStrategy(LoadBalanceConstants.CONSISTENCY_HASHING_STRATEGY, new ConsistencyHashingBalance());
+        loadBalance.setStrategy(LoadBalanceConstants.LOAD_BALANCE_APPOINTED_RANDOM_STRATEGY, new AppointedRandomLoadBalance());
         this.loadBalance = loadBalance;
     }
 
     private void initNettyConfiguration() {
         this.nettyConnectPool = new NettyConnectPool();
-        NettyRemoteClient nettyRemoteClient = new NettyRemoteClient();
+        NettyRemoteClient nettyRemoteClient = new NettyRemoteClient("proto");
         nettyRemoteClient.setNettyConnectPool(nettyConnectPool);
         nettyRemoteClient.setRpcContext(rpcContext);
-        nettyRemoteClient.start();
+        nettyRemoteClient.start(true);
         this.nettyRemoteClient = nettyRemoteClient;
-        NettyRemoteServer nettyRemoteServer = new NettyRemoteServer();
+        NettyRemoteServer nettyRemoteServer = new NettyRemoteServer("proto");
         nettyRemoteServer.setRpcProperties(rpcProperties);
         nettyRemoteServer.setRpcContext(rpcContext);
         nettyRemoteServer.setProviderFetcher(providerName -> {

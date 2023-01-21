@@ -64,8 +64,14 @@ public class NettyRemoteClient {
 
     private AtomicBoolean startFlag = new AtomicBoolean(false);
 
+    /**
+     * client名称
+     */
+    private String name;
 
-    public NettyRemoteClient() {
+
+    public NettyRemoteClient(String name) {
+        this.name = name;
         this.clientBootstrap = new Bootstrap();
         // worker 线程池
         this.eventLoopGroupWorker = new NioEventLoopGroup(10, new ThreadFactory() {
@@ -79,9 +85,13 @@ public class NettyRemoteClient {
         this.responseFutureManager.initResponseFutureMonitor();
     }
 
-    public void start() {
-        if (rpcContext.getConsumerMetaMap().size() == 0) {
-            log.info("[NettyRemoteClient]: netty client will not start");
+    /**
+     * 启动client
+     * @param forceStart 是否强制启动
+     */
+    public void start(boolean forceStart) {
+        if (rpcContext.getConsumerMetaMap().size() == 0 && !forceStart) {
+            log.debug("[NettyRemoteClient-"+ name +"]:there are no consumer registered, netty client will not start");
             return;
         }
         final NettyRemoteClient self = this;
@@ -119,7 +129,7 @@ public class NettyRemoteClient {
                                 new NettyClientHandler(self)); //in
                     }
                 });
-        log.info("[NettyRemoteClient]: netty client start");
+        log.info("[NettyRemoteClient-"+ name +"]: netty client start");
         this.startFlag.compareAndSet(false, true);
     }
 

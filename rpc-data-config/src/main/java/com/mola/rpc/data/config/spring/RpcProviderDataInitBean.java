@@ -93,9 +93,18 @@ public class RpcProviderDataInitBean {
         }
     }
 
+    /**
+     * 注册provider监听器，如果provider有变化会回调到本地监听器
+     * @param consumerMetaData
+     */
     public void registerProviderDataListener(RpcMetaData consumerMetaData) {
         // 服务名
         String serviceName = consumerMetaData.getInterfaceClazz().getName();
+        // 泛化调用
+        if (consumerMetaData.getGenericInvoke()) {
+            Assert.hasText(consumerMetaData.getGenericInterfaceName(), "GenericInterfaceName can not be empty! because of this service is Generic Service");
+            serviceName = consumerMetaData.getGenericInterfaceName();
+        }
         // group
         String group = consumerMetaData.getGroup();
         // version
@@ -111,9 +120,18 @@ public class RpcProviderDataInitBean {
         }
     }
 
+    /**
+     * 拉取consumer对应provider在configserver上的信息，存储到应用本地
+     * @param consumerMetaData
+     */
     public void pullProviderData(RpcMetaData consumerMetaData) {
         // 服务名
         String serviceName = consumerMetaData.getInterfaceClazz().getName();
+        // 泛化调用
+        if (consumerMetaData.getGenericInvoke()) {
+            Assert.hasText(consumerMetaData.getGenericInterfaceName(), "GenericInterfaceName can not be empty! because of this service is Generic Service");
+            serviceName = consumerMetaData.getGenericInterfaceName();
+        }
         // group
         String group = consumerMetaData.getGroup();
         // version

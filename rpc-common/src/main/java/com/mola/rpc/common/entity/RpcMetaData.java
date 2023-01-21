@@ -91,11 +91,29 @@ public class RpcMetaData {
     private String host;
 
     /**
+     * 是否泛化调用
+     */
+    @ConsumerSide
+    private Boolean genericInvoke = Boolean.FALSE;
+
+    /**
+     * 泛化调用服务名
+     */
+    @ConsumerSide
+    private String genericInterfaceName;
+
+    /**
      * 哈希环，hash => ip#idx
      * 用于负载均衡
      */
     @ConsumerSide
     private SortedMap<Integer, String> virtualAddressNodeMap = new TreeMap<>();
+
+    /**
+     * 客户端指定的provider服务器地址
+     */
+    @ConsumerSide
+    private List<String> appointedAddress;
 
 
     public static RpcMetaData of(String group, String version, Class<?> clazzType) {
@@ -213,5 +231,29 @@ public class RpcMetaData {
 
     public void setProviderObject(Object providerObject) {
         this.providerObject = providerObject;
+    }
+
+    public void setGenericInvoke(Boolean genericInvoke) {
+        this.genericInvoke = genericInvoke;
+    }
+
+    public Boolean getGenericInvoke() {
+        return genericInvoke;
+    }
+
+    public String getGenericInterfaceName() {
+        return genericInterfaceName;
+    }
+
+    public void setGenericInterfaceName(String genericInterfaceName) {
+        this.genericInterfaceName = genericInterfaceName;
+    }
+
+    public List<String> getAppointedAddress() {
+        return appointedAddress;
+    }
+
+    public void setAppointedAddress(List<String> appointedAddress) {
+        this.appointedAddress = appointedAddress;
     }
 }

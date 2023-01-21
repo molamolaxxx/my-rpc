@@ -65,4 +65,30 @@ public class OrderServiceImpl implements OrderService {
             return ServerResponse.createByErrorCodeMessage(500, e.getMessage());
         }
     }
+
+    @Override
+    public ServerResponse<List<Order>> searchOrderGeneric(Order order, OperateUser operateUser, int time) {
+        try {
+            List<Order> orders = new ArrayList<>();
+            for (int i = 0; i < time; i++) {
+                orders.add(new Order(UUID.randomUUID().toString(), new Date(), order.getDesc(), order.getCode()));
+            }
+            for (Order o : orders) {
+                o.setOperator(operateUser.getUserName());
+            }
+            return ServerResponse.createBySuccess(orders);
+        } catch (Exception e) {
+            return ServerResponse.createByErrorCodeMessage(500, e.getMessage());
+        }
+    }
+
+    @Override
+    public long getOrderCode() {
+        return System.currentTimeMillis();
+    }
+
+    @Override
+    public String getServerAddress() {
+        return NetUtils.getLocalAddress().getHostAddress() + ":" + rpcProperties.getServerPort();
+    }
 }

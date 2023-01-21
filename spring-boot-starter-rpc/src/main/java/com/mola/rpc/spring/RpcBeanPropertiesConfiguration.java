@@ -48,6 +48,7 @@ public class RpcBeanPropertiesConfiguration {
         loadBalance.setStrategy(LoadBalanceConstants.LOAD_BALANCE_RANDOM_STRATEGY, new RandomLoadBalance());
         loadBalance.setStrategy(LoadBalanceConstants.LOAD_BALANCE_ROUND_ROBIN_STRATEGY, new RoundRobinBalance());
         loadBalance.setStrategy(LoadBalanceConstants.CONSISTENCY_HASHING_STRATEGY, new ConsistencyHashingBalance());
+        loadBalance.setStrategy(LoadBalanceConstants.LOAD_BALANCE_APPOINTED_RANDOM_STRATEGY, new AppointedRandomLoadBalance());
         return loadBalance;
     }
 
@@ -59,16 +60,16 @@ public class RpcBeanPropertiesConfiguration {
 
     @Bean
     public NettyRemoteClient nettyRemoteClient(NettyConnectPool nettyConnectPool, RpcContext rpcContext) {
-        NettyRemoteClient nettyRemoteClient = new NettyRemoteClient();
+        NettyRemoteClient nettyRemoteClient = new NettyRemoteClient("spring");
         nettyRemoteClient.setNettyConnectPool(nettyConnectPool);
         nettyRemoteClient.setRpcContext(rpcContext);
-        nettyRemoteClient.start();
+        nettyRemoteClient.start(false);
         return nettyRemoteClient;
     }
 
     @Bean
     public NettyRemoteServer nettyRemoteServer(RpcSpringConfigurationProperties rpcProperties, RpcContext rpcContext, ApplicationContext applicationContext) {
-        NettyRemoteServer nettyRemoteServer = new NettyRemoteServer();
+        NettyRemoteServer nettyRemoteServer = new NettyRemoteServer("spring");
         nettyRemoteServer.setRpcProperties(rpcProperties);
         nettyRemoteServer.setRpcContext(rpcContext);
         nettyRemoteServer.setProviderFetcher(providerName -> applicationContext.getBean(providerName));

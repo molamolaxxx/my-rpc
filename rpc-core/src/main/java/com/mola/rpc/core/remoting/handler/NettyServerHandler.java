@@ -62,7 +62,7 @@ public class NettyServerHandler extends SimpleChannelInboundHandler<RemotingComm
                         response = buildRemotingCommand(request, result, RemotingCommandCode.SUCCESS, null);
                     } catch (Exception e) {
                         response = buildRemotingCommand(request, null, RemotingCommandCode.SYSTEM_ERROR, e.getMessage());
-                        log.error("server system error !, message = " + request.toString(), e);
+                        log.error("server system error!, message = " + request.toString(), e);
                     }
                     Assert.notNull(response, "response is null" + request.toString());
                     Channel channel = ctx.channel();

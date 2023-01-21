@@ -3,6 +3,7 @@ package com.mola.rpc.core.proxy;
 
 import com.mola.rpc.core.util.BytesUtil;
 import com.mola.rpc.core.util.RemotingSerializableUtil;
+import com.mola.rpc.core.util.TypeUtil;
 import org.springframework.util.Assert;
 
 /**
@@ -108,12 +109,18 @@ public class InvokeMethod {
 			// 1、反序列化类型
 			Class<?>[] paramTypes = new Class<?>[this.parameterTypes.length];
 			for (int i = 0; i < this.parameterTypes.length; i++) {
+				// 判断是否是基础类型
+				Class baseTypeClazz = TypeUtil.getBaseTypeClazz(this.parameterTypes[i]);
+				if (null != baseTypeClazz) {
+					paramTypes[i] = baseTypeClazz;
+					continue;
+				}
 				paramTypes[i] = Class.forName(this.parameterTypes[i]);
 			}
 			// 2、反序列化参数
 			Object[] args = new Object[this.serializedArguments.length];
 			for (int i = 0; i < this.serializedArguments.length; i++) {
-				args[i] = BytesUtil.bytesToObject((this.serializedArguments[i]));
+				args[i] = BytesUtil.bytesToObject((this.serializedArguments[i]), paramTypes[i]);
 			}
 			// 3、反射调用，带方法缓存
 			return MethodInvokeHelper.invokeMethod(providerBean, this.methodName, paramTypes, args);

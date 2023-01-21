@@ -25,7 +25,7 @@ public class ConsumeSingleTest {
         ProtoRpcConfigFactory.configure(rpcProperties);
         ProtoRpcConfigFactory protoRpcConfigFactory = ProtoRpcConfigFactory.get();
 
-        OrderService orderService = RpcInvoker.singleNodeConsumer(OrderService.class, Lists.newArrayList("127.0.0.1:9003"));
+        OrderService orderService = RpcInvoker.appointedAddressConsumer(OrderService.class, Lists.newArrayList("127.0.0.1:9003"));
 
         ServerResponse<List<Order>> res = orderService.searchOrderListWithUser(new Order(), new OperateUser("1", "mola"));
         System.out.println("debug");

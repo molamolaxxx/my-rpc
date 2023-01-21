@@ -99,17 +99,4 @@ public class RemotingHelper {
     public static boolean isSameMachine(String addr1,String addr2){
         return RemotingHelper.getIPremovePort(addr1).equals(RemotingHelper.getIPremovePort(addr2));
     }
-
-    public static void buildParameter(Object[] args, Class<?>[] parameterTypesClass, String[] parameterTypesString,
-                               String[] actualParameterTypesString) {
-        for(int i = 0 ; i < parameterTypesClass.length ; i ++) {
-            parameterTypesString[i] = parameterTypesClass[i].getName();
-            if (null != args[i]) {
-                actualParameterTypesString[i] = args[i].getClass().getName();
-            }else {
-                actualParameterTypesString[i] = parameterTypesClass[i].getName();
-            }
-        }
-    }
-
 }

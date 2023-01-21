@@ -1,0 +1,10 @@
+spring:
+  application:
+    name: rpc-web-manager
+
+server:
+  port: 7001
+
+logging:
+  level:
+    root: info

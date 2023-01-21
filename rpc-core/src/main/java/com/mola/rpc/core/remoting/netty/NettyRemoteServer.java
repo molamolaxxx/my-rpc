@@ -63,7 +63,13 @@ public class NettyRemoteServer {
 
     private AtomicBoolean startFlag = new AtomicBoolean(false);
 
-    public NettyRemoteServer() {
+    /**
+     * server名称
+     */
+    private String name;
+
+    public NettyRemoteServer(String name) {
+        this.name = name;
         this.serverBootstrap = new ServerBootstrap();
         // 初始化boss，负责建立连接
         this.eventLoopGroupBoss = new NioEventLoopGroup(1, new ThreadFactory() {
@@ -89,7 +95,7 @@ public class NettyRemoteServer {
 
     public void start() {
         if (rpcContext.getProviderMetaMap().size() == 0) {
-            log.info("[NettyRemoteServer]: netty server will not start");
+            log.debug("[NettyRemoteServer-"+ name +"]:there are no provider registered, netty server will not start");
             return;
         }
         defaultEventExecutorGroup = new DefaultEventExecutorGroup(
@@ -136,7 +142,7 @@ public class NettyRemoteServer {
         try {
             ChannelFuture sync = this.serverBootstrap.bind().sync();
             InetSocketAddress address = (InetSocketAddress) sync.channel().localAddress();
-            log.info("[NettyRemoteServer]: netty server start at " + address);
+            log.info("[NettyRemoteServer-"+ name +"]: netty server start at " + address);
         }
         catch (InterruptedException e1) {
             throw new RuntimeException("this.serverBootstrap.bind().sync() InterruptedException", e1);
