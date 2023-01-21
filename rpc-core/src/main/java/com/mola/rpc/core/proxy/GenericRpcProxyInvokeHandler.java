@@ -26,6 +26,7 @@ public class GenericRpcProxyInvokeHandler extends RpcProxyInvokeHandler {
      * 组装InvokeMethodreturn beanName;
      * @return
      */
+    @Override
     protected InvokeMethod assemblyInvokeMethod(Method method, Object[] args) {
         Assert.isTrue(args[0] instanceof String, "generic call params[0] must be String!");
         Assert.hasText(actualInterfaceClazzName, "actualInterfaceClazzName can not be empty!");
