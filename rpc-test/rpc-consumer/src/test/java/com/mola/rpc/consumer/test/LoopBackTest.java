@@ -33,6 +33,5 @@ public class LoopBackTest {
         ServerResponse<Order> response = unitTestService.loopBackTest(order);
         Assert.isTrue(response != null && response.isSuccess(), "loopBackTest001测试失败,调用失败");
         Assert.isTrue(response.getData().getOperator().equals("test:123"), "loopBackTest001测试失败");
-        System.out.println(System.currentTimeMillis() - start);
     }
 }
