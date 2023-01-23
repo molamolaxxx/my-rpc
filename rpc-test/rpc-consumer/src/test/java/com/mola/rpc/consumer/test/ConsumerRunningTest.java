@@ -2,8 +2,12 @@ package com.mola.rpc.consumer.test;
 
 import com.mola.rpc.client.UnitTestService;
 import com.mola.rpc.common.context.RpcContext;
+import com.mola.rpc.common.entity.AddressInfo;
 import com.mola.rpc.common.entity.RpcMetaData;
 import com.mola.rpc.core.remoting.netty.NettyRemoteClient;
+import com.mola.rpc.data.config.manager.RpcDataManager;
+import com.mola.rpc.data.config.spring.RpcProviderDataInitBean;
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -11,6 +15,7 @@ import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.util.Assert;
 
 import javax.annotation.Resource;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -41,6 +46,17 @@ public class ConsumerRunningTest {
 
     @Resource
     private NettyRemoteClient nettyRemoteClient;
+
+    @Resource
+    private RpcProviderDataInitBean rpcProviderDataInitBean;
+
+    @Before
+    public void before() {
+        RpcDataManager<RpcMetaData> rpcDataManager = rpcProviderDataInitBean.getRpcDataManager();
+        Assert.isTrue(rpcDataManager.isProviderExist("com.mola.rpc.client.UnitTestService", "default", "1.0.0", "pre"), "UnitTestService的provider不存在，请检查是否启动");
+        List<AddressInfo> remoteProviderAddress = rpcDataManager.getRemoteProviderAddress("com.mola.rpc.client.UnitTestService", "default", "1.0.0", "pre");
+        Assert.notEmpty(remoteProviderAddress, "UnitTestService的provider不存在可用地址，请检查是否启动");
+    }
 
     /**
      * spring环境下运行正常

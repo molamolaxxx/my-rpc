@@ -1,5 +1,6 @@
 package com.mola.rpc.client;
 
+import com.google.common.base.Objects;
 import lombok.Data;
 
 import java.util.Date;
@@ -31,5 +32,18 @@ public class Order {
         this.gmtCreate = gmtCreate;
         this.desc = desc;
         this.code = code;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        Order order = (Order) o;
+        return Objects.equal(id, order.id) && Objects.equal(gmtCreate, order.gmtCreate) && Objects.equal(desc, order.desc) && Objects.equal(code, order.code) && Objects.equal(operator, order.operator);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hashCode(id, gmtCreate, desc, code, operator);
     }
 }

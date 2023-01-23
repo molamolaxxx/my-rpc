@@ -105,7 +105,7 @@ public class RpcProxyInvokeHandler implements InvocationHandler {
             return null;
         }
         // response转换成对象
-        Object invokeResult = BytesUtil.bytesToObject(response.getBody());
+        Object invokeResult = BytesUtil.bytesToObject(response.getBody(), method.getReturnType());
         return invokeResult;
     }
 

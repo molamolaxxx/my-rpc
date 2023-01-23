@@ -67,5 +67,9 @@ public class ServerResponse<T> implements Serializable {
         return new ServerResponse<T>(errorCode,errorMessage);
     }
 
+    public boolean isSuccess() {
+        return ResponseCode.SUCCESS.getCode() == status;
+    }
+
 }
 
