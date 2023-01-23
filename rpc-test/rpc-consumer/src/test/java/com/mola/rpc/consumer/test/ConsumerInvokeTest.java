@@ -5,11 +5,15 @@ import com.mola.rpc.client.ServerResponse;
 import com.mola.rpc.client.UnitTestService;
 import com.mola.rpc.common.entity.AddressInfo;
 import com.mola.rpc.common.entity.RpcMetaData;
+import com.mola.rpc.core.remoting.Async;
 import com.mola.rpc.data.config.manager.RpcDataManager;
 import com.mola.rpc.data.config.spring.RpcProviderDataInitBean;
+import org.assertj.core.util.Lists;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.util.Assert;
@@ -17,6 +21,7 @@ import org.springframework.util.Assert;
 import javax.annotation.Resource;
 import java.util.Date;
 import java.util.List;
+import java.util.concurrent.CountDownLatch;
 
 /**
  * @author : molamola
@@ -35,11 +40,16 @@ import java.util.List;
 @RunWith(SpringRunner.class)
 public class ConsumerInvokeTest {
 
+    private static final Logger log = LoggerFactory.getLogger(ConsumerInvokeTest.class);
+
     @Resource
     private RpcProviderDataInitBean rpcProviderDataInitBean;
 
     @Resource
     private UnitTestService unitTestService;
+
+    @Resource
+    private UnitTestService unitTestServiceAsync;
 
     @Before
     public void before() {
@@ -107,6 +117,12 @@ public class ConsumerInvokeTest {
     }
 
     @Test
+    public void syncNullResultTest() {
+        ServerResponse<Order> response = unitTestService.nullResult(new Order());
+        Assert.isTrue(response == null, "syncNullResultTest-case1测试失败,调用失败");
+    }
+
+    @Test
     public void testException() {
         try {
             ServerResponse serverResponse = unitTestService.throwException();
@@ -126,7 +142,7 @@ public class ConsumerInvokeTest {
             totalCost += (System.currentTimeMillis() - start);
         }
         Assert.isTrue(totalCost < 6000, "testPerformance冷启动调用，cost = " + totalCost);
-        System.out.println("testPerformance冷启动调用在正常时间范围内，cost = " + totalCost);
+        log.info("testPerformance冷启动调用在正常时间范围内，cost = " + totalCost);
         totalCost = 0L;
         for (int i = 0; i < 5000; i++) {
             long start = System.currentTimeMillis();
@@ -134,6 +150,73 @@ public class ConsumerInvokeTest {
             totalCost += (System.currentTimeMillis() - start);
         }
         Assert.isTrue(totalCost < 4000, "testPerformance热调用，cost = " + totalCost);
-        System.out.println("testPerformance热调用在正常时间范围内，cost = " + totalCost);
+        log.info("testPerformance热调用在正常时间范围内，cost = " + totalCost);
+    }
+
+    @Test
+    public void asyncInvokeTest() throws InterruptedException {
+        String input1 = "async1:" + System.currentTimeMillis();
+        CountDownLatch countDownLatch = new CountDownLatch(1);
+        Async.from(unitTestServiceAsync.test001(input1)).consume((res) -> {
+            Assert.isTrue(res != null && res.isSuccess(), "asyncInvokeTest-case1测试失败,调用失败");
+            Assert.isTrue(input1.equals(res.getData()), "asyncInvokeTest-case1测试失败");
+            countDownLatch.countDown();
+        });
+        Async<char[]> from = Async.from(unitTestServiceAsync.test003(1, 'a', 20000L, (short) 3, true));
+        char[] chars = from.get();
+        Assert.isTrue("1;a;20000;3;true".equals(new String(chars)), "asyncInvokeTest-case2测试失败");
+        countDownLatch.await();
+        CountDownLatch countDownLatch2 = new CountDownLatch(1);
+        Async.from(unitTestServiceAsync.test003(1)).consume(res -> {
+            Assert.isTrue(res == 2, "asyncInvokeTest-case3测试失败");
+            countDownLatch2.countDown();
+        });
+        countDownLatch2.await();
+        // 同步调用，报异常
+        try {
+            Async.from(unitTestService.test003(1)).consume(res -> {
+            });
+            throw new RuntimeException("no expect success");
+        } catch (Exception e) {
+            Assert.isTrue(e.getMessage().contains("please check if this method is an async method"), "asyncInvokeTest-case5测试失败");
+        }
+        // 同步调用，报异常
+        try {
+            Integer integer = Async.from(unitTestService.test003(1)).get();
+            throw new RuntimeException("no expect success");
+        } catch (Exception e) {
+            Assert.isTrue(e.getMessage().contains("please check if this method is an async method"), "asyncInvokeTest-case6测试失败");
+        }
+
+    }
+
+    @Test
+    public void testAsyncException() {
+        try {
+            ServerResponse serverResponse = Async.from(unitTestServiceAsync.throwException()).get();
+            throw new RuntimeException("no expect success");
+        } catch (Exception e) {
+            Assert.isTrue(e.getMessage().contains("throwException:服务端抛出运行时异常"), "testException-case1测试失败");
+        }
+    }
+
+    @Test
+    public void testAsyncConcurrentTimeLimit() {
+        long start = System.currentTimeMillis();
+        String input = "async:" + System.currentTimeMillis();
+        List<Async<ServerResponse<String>>> asyncList = Lists.newArrayList();
+        for (int i = 0; i < 20; i++) {
+            String in = input + i;
+            asyncList.add(Async.from(unitTestServiceAsync.test001(in)));
+        }
+
+        for (int i = 0; i < asyncList.size(); i++) {
+            ServerResponse<String> res = asyncList.get(i).get();
+            Assert.isTrue(res != null && res.isSuccess(), "testAsyncConcurrentTimeLimit测试失败,调用失败");
+            Assert.isTrue((input + i).equals(res.getData()), "testAsyncConcurrentTimeLimit-case1测试失败");
+        }
+        long cost = System.currentTimeMillis() - start;
+        log.info("20次异步调用总时长，cost = " + cost);
+        Assert.isTrue(cost < 2300, "testAsyncConcurrentTimeLimit-case2测试失败");
     }
 }

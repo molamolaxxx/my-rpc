@@ -24,6 +24,12 @@ public class UnitTestServiceImpl implements UnitTestService {
 
     @Override
     public ServerResponse<String> test001(String input) {
+        if (input.contains("async")) {
+            try {
+                Thread.sleep(2000);
+            } catch (InterruptedException e) {
+            }
+        }
         return ServerResponse.createBySuccess(input);
     }
 
@@ -99,5 +105,10 @@ public class UnitTestServiceImpl implements UnitTestService {
         String username = userService.queryUserName(order.getId());
         order.setOperator(username);
         return ServerResponse.createBySuccess(order);
+    }
+
+    @Override
+    public ServerResponse<Order> nullResult(Order order) {
+        return null;
     }
 }

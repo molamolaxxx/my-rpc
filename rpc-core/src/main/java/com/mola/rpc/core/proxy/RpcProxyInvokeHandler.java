@@ -12,6 +12,7 @@ import com.mola.rpc.core.remoting.protocol.RemotingCommand;
 import com.mola.rpc.core.remoting.protocol.RemotingCommandCode;
 import com.mola.rpc.core.strategy.balance.LoadBalance;
 import com.mola.rpc.core.util.BytesUtil;
+import com.mola.rpc.core.util.TypeUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.util.CollectionUtils;
@@ -93,6 +94,11 @@ public class RpcProxyInvokeHandler implements InvocationHandler {
         if (isAsyncExecute(consumerMeta, method)) {
             AsyncResponseFuture asyncResponseFuture = nettyRemoteClient.asyncInvoke(targetProviderAddress, request, invokeMethod, method, consumerMeta.getClientTimeout());
             Async.addFuture(asyncResponseFuture);
+            // 异步返回基础类型返回值存在null装箱失败，需要返回object
+            Object fakeResult = TypeUtil.getBaseTypeDefaultObject(method.getReturnType().getName());
+            if (null != fakeResult) {
+                return fakeResult;
+            }
             return null;
         }
         RemotingCommand response = nettyRemoteClient.syncInvoke(targetProviderAddress, request, invokeMethod, consumerMeta.getClientTimeout());

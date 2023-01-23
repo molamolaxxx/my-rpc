@@ -46,4 +46,41 @@ public class TypeUtil {
             }
         }
     }
+
+    /**
+     * 获取基础类型
+     * @param paramTypeClazzName
+     * @return
+     */
+    public static Object getBaseTypeDefaultObject(String paramTypeClazzName) {
+        switch (paramTypeClazzName) {
+            case BaseTypeConstants.TYPE_INT: {
+                return new Integer(0);
+            }
+            case BaseTypeConstants.TYPE_BYTE: {
+                return new Byte("0");
+            }
+            case BaseTypeConstants.TYPE_CHAR: {
+                return new Character('0');
+            }
+            case BaseTypeConstants.TYPE_DOUBLE: {
+                return new Double(0.0);
+            }
+            case BaseTypeConstants.TYPE_FLOAT: {
+                return new Float(0.0);
+            }
+            case BaseTypeConstants.TYPE_LONG: {
+                return new Long(0);
+            }
+            case BaseTypeConstants.TYPE_SHORT: {
+                return new Short((short) 0);
+            }
+            case BaseTypeConstants.TYPE_BOOLEAN: {
+                return new Boolean(false);
+            }
+            default:{
+                return null;
+            }
+        }
+    }
 }

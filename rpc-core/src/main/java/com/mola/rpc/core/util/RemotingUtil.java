@@ -100,8 +100,4 @@ public class RemotingUtil {
         sb.append(inetSocketAddress.getPort());
         return sb.toString();
     }
-
-    public static void main(String[] args) {
-        System.out.println(getLocalAddress());
-    }
 }

@@ -21,4 +21,7 @@ public class ConsumerTestConf {
 
     @RpcConsumer
     private UnitTestService unitTestService3;
+
+    @RpcConsumer(asyncMethods = "*")
+    private UnitTestService unitTestServiceAsync;
 }
