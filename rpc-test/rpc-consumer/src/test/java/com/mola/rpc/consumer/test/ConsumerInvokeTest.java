@@ -105,4 +105,14 @@ public class ConsumerInvokeTest {
         int[][] ints = unitTestService.test003(dataMap, 5, 5, 25231);
         Assert.isTrue(ints[5][5] == 25231, "003-case4测试失败");
     }
+
+    @Test
+    public void testException() {
+        try {
+            ServerResponse serverResponse = unitTestService.throwException();
+            throw new RuntimeException("no expect success");
+        } catch (Exception e) {
+            Assert.isTrue(e.getMessage().contains("throwException:服务端抛出运行时异常"), "testException-case1测试失败");
+        }
+    }
 }

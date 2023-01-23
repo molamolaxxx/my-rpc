@@ -83,4 +83,9 @@ public class UnitTestServiceImpl implements UnitTestService {
         paramArr[x][y] = data;
         return paramArr;
     }
+
+    @Override
+    public ServerResponse throwException() {
+        throw new RuntimeException("throwException:服务端抛出运行时异常");
+    }
 }

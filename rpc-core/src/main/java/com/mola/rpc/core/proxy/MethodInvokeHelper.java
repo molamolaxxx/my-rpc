@@ -42,7 +42,7 @@ public class MethodInvokeHelper {
             result = method.invoke(object, arguments);
         } catch (Throwable e) {
             logger.error("[ProxyService$invokeMethod]: error, methodName:" + methodName, e);
-            throw new RuntimeException(e);
+            throw new RuntimeException(e.getCause().getMessage());
         }
         return result;
     }

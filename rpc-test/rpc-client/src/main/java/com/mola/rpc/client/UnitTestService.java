@@ -113,4 +113,10 @@ public interface UnitTestService {
      * @return
      */
     int[][] test003(int[][] paramArr, int x, int y, int data);
+
+    /**
+     * 服务端抛出异常
+     * @return
+     */
+    ServerResponse throwException();
 }
