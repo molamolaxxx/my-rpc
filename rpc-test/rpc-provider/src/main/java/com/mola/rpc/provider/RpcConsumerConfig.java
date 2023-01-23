@@ -1,5 +1,7 @@
 package com.mola.rpc.provider;
 
+import com.mola.rpc.client.UserService;
+import com.mola.rpc.common.annotation.RpcConsumer;
 import org.springframework.context.annotation.Configuration;
 
 /**
@@ -10,4 +12,7 @@ import org.springframework.context.annotation.Configuration;
  **/
 @Configuration
 public class RpcConsumerConfig {
+
+    @RpcConsumer
+    private UserService userService;
 }

@@ -4,8 +4,10 @@ import com.google.common.collect.Lists;
 import com.mola.rpc.client.Order;
 import com.mola.rpc.client.ServerResponse;
 import com.mola.rpc.client.UnitTestService;
+import com.mola.rpc.client.UserService;
 import com.mola.rpc.common.annotation.RpcProvider;
 
+import javax.annotation.Resource;
 import java.util.List;
 
 /**
@@ -16,6 +18,9 @@ import java.util.List;
  **/
 @RpcProvider(interfaceClazz = UnitTestService.class)
 public class UnitTestServiceImpl implements UnitTestService {
+
+    @Resource
+    private UserService userService;
 
     @Override
     public ServerResponse<String> test001(String input) {
@@ -87,5 +92,12 @@ public class UnitTestServiceImpl implements UnitTestService {
     @Override
     public ServerResponse throwException() {
         throw new RuntimeException("throwException:服务端抛出运行时异常");
+    }
+
+    @Override
+    public ServerResponse<Order> loopBackTest(Order order) {
+        String username = userService.queryUserName(order.getId());
+        order.setOperator(username);
+        return ServerResponse.createBySuccess(order);
     }
 }

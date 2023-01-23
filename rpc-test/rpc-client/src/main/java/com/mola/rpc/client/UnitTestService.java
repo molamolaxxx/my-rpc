@@ -119,4 +119,11 @@ public interface UnitTestService {
      * @return
      */
     ServerResponse throwException();
+
+    /**
+     * rpc环路测试
+     * @param order
+     * @return
+     */
+    ServerResponse<Order> loopBackTest(Order order);
 }

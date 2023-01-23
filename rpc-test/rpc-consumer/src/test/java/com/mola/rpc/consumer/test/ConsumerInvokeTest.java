@@ -115,4 +115,25 @@ public class ConsumerInvokeTest {
             Assert.isTrue(e.getMessage().contains("throwException:服务端抛出运行时异常"), "testException-case1测试失败");
         }
     }
+
+    @Test
+    public void testPerformance() {
+        Order order = new Order("002-id", new Date(), "测试输入", "002-code");
+        long totalCost = 0L;
+        for (int i = 0; i < 5000; i++) {
+            long start = System.currentTimeMillis();
+            ServerResponse<Order> response = unitTestService.test002(order);
+            totalCost += (System.currentTimeMillis() - start);
+        }
+        Assert.isTrue(totalCost < 6000, "testPerformance冷启动调用，cost = " + totalCost);
+        System.out.println("testPerformance冷启动调用在正常时间范围内，cost = " + totalCost);
+        totalCost = 0L;
+        for (int i = 0; i < 5000; i++) {
+            long start = System.currentTimeMillis();
+            ServerResponse<Order> response = unitTestService.test002(order);
+            totalCost += (System.currentTimeMillis() - start);
+        }
+        Assert.isTrue(totalCost < 4000, "testPerformance热调用，cost = " + totalCost);
+        System.out.println("testPerformance热调用在正常时间范围内，cost = " + totalCost);
+    }
 }

@@ -69,7 +69,7 @@ public class RpcProxyInvokeHandler implements InvocationHandler {
         }
         List<AddressInfo> addressInfoList = consumerMeta.getAddressList();
         if (CollectionUtils.isEmpty(addressInfoList)) {
-            throw new RuntimeException("consumer invoke failed, addressList is empty, meta = " + JSONObject.toJSONString(consumerMeta));
+            throw new RuntimeException("consumer invoke failed, provider's addressList is empty, meta = " + JSONObject.toJSONString(consumerMeta));
         }
         // 过滤掉无效的地址
         // 1、不可用服务（心跳超时、主动下线、规则下线）
