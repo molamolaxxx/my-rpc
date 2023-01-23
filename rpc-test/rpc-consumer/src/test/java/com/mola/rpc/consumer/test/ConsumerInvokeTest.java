@@ -2,6 +2,7 @@ package com.mola.rpc.consumer.test;
 
 import com.mola.rpc.client.Order;
 import com.mola.rpc.client.ServerResponse;
+import com.mola.rpc.client.SpecialObject;
 import com.mola.rpc.client.UnitTestService;
 import com.mola.rpc.common.entity.AddressInfo;
 import com.mola.rpc.common.entity.RpcMetaData;
@@ -19,6 +20,8 @@ import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.util.Assert;
 
 import javax.annotation.Resource;
+import java.math.BigDecimal;
+import java.nio.file.AccessMode;
 import java.util.Date;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
@@ -114,6 +117,16 @@ public class ConsumerInvokeTest {
         int[][] dataMap = new int[10][10];
         int[][] ints = unitTestService.test003(dataMap, 5, 5, 25231);
         Assert.isTrue(ints[5][5] == 25231, "003-case4测试失败");
+    }
+
+    @Test
+    public void specialObjectTransformTest() {
+        BigDecimal bigDecimal = new BigDecimal("3.1415926");
+        Date date = new Date();
+        SpecialObject specialObject = unitTestService.specialObjectTransform(new SpecialObject(bigDecimal, date, AccessMode.READ));
+        Assert.isTrue(bigDecimal.compareTo(specialObject.getBigDecimal()) == 0, "specialObjectTransform-case1测试失败");
+        Assert.isTrue(date.compareTo(specialObject.getDate()) == 0, "specialObjectTransform-case2测试失败");
+        Assert.isTrue(AccessMode.READ.equals(specialObject.getAccessMode()), "specialObjectTransform-case3测试失败");
     }
 
     @Test

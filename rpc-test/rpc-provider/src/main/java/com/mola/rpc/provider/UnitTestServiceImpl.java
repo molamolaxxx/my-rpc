@@ -1,10 +1,7 @@
 package com.mola.rpc.provider;
 
 import com.google.common.collect.Lists;
-import com.mola.rpc.client.Order;
-import com.mola.rpc.client.ServerResponse;
-import com.mola.rpc.client.UnitTestService;
-import com.mola.rpc.client.UserService;
+import com.mola.rpc.client.*;
 import com.mola.rpc.common.annotation.RpcProvider;
 
 import javax.annotation.Resource;
@@ -110,5 +107,10 @@ public class UnitTestServiceImpl implements UnitTestService {
     @Override
     public ServerResponse<Order> nullResult(Order order) {
         return null;
+    }
+
+    @Override
+    public SpecialObject specialObjectTransform(SpecialObject specialObject) {
+        return specialObject;
     }
 }

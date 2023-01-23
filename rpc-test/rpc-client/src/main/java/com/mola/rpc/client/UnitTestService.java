@@ -133,4 +133,11 @@ public interface UnitTestService {
      * @return
      */
     ServerResponse<Order> nullResult(Order order);
+
+    /**
+     * 特殊对象传输
+     * @param specialObject
+     * @return
+     */
+    SpecialObject specialObjectTransform(SpecialObject specialObject);
 }
