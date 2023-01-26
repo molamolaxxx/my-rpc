@@ -95,7 +95,7 @@ public class NettyRemoteServer {
 
     public void start() {
         if (rpcContext.getProviderMetaMap().size() == 0) {
-            log.debug("[NettyRemoteServer-"+ name +"]:there are no provider registered, netty server will not start");
+            log.info("[NettyRemoteServer-"+ name +"]:there are no provider registered, netty server will not start");
             return;
         }
         defaultEventExecutorGroup = new DefaultEventExecutorGroup(

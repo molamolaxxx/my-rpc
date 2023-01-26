@@ -1,6 +1,7 @@
 package com.mola.rpc.data.config.manager.zk;
 
 import com.alibaba.fastjson.JSONObject;
+import com.google.common.collect.Lists;
 import com.mola.rpc.common.constants.CommonConstants;
 import com.mola.rpc.common.context.RpcContext;
 import com.mola.rpc.common.entity.AddressInfo;
@@ -14,9 +15,12 @@ import org.I0Itec.zkclient.ZkClient;
 import org.apache.zookeeper.CreateMode;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 /**
@@ -111,7 +115,7 @@ public class ZkRpcDataManager extends BaseRpcDataManager {
             return;
         }
         ProviderConfigData providerConfigData = ProviderConfigData.create(remoteProviderParentPath,
-                appName, providerMetaData.getHost(), address);
+                appName, providerMetaData.getHost(), address, providerMetaData.getProto());
         String childPath = remoteProviderParentPath + "/" + address;
         if (!zkClient.exists(childPath)) {
             zkClient.create(childPath, providerConfigData.toString(), CreateMode.EPHEMERAL);
@@ -140,6 +144,38 @@ public class ZkRpcDataManager extends BaseRpcDataManager {
 
     @Override
     public void uploadConsumerData(RpcMetaData consumerMetaData) {
+    }
+
+    @Override
+    public Map<String, RpcMetaData> getAllProviderMetaData() {
+        List<String> providerKeys = zkClient.getChildren(CommonConstants.PATH_MY_RPC_PROVIDER);
+        Map<String, RpcMetaData> rpcMetaDataMap = new HashMap<>(providerKeys.size());
+        for (String providerKey : providerKeys) {
+            Object providerMetaData = zkClient.readData(CommonConstants.PATH_MY_RPC_PROVIDER + "/" + providerKey);
+            if (providerMetaData instanceof String && !StringUtils.isEmpty(providerMetaData)) {
+                RpcMetaData rpcMetaData = JSONObject.parseObject((String) providerMetaData, RpcMetaData.class);
+                rpcMetaDataMap.put(providerKey, rpcMetaData);
+            }
+        }
+        return rpcMetaDataMap;
+    }
+
+    @Override
+    public List<ProviderConfigData> getAllProviderConfigData(String interfaceClazz, String group, String version, String environment) {
+        String remoteProviderPath = getRemoteProviderPath(interfaceClazz, group, version, environment);
+        List<String> childrenPaths = zkClient.getChildren(remoteProviderPath);
+        if (CollectionUtils.isEmpty(childrenPaths)) {
+            return Lists.newArrayList();
+        }
+        List<ProviderConfigData> providerConfigDataList = Lists.newArrayList();
+        for (String path : childrenPaths) {
+            Object providerConfigDataJson = zkClient.readData(remoteProviderPath + "/" + path);
+            if (providerConfigDataJson instanceof String && !StringUtils.isEmpty(providerConfigDataJson)) {
+                ProviderConfigData providerConfigData = JSONObject.parseObject((String) providerConfigDataJson, ProviderConfigData.class);
+                providerConfigDataList.add(providerConfigData);
+            }
+        }
+        return providerConfigDataList;
     }
 
     @Override

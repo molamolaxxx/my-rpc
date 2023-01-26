@@ -2,12 +2,16 @@ package com.mola.rpc.data.config.manager;
 
 import com.mola.rpc.common.annotation.ConsumerSide;
 import com.mola.rpc.common.annotation.ProviderSide;
+import com.mola.rpc.common.annotation.WebSide;
 import com.mola.rpc.common.context.RpcContext;
 import com.mola.rpc.common.entity.AddressInfo;
+import com.mola.rpc.common.entity.ProviderConfigData;
 import com.mola.rpc.common.entity.RpcMetaData;
 import com.mola.rpc.data.config.listener.AddressChangeListener;
+import sun.reflect.generics.reflectiveObjects.NotImplementedException;
 
 import java.util.List;
+import java.util.Map;
 
 /**
  * @author : molamola
@@ -31,7 +35,9 @@ public interface RpcDataManager<T extends RpcMetaData> {
      * @return
      */
     @ConsumerSide
-    List<AddressInfo> getRemoteProviderAddress(String interfaceClazz, String group, String version, String environment);
+    default List<AddressInfo> getRemoteProviderAddress(String interfaceClazz, String group, String version, String environment){
+        throw new NotImplementedException();
+    }
 
     /**
      * 获取服务提供者数据
@@ -42,7 +48,9 @@ public interface RpcDataManager<T extends RpcMetaData> {
      * @return
      */
     @ConsumerSide
-    void registerProviderDataListener(String interfaceClazz, String group, String version, String environment, T consumerMetaData);
+    default void registerProviderDataListener(String interfaceClazz, String group, String version, String environment, T consumerMetaData){
+        throw new NotImplementedException();
+    }
 
     /**
      * 获取服务提供者数据
@@ -53,28 +61,54 @@ public interface RpcDataManager<T extends RpcMetaData> {
      * @return
      */
     @ConsumerSide
-    Boolean isProviderExist(String interfaceClazz, String group, String version, String environment);
+    default Boolean isProviderExist(String interfaceClazz, String group, String version, String environment){
+        throw new NotImplementedException();
+    }
 
     /**
      * 上报服务元数据
      * @param providerMetaData
      */
     @ProviderSide
-    void uploadRemoteProviderData(T providerMetaData, String environment, String appName, String address);
+    default void uploadRemoteProviderData(T providerMetaData, String environment, String appName, String address){
+        throw new NotImplementedException();
+    }
 
     /**
      * 删除服务元数据
      * @param providerMetaData
      */
     @ProviderSide
-    void deleteRemoteProviderData(T providerMetaData, String environment, String appName, String address);
+    default void deleteRemoteProviderData(T providerMetaData, String environment, String appName, String address){
+        throw new NotImplementedException();
+    }
 
     /**
      * 上报服务订阅元数据
      * @param consumerMetaData
      */
     @ConsumerSide
-    void uploadConsumerData(T consumerMetaData);
+    default void uploadConsumerData(T consumerMetaData){
+        throw new NotImplementedException();
+    }
+
+    /**
+     * 获得所有provider的信息
+     * @return
+     */
+    @WebSide
+    default Map<String, RpcMetaData> getAllProviderMetaData() {
+        throw new NotImplementedException();
+    }
+
+    /**
+     * 获得provider下所有地址信息
+     * @return
+     */
+    @WebSide
+    default List<ProviderConfigData> getAllProviderConfigData(String interfaceClazz, String group, String version, String environment) {
+        throw new NotImplementedException();
+    }
 
     /**
      * 获取服务配置路径

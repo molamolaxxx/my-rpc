@@ -115,19 +115,6 @@ public class RpcInvoker {
         provider(consumerInterface, providerObject, new RpcMetaData());
     }
 
-    /**
-     * 提供单点服务，不注册服务
-     * @param consumerInterface
-     * @param providerObject
-     * @param <T>
-     */
-    public static <T> void singleNodeProvider(Class<T> consumerInterface, T providerObject) {
-        ProtoRpcConfigFactory protoRpcConfigFactory = ProtoRpcConfigFactory.get();
-        RpcProperties rpcProperties = protoRpcConfigFactory.getRpcProperties();
-        Assert.isTrue(!rpcProperties.getStartConfigServer(), "please close config server in single node mode!");
-        provider(consumerInterface, providerObject, new RpcMetaData());
-    }
-
     public static <T> void provider(Class<T> consumerInterface, T providerObject, RpcMetaData rpcMetaData) {
         if (!ProtoRpcConfigFactory.INIT_FLAG.get()) {
             throw new RuntimeException("please init rpc config in proto mode!");
@@ -138,6 +125,7 @@ public class RpcInvoker {
         RpcProperties rpcProperties = protoRpcConfigFactory.getRpcProperties();
         rpcMetaData.setProviderObject(providerObject);
         rpcMetaData.setInterfaceClazz(consumerInterface);
+        rpcMetaData.setProto(Boolean.TRUE);
         rpcContext.addProviderMeta(consumerInterface.getName(), rpcMetaData);
         // 启动server
         NettyRemoteServer nettyRemoteServer = protoRpcConfigFactory.getNettyRemoteServer();

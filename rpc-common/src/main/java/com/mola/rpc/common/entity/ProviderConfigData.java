@@ -41,17 +41,18 @@ public class ProviderConfigData {
     private SystemInfo systemInfo;
 
     /**
-     * 是否在线
+     * 是否是以原子能力的方式提供服务
      */
-    private Boolean online;
+    private Boolean proto;
 
-    public static ProviderConfigData create(String parentPath, String appName, String host, String address) {
+    public static ProviderConfigData create(String parentPath, String appName, String host, String address, Boolean proto) {
         ProviderConfigData providerConfigData = new ProviderConfigData();
         providerConfigData.servicePath = parentPath;
         providerConfigData.appName = appName;
         providerConfigData.providerLastHeartBeatTime = System.currentTimeMillis();
         providerConfigData.host = host;
         providerConfigData.address = address;
+        providerConfigData.proto = proto;
         return providerConfigData;
     }
 
@@ -101,14 +102,6 @@ public class ProviderConfigData {
 
     public void setSystemInfo(SystemInfo systemInfo) {
         this.systemInfo = systemInfo;
-    }
-
-    public Boolean getOnline() {
-        return online;
-    }
-
-    public void setOnline(Boolean online) {
-        this.online = online;
     }
 
     @Override

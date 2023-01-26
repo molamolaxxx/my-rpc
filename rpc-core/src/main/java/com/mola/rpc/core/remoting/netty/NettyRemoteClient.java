@@ -91,7 +91,7 @@ public class NettyRemoteClient {
      */
     public void start(boolean forceStart) {
         if (rpcContext.getConsumerMetaMap().size() == 0 && !forceStart) {
-            log.debug("[NettyRemoteClient-"+ name +"]:there are no consumer registered, netty client will not start");
+            log.info("[NettyRemoteClient-"+ name +"]:there are no consumer registered, netty client will not start");
             return;
         }
         final NettyRemoteClient self = this;

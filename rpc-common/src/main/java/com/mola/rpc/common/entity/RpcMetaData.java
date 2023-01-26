@@ -115,6 +115,12 @@ public class RpcMetaData {
     @ConsumerSide
     private List<String> appointedAddress;
 
+    /**
+     * 是否是以原型方式提供的服务
+     */
+    @ProviderSide
+    private Boolean proto = Boolean.FALSE;
+
 
     public static RpcMetaData of(String group, String version, Class<?> clazzType) {
         RpcMetaData rpcMetaData = new RpcMetaData();
@@ -255,5 +261,13 @@ public class RpcMetaData {
 
     public void setAppointedAddress(List<String> appointedAddress) {
         this.appointedAddress = appointedAddress;
+    }
+
+    public Boolean getProto() {
+        return proto;
+    }
+
+    public void setProto(Boolean proto) {
+        this.proto = proto;
     }
 }

@@ -1,6 +1,19 @@
 spring:
   application:
     name: rpc-web-manager
+  jpa:
+    hibernate:
+      ddl-auto: update
+    # 实时通过entity更新表结构
+    # 显示sql
+    show-sql: true
+  datasource:
+    url: jdbc:mysql://localhost:3306/my_rpc?serverTimezone=Asia/Shanghai
+    username: root
+    password: 314
+    driver-class-name: com.mysql.cj.jdbc.Driver
+  thymeleaf:
+    cache: false
 
 server:
   port: 7001
@@ -8,3 +21,8 @@ server:
 logging:
   level:
     root: info
+
+rpc:
+  server-port: 15234
+  app-name: ${spring.application.name}
+  environment: center
