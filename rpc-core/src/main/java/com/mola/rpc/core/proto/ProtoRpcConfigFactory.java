@@ -1,5 +1,6 @@
 package com.mola.rpc.core.proto;
 
+import com.mola.rpc.common.constants.CommonConstants;
 import com.mola.rpc.common.constants.LoadBalanceConstants;
 import com.mola.rpc.common.context.RpcContext;
 import com.mola.rpc.common.entity.RpcMetaData;
@@ -11,6 +12,7 @@ import com.mola.rpc.core.strategy.balance.*;
 import com.mola.rpc.core.util.NetUtils;
 import com.mola.rpc.data.config.listener.AddressChangeListener;
 import com.mola.rpc.data.config.manager.RpcDataManager;
+import com.mola.rpc.data.config.manager.nacos.NacosRpcDataManager;
 import com.mola.rpc.data.config.manager.zk.ZkRpcDataManager;
 import com.mola.rpc.data.config.spring.RpcProviderDataInitBean;
 import org.slf4j.Logger;
@@ -84,28 +86,32 @@ public class ProtoRpcConfigFactory {
      * 配置
      * @param rpcProperties
      */
-    public static final void configure(RpcProperties rpcProperties) {
+    public static final void init(RpcProperties rpcProperties) {
         try {
-            ProtoRpcConfigFactory protoRpcConfigFactory = get();
             if (INIT_FLAG.get()) {
                 log.warn("ProtoRpcConfigFactory has been init!");
                 return;
             }
-            protoRpcConfigFactory.rpcProperties = rpcProperties;
+            configure(rpcProperties);
             INIT_FLAG.compareAndSet(false, true);
-            // 上下文初始化
-            protoRpcConfigFactory.initContext();
-            // 负载均衡初始化
-            protoRpcConfigFactory.initLoadBalance();
-            // 网络初始化
-            protoRpcConfigFactory.initNettyConfiguration();
-            // config server配置
-            if (rpcProperties.getStartConfigServer()) {
-                protoRpcConfigFactory.initConfigServer();
-            }
         } catch (Exception e) {
             INIT_FLAG.compareAndSet(true, false);
             throw e;
+        }
+    }
+
+    public static final void configure(RpcProperties rpcProperties) {
+        ProtoRpcConfigFactory protoRpcConfigFactory = get();
+        protoRpcConfigFactory.rpcProperties = rpcProperties;
+        // 上下文初始化
+        protoRpcConfigFactory.initContext();
+        // 负载均衡初始化
+        protoRpcConfigFactory.initLoadBalance();
+        // 网络初始化
+        protoRpcConfigFactory.initNettyConfiguration();
+        // config server配置
+        if (rpcProperties.getStartConfigServer()) {
+            protoRpcConfigFactory.initConfigServer();
         }
     }
 
@@ -146,8 +152,10 @@ public class ProtoRpcConfigFactory {
         rpcProviderDataInitBean.setAppName(rpcProperties.getAppName());
         rpcProviderDataInitBean.setEnvironment(rpcProperties.getEnvironment());
         RpcDataManager<RpcMetaData> rpcDataManager = null;
-        if (null == rpcProperties.getRpcDataManager()) {
-            rpcDataManager = new ZkRpcDataManager(rpcProperties.getConfigServerAddress(), 10000);
+        if (CommonConstants.ZOOKEEPER.equals(rpcProperties.getConfigServerType())) {
+            rpcDataManager = new ZkRpcDataManager(rpcProperties);
+        } else if (CommonConstants.NACOS.equals(rpcProperties.getConfigServerType())){
+            rpcDataManager = new NacosRpcDataManager(rpcProperties);
         } else {
             rpcDataManager = rpcProperties.getRpcDataManager();
         }

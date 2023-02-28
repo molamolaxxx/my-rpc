@@ -46,13 +46,13 @@ public class ConsumerInvokeTest {
     private static final Logger log = LoggerFactory.getLogger(ConsumerInvokeTest.class);
 
     @Resource
-    private RpcProviderDataInitBean rpcProviderDataInitBean;
+    protected RpcProviderDataInitBean rpcProviderDataInitBean;
 
     @Resource
-    private UnitTestService unitTestService;
+    protected UnitTestService unitTestService;
 
     @Resource
-    private UnitTestService unitTestServiceAsync;
+    protected UnitTestService unitTestServiceAsync;
 
     @Before
     public void before() {
@@ -123,7 +123,7 @@ public class ConsumerInvokeTest {
     public void specialObjectTransformTest() {
         BigDecimal bigDecimal = new BigDecimal("3.1415926");
         Date date = new Date();
-        SpecialObject specialObject = unitTestService.specialObjectTransform(new SpecialObject(bigDecimal, date, AccessMode.READ));
+        SpecialObject specialObject = unitTestService.specialObjectTransform(new SpecialObject(bigDecimal, date, AccessMode.READ, null));
         Assert.isTrue(bigDecimal.compareTo(specialObject.getBigDecimal()) == 0, "specialObjectTransform-case1测试失败");
         Assert.isTrue(date.compareTo(specialObject.getDate()) == 0, "specialObjectTransform-case2测试失败");
         Assert.isTrue(AccessMode.READ.equals(specialObject.getAccessMode()), "specialObjectTransform-case3测试失败");

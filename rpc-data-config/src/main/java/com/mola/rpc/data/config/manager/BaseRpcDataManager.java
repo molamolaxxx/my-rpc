@@ -17,6 +17,11 @@ import java.util.List;
 public class BaseRpcDataManager implements RpcDataManager<RpcMetaData> {
 
 
+    /**
+     * 地址变更监听器
+     */
+    protected List<AddressChangeListener> addressChangeListeners;
+
     @Override
     public void init(RpcContext rpcContext) {
     }
@@ -32,8 +37,8 @@ public class BaseRpcDataManager implements RpcDataManager<RpcMetaData> {
     }
 
     @Override
-    public Boolean isProviderExist(String interfaceClazz, String group, String version, String environment) {
-        return Boolean.FALSE;
+    public boolean isProviderExist(String interfaceClazz, String group, String version, String environment) {
+        return false;
     }
 
     @Override
@@ -53,6 +58,6 @@ public class BaseRpcDataManager implements RpcDataManager<RpcMetaData> {
 
     @Override
     public void setAddressChangeListener(List<AddressChangeListener> addressChangeListeners) {
-
+        this.addressChangeListeners = addressChangeListeners;
     }
 }

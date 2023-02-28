@@ -4,11 +4,7 @@ import com.alibaba.fastjson.JSONObject;
 import com.google.common.collect.Lists;
 import com.mola.rpc.common.constants.CommonConstants;
 import com.mola.rpc.common.context.RpcContext;
-import com.mola.rpc.common.entity.AddressInfo;
-import com.mola.rpc.common.entity.ProviderConfigData;
-import com.mola.rpc.common.entity.RpcMetaData;
-import com.mola.rpc.common.entity.SystemInfo;
-import com.mola.rpc.data.config.listener.AddressChangeListener;
+import com.mola.rpc.common.entity.*;
 import com.mola.rpc.data.config.listener.ZkProviderConfigChangeListenerImpl;
 import com.mola.rpc.data.config.manager.BaseRpcDataManager;
 import org.I0Itec.zkclient.ZkClient;
@@ -42,21 +38,19 @@ public class ZkRpcDataManager extends BaseRpcDataManager {
     /**
      * 注册中心地址
      */
-    private String configServerIpPort;
+    private String configServerAddress;
 
     /**
      * 超时时间
      */
     private Integer connectTimeout;
 
-    /**
-     * 地址变更监听器
-     */
-    private List<AddressChangeListener> addressChangeListeners;
+    private BaseRpcProperties rpcProperties;
 
-    public ZkRpcDataManager(String configServerIpPort, Integer connectTimeout) {
-        this.configServerIpPort = configServerIpPort;
-        this.connectTimeout = connectTimeout;
+    public ZkRpcDataManager(BaseRpcProperties rpcProperties) {
+        this.configServerAddress = rpcProperties.getConfigServerAddress();
+        this.connectTimeout = 10000;
+        this.rpcProperties = rpcProperties;
     }
 
     @Override
@@ -64,7 +58,7 @@ public class ZkRpcDataManager extends BaseRpcDataManager {
         super.init(rpcContext);
         ZkClient zkClient = null;
         try {
-            zkClient = new ZkClient(this.configServerIpPort, this.connectTimeout);
+            zkClient = new ZkClient(this.configServerAddress, this.connectTimeout);
             this.zkClient = zkClient;
             createIfNotExist(CommonConstants.PATH_MY_RPC);
             createIfNotExist(CommonConstants.PATH_MY_RPC_PROVIDER);
@@ -83,10 +77,14 @@ public class ZkRpcDataManager extends BaseRpcDataManager {
     @Override
     public List<AddressInfo> getRemoteProviderAddress(String interfaceClazz, String group, String version, String environment) {
         String remoteProviderPath = getRemoteProviderPath(interfaceClazz, group, version, environment);
-        return zkClient.getChildren(remoteProviderPath).stream()
-                .map(path -> new AddressInfo(path,
-                        JSONObject.parseObject(zkClient.readData(remoteProviderPath + "/" + path), ProviderConfigData.class))).collect(Collectors.toList());
-
+        try {
+            return zkClient.getChildren(remoteProviderPath).stream()
+                    .map(path -> new AddressInfo(path,
+                            JSONObject.parseObject(zkClient.readData(remoteProviderPath + "/" + path), ProviderConfigData.class))).collect(Collectors.toList());
+        } catch (Exception e) {
+            log.error("getRemoteProviderAddress getChildren error, remoteProviderPath = " + remoteProviderPath, e);
+        }
+        return Lists.newArrayList();
     }
 
     @Override
@@ -98,7 +96,10 @@ public class ZkRpcDataManager extends BaseRpcDataManager {
     }
 
     @Override
-    public Boolean isProviderExist(String interfaceClazz, String group, String version, String environment) {
+    public boolean isProviderExist(String interfaceClazz, String group, String version, String environment) {
+        if (!this.rpcProperties.getCheckDependencyProviderBeforeStart()) {
+            return true;
+        }
         String remoteProviderPath = getRemoteProviderPath(interfaceClazz, group, version, environment);
         return zkClient.exists(remoteProviderPath);
     }
@@ -176,10 +177,5 @@ public class ZkRpcDataManager extends BaseRpcDataManager {
             }
         }
         return providerConfigDataList;
-    }
-
-    @Override
-    public void setAddressChangeListener(List<AddressChangeListener> addressChangeListeners) {
-        this.addressChangeListeners = addressChangeListeners;
     }
 }

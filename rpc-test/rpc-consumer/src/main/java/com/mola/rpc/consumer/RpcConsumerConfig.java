@@ -35,7 +35,7 @@ public class RpcConsumerConfig {
         rpcProperties.setEnvironment("pre");
         // 如果只有只有单点调用，则可以开启，不启动configserver
 //        rpcProperties.setStartConfigServer(false);
-        ProtoRpcConfigFactory.configure(rpcProperties);
+        ProtoRpcConfigFactory.init(rpcProperties);
     }
 
 }

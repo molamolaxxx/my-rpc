@@ -62,6 +62,13 @@ public class GenericParam {
         return genericParam;
     }
 
+    public static GenericParam ofObj(Object obj, String paramTypeClazzName) {
+        GenericParam genericParam = new GenericParam();
+        genericParam.obj = obj;
+        genericParam.paramTypeClazzName = paramTypeClazzName;
+        return genericParam;
+    }
+
     /*
     * 基础类型
     */

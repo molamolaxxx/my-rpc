@@ -46,7 +46,7 @@ public class ConsumerNoSpringTest {
 
     @GetMapping("/noSpring/appointed/queryOrderList")
     public List<Order> queryOrderListInAppointedMode() {
-        OrderService orderService = RpcInvoker.appointedAddressConsumer(OrderService.class, Lists.newArrayList("127.0.0.1:9004","127.0.0.1:9003"));
+        OrderService orderService = RpcInvoker.consumer(OrderService.class, Lists.newArrayList("127.0.0.1:9004","127.0.0.1:9003"));
         ServerResponse<List<Order>> res = orderService.searchOrderListWithUser(new Order(), new OperateUser("1", "mola"));
         return res.getData();
     }

@@ -150,6 +150,9 @@ public class RpcProviderDataInitBean {
     }
 
     private void startProviderInfoUploadMonitor() {
+        if (!rpcDataManager.requireSendProviderHeartBeat()) {
+            return;
+        }
         this.providerInfoUploadMonitorService = Executors.newScheduledThreadPool(1,
                 new ThreadFactory() {
                     AtomicInteger threadIndex = new AtomicInteger(0);

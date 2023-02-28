@@ -61,7 +61,7 @@ public interface RpcDataManager<T extends RpcMetaData> {
      * @return
      */
     @ConsumerSide
-    default Boolean isProviderExist(String interfaceClazz, String group, String version, String environment){
+    default boolean isProviderExist(String interfaceClazz, String group, String version, String environment){
         throw new NotImplementedException();
     }
 
@@ -72,6 +72,15 @@ public interface RpcDataManager<T extends RpcMetaData> {
     @ProviderSide
     default void uploadRemoteProviderData(T providerMetaData, String environment, String appName, String address){
         throw new NotImplementedException();
+    }
+
+    /**
+     * 定时上报心跳
+     * @param providerMetaData
+     */
+    @ProviderSide
+    default boolean requireSendProviderHeartBeat(){
+        return true;
     }
 
     /**

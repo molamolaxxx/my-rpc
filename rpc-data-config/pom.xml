@@ -14,6 +14,7 @@
     <properties>
         <maven.compiler.source>8</maven.compiler.source>
         <maven.compiler.target>8</maven.compiler.target>
+        <nacos.version>1.4.4</nacos.version>
     </properties>
 
     <dependencies>
@@ -25,6 +26,24 @@
             <groupId>com.github.sgroschupf</groupId>
             <artifactId>zkclient</artifactId>
         </dependency>
+        <dependency>
+            <groupId>com.alibaba.nacos</groupId>
+            <artifactId>nacos-client</artifactId>
+            <version>${nacos.version}</version>
+<!--            &lt;!&ndash; 指定纯净版SDK &ndash;&gt;-->
+<!--            <classifier>pure</classifier>-->
+        </dependency>
+        <!-- 使用纯净版时必须要引入同版本nacos-api和nacos-common，否则可能出现运行时找不到类的问题 -->
+<!--        <dependency>-->
+<!--            <groupId>com.alibaba.nacos</groupId>-->
+<!--            <artifactId>nacos-common</artifactId>-->
+<!--            <version>${nacos.version}</version>-->
+<!--        </dependency>-->
+<!--        <dependency>-->
+<!--            <groupId>com.alibaba.nacos</groupId>-->
+<!--            <artifactId>nacos-api</artifactId>-->
+<!--            <version>${nacos.version}</version>-->
+<!--        </dependency>-->
     </dependencies>
 
 </project>

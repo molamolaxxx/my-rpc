@@ -26,5 +26,8 @@ public class SpecialObject {
      */
     private AccessMode accessMode;
 
-
+    /**
+     * 自定义对象
+     */
+    private OperateUser operateUser;
 }

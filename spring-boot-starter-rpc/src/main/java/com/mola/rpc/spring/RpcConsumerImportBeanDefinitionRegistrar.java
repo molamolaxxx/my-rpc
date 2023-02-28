@@ -53,9 +53,6 @@ public class RpcConsumerImportBeanDefinitionRegistrar implements ImportBeanDefin
                     }
                     providerAlreadyAddedSet.add(providerKey);
                 }
-//                if (!metadata.getAnnotationTypes().contains(Configuration.class.getName())) {
-//                    continue;
-//                }
                 String beanClassName = beanDefinition.getBeanClassName();
                 Class<?> clazz = Class.forName(beanClassName);
                 Field[] fields = clazz.getDeclaredFields();

@@ -31,7 +31,7 @@ public class RpcInvoker {
      * @return
      */
     public static <T> T consumer(Class<T> consumerInterface) {
-        return consumer(consumerInterface, new RpcMetaData());
+        return consumer(consumerInterface, new RpcMetaData(), PROTO_MODE_CONSUMER);
     }
 
     /**
@@ -39,14 +39,14 @@ public class RpcInvoker {
      * @param consumerInterface
      * @param <T>
      */
-    public static <T> T appointedAddressConsumer(Class<T> consumerInterface, List<String> addressList) {
+    public static <T> T consumer(Class<T> consumerInterface, List<String> addressList) {
         ProtoRpcConfigFactory protoRpcConfigFactory = ProtoRpcConfigFactory.get();
         RpcProperties rpcProperties = protoRpcConfigFactory.getRpcProperties();
         RpcMetaData rpcMetaData = new RpcMetaData();
         // 指定provider的服务提供者
         rpcMetaData.setAppointedAddress(addressList);
         rpcMetaData.setLoadBalanceStrategy(LoadBalanceConstants.LOAD_BALANCE_APPOINTED_RANDOM_STRATEGY);
-        return consumer(consumerInterface, rpcMetaData);
+        return consumer(consumerInterface, rpcMetaData, PROTO_MODE_CONSUMER);
     }
 
     /**
@@ -73,7 +73,7 @@ public class RpcInvoker {
         return GenericRpcServiceProxyFactory.getProxy(interfaceClazzName, rpcMetaData);
     }
 
-    public static <T> T consumer(Class<T> consumerInterface, RpcMetaData rpcMetaData) {
+    public static <T> T consumer(Class<T> consumerInterface, RpcMetaData rpcMetaData, String consumerName) {
         if (!ProtoRpcConfigFactory.INIT_FLAG.get()) {
             throw new RuntimeException("please init rpc config in proto mode!");
         }
@@ -82,7 +82,7 @@ public class RpcInvoker {
         // 订阅服务
         RpcContext rpcContext = protoRpcConfigFactory.getRpcContext();
         rpcMetaData.setInterfaceClazz(consumerInterface);
-        rpcContext.addConsumerMeta(consumerInterface.getName(), PROTO_MODE_CONSUMER, rpcMetaData);
+        rpcContext.addConsumerMeta(consumerInterface.getName(), consumerName, rpcMetaData);
         // 启动client
         NettyRemoteClient nettyRemoteClient = protoRpcConfigFactory.getNettyRemoteClient();
         Assert.isTrue(nettyRemoteClient.isStart(), "nettyRemoteClient has not been start! please call ProtoRpcConfigFactory.configure first");
@@ -98,7 +98,7 @@ public class RpcInvoker {
         rpcProxyInvokeHandler.setLoadBalance(protoRpcConfigFactory.getLoadBalance());
         rpcProxyInvokeHandler.setNettyConnectPool(protoRpcConfigFactory.getNettyConnectPool());
         rpcProxyInvokeHandler.setNettyRemoteClient(protoRpcConfigFactory.getNettyRemoteClient());
-        rpcProxyInvokeHandler.setBeanName(PROTO_MODE_CONSUMER);
+        rpcProxyInvokeHandler.setBeanName(consumerName);
         return (T) Proxy.newProxyInstance(
                 RpcInvoker.class.getClassLoader(),
                 new Class[]{consumerInterface},

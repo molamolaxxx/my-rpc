@@ -1,0 +1,17 @@
+spring:
+  application:
+    name: rpc-provider
+
+server:
+  port: 8081
+
+logging:
+  level:
+    root: info
+rpc:
+  server-port: 9002
+  app-name: ${spring.application.name}
+  environment: public
+  core-biz-thread-num: 20
+  config-server-type: nacos
+  config-server-address: 127.0.0.1:8848

@@ -1,5 +1,6 @@
 package com.mola.rpc.spring;
 
+import com.mola.rpc.common.constants.CommonConstants;
 import com.mola.rpc.common.constants.LoadBalanceConstants;
 import com.mola.rpc.common.context.RpcContext;
 import com.mola.rpc.common.entity.RpcMetaData;
@@ -10,6 +11,7 @@ import com.mola.rpc.core.strategy.balance.*;
 import com.mola.rpc.core.util.NetUtils;
 import com.mola.rpc.data.config.listener.AddressChangeListener;
 import com.mola.rpc.data.config.manager.RpcDataManager;
+import com.mola.rpc.data.config.manager.nacos.NacosRpcDataManager;
 import com.mola.rpc.data.config.manager.zk.ZkRpcDataManager;
 import com.mola.rpc.data.config.spring.RpcProviderDataInitBean;
 import org.slf4j.Logger;
@@ -21,7 +23,6 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
 import org.springframework.util.Assert;
-import org.springframework.util.StringUtils;
 
 /**
  * @author : molamola
@@ -102,10 +103,12 @@ public class RpcBeanPropertiesConfiguration {
         rpcProviderDataInitBean.setAppName(rpcProperties.getAppName());
         rpcProviderDataInitBean.setEnvironment(rpcProperties.getEnvironment());
         RpcDataManager<RpcMetaData> rpcDataManager = null;
-        if (StringUtils.isEmpty(rpcProperties.getConfigServerBeanName())) {
-            rpcDataManager = new ZkRpcDataManager(rpcProperties.getConfigServerAddress(), 10000);
+        if (CommonConstants.ZOOKEEPER.equals(rpcProperties.getConfigServerType())) {
+            rpcDataManager = new ZkRpcDataManager(rpcProperties);
+        } else if (CommonConstants.NACOS.equals(rpcProperties.getConfigServerType())){
+            rpcDataManager = new NacosRpcDataManager(rpcProperties);
         } else {
-            rpcDataManager = applicationContext.getBean(rpcProperties.getConfigServerBeanName(), RpcDataManager.class);
+            throw new RuntimeException("unsupported config server type " + rpcProperties.getConfigServerType());
         }
         Assert.notNull(rpcDataManager, "rpcDataManager is null");
         rpcDataManager.init(rpcContext);

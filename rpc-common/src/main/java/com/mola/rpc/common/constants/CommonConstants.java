@@ -26,7 +26,7 @@ public class CommonConstants {
     /**
      * 未知环境
      */
-    public static final String UNKNOWN_ENVIRONMENT = "UNKNOWN_ENVIRONMENT";
+    public static final String DEFAULT_ENVIRONMENT = "public";
 
     /**
      * zk根节点路径
@@ -42,4 +42,14 @@ public class CommonConstants {
      * consumer节点路径
      */
     public static final String PATH_MY_RPC_CONSUMER = "/myRpc/consumer";
+
+    /**
+     * zookeeper
+     */
+    public static final String ZOOKEEPER = "zookeeper";
+
+    /**
+     * nacos
+     */
+    public static final String NACOS = "nacos";
 }
