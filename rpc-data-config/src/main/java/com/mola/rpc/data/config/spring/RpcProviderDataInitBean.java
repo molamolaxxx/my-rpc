@@ -113,9 +113,13 @@ public class RpcProviderDataInitBean {
         rpcDataManager.registerProviderDataListener(serviceName, group, version, environment, consumerMetaData);
     }
 
-    private void pullProviderDataList() {
+    public void pullProviderDataList() {
         Collection<RpcMetaData> consumerMetaDataCollection = rpcContext.getConsumerMetaMap().values();
         for (RpcMetaData consumerMetaData : consumerMetaDataCollection) {
+            // 反向代理模式不用进行服务发现
+            if (consumerMetaData.getReverseMode()) {
+                continue;
+            }
             pullProviderData(consumerMetaData);
         }
     }
@@ -220,5 +224,19 @@ public class RpcProviderDataInitBean {
 
     public void addAddressChangeListener(AddressChangeListener addressChangeListener) {
         this.addressChangeListeners.add(addressChangeListener);
+    }
+
+    public void refresh(RpcDataManager rpcDataManager) {
+        if (null != this.rpcDataManager) {
+            this.rpcDataManager.destroy();
+        }
+        this.rpcDataManager = rpcDataManager;
+        if (null != this.providerInfoUploadMonitorService) {
+            this.providerInfoUploadMonitorService.shutdown();
+        }
+        if (null != this.consumerInfoDownloadMonitorService) {
+            this.consumerInfoDownloadMonitorService.shutdown();
+        }
+        init();
     }
 }

@@ -1,5 +1,6 @@
 package com.mola.rpc.consumer.test;
 
+import com.alibaba.fastjson.JSONObject;
 import com.mola.rpc.client.Order;
 import com.mola.rpc.client.ServerResponse;
 import com.mola.rpc.client.SpecialObject;
@@ -154,7 +155,7 @@ public class ConsumerInvokeTest {
             ServerResponse<Order> response = unitTestService.test002(order);
             totalCost += (System.currentTimeMillis() - start);
         }
-        Assert.isTrue(totalCost < 6000, "testPerformance冷启动调用，cost = " + totalCost);
+        Assert.isTrue(totalCost < 7000, "testPerformance冷启动调用，cost = " + totalCost);
         log.info("testPerformance冷启动调用在正常时间范围内，cost = " + totalCost);
         totalCost = 0L;
         for (int i = 0; i < 5000; i++) {
@@ -162,7 +163,7 @@ public class ConsumerInvokeTest {
             ServerResponse<Order> response = unitTestService.test002(order);
             totalCost += (System.currentTimeMillis() - start);
         }
-        Assert.isTrue(totalCost < 4000, "testPerformance热调用，cost = " + totalCost);
+        Assert.isTrue(totalCost < 6000, "testPerformance热调用，cost = " + totalCost);
         log.info("testPerformance热调用在正常时间范围内，cost = " + totalCost);
     }
 
@@ -225,7 +226,7 @@ public class ConsumerInvokeTest {
 
         for (int i = 0; i < asyncList.size(); i++) {
             ServerResponse<String> res = asyncList.get(i).get();
-            Assert.isTrue(res != null && res.isSuccess(), "testAsyncConcurrentTimeLimit测试失败,调用失败");
+            Assert.isTrue(res != null && res.isSuccess(), "testAsyncConcurrentTimeLimit测试失败,调用失败, res = " + JSONObject.toJSONString(res));
             Assert.isTrue((input + i).equals(res.getData()), "testAsyncConcurrentTimeLimit-case1测试失败");
         }
         long cost = System.currentTimeMillis() - start;

@@ -1,7 +1,11 @@
 package com.mola.rpc.consumer.test.nacos;
 
 import com.mola.rpc.consumer.test.ConsumerInvokeTest;
+import com.mola.rpc.consumer.test.ConsumerTestContext;
+import org.junit.runner.RunWith;
+import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.junit4.SpringRunner;
 
 /**
  * @author : molamola
@@ -17,5 +21,7 @@ import org.springframework.test.context.ActiveProfiles;
  * @date : 2023-01-22 16:43
  **/
 @ActiveProfiles("nacos")
+@SpringBootTest(classes = ConsumerTestContext.class)
+@RunWith(SpringRunner.class)
 public class NacosConsumerInvokeTest extends ConsumerInvokeTest {
 }

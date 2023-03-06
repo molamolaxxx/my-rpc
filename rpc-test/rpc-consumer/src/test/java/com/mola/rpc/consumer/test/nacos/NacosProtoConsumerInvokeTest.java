@@ -2,14 +2,16 @@ package com.mola.rpc.consumer.test.nacos;
 
 import com.google.common.collect.Sets;
 import com.mola.rpc.client.UnitTestService;
-import com.mola.rpc.common.constants.CommonConstants;
 import com.mola.rpc.common.entity.RpcMetaData;
+import com.mola.rpc.consumer.test.ConsumerTestContext;
 import com.mola.rpc.consumer.test.proto.ProtoConsumerInvokeTest;
-import com.mola.rpc.core.properties.RpcProperties;
 import com.mola.rpc.core.proto.ProtoRpcConfigFactory;
 import com.mola.rpc.core.proto.RpcInvoker;
-import com.mola.rpc.data.config.manager.nacos.NacosRpcDataManager;
 import org.junit.Before;
+import org.junit.runner.RunWith;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.junit4.SpringRunner;
 
 /**
  * @author : molamola
@@ -24,22 +26,13 @@ import org.junit.Before;
  * proto同上
  * @date : 2023-01-22 16:43
  **/
+@SpringBootTest(classes = ConsumerTestContext.class)
+@RunWith(SpringRunner.class)
+@ActiveProfiles("nacos")
 public class NacosProtoConsumerInvokeTest extends ProtoConsumerInvokeTest {
 
     @Before
     public void before() {
-        // 配置
-        RpcProperties rpcProperties = new RpcProperties();
-        // 环境标
-        rpcProperties.setEnvironment("public");
-        rpcProperties.setRpcDataManager(new NacosRpcDataManager(rpcProperties));
-        rpcProperties.setConfigServerType(CommonConstants.NACOS);
-        rpcProperties.setConfigServerAddress("127.0.0.1:8848");
-        if (ProtoRpcConfigFactory.INIT_FLAG.get()) {
-            ProtoRpcConfigFactory.configure(rpcProperties);
-        } else {
-            ProtoRpcConfigFactory.init(rpcProperties);
-        }
         RpcMetaData asyncMetaData = new RpcMetaData();
         asyncMetaData.setAsyncExecuteMethods(Sets.newHashSet("*"));
         this.unitTestServiceAsync = RpcInvoker.consumer(UnitTestService.class, asyncMetaData, "unitTestServiceAsync");

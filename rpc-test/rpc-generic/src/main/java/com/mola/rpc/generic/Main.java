@@ -25,8 +25,7 @@ public class Main {
         rpcProperties.setEnvironment("pre");
         // 如果只有只有单点调用，则可以开启，不启动configserver
 //        rpcProperties.setStartConfigServer(false);
-        ProtoRpcConfigFactory.init(rpcProperties);
-
+        ProtoRpcConfigFactory.get().init(rpcProperties);
         GenericRpcService genericService = RpcInvoker.genericConsumer("com.mola.rpc.client.OrderService", Lists.newArrayList("127.0.0.1:9004","127.0.0.1:9003"));
         Map<String, String> orderMap = Maps.newHashMap();
         orderMap.put("code", "generic code" + System.currentTimeMillis());

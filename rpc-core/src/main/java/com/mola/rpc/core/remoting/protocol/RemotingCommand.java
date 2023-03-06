@@ -177,8 +177,7 @@ public class RemotingCommand {
     }
 
     public boolean isResponseType() {
-        int bits = 1 << RPC_TYPE;
-        return (this.flag & bits) == bits;
+        return this.code != RemotingCommandCode.NORMAL;
     }
 
     public void markOnewayRPC() {

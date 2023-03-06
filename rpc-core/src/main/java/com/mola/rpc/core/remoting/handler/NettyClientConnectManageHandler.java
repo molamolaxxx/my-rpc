@@ -1,6 +1,6 @@
 package com.mola.rpc.core.remoting.handler;
 
-import com.mola.rpc.core.remoting.netty.ReverseInvokeChannelPool;
+import com.mola.rpc.core.remoting.netty.NettyConnectPool;
 import com.mola.rpc.core.util.RemotingHelper;
 import com.mola.rpc.core.util.RemotingUtil;
 import io.netty.channel.ChannelDuplexHandler;
@@ -16,9 +16,15 @@ import org.slf4j.LoggerFactory;
  * @Description: 连接管理器
  * @date : 2020-09-04 10:50
  **/
-public class NettyServerConnectManageHandler extends ChannelDuplexHandler {
+public class NettyClientConnectManageHandler extends ChannelDuplexHandler {
 
-    private static final Logger log = LoggerFactory.getLogger(NettyServerConnectManageHandler.class);
+    private NettyConnectPool nettyConnectPool;
+
+    private static final Logger log = LoggerFactory.getLogger(NettyClientConnectManageHandler.class);
+
+    public NettyClientConnectManageHandler(NettyConnectPool nettyConnectPool) {
+        this.nettyConnectPool = nettyConnectPool;
+    }
 
     @Override
     public void channelActive(ChannelHandlerContext ctx) throws Exception {
@@ -26,9 +32,8 @@ public class NettyServerConnectManageHandler extends ChannelDuplexHandler {
         log.info("NETTY SERVER PIPELINE: channelActive, the channel[{" + remoteAddress + "}]");
         super.channelActive(ctx);
         // 连接成功
-        log.info("[ServerChannelEventListener]: onChannelConnect {" + remoteAddress + "}");
+        log.info("[NettyClientConnectManageHandler]: onChannelConnect {" + remoteAddress + "}");
     }
-
 
     @Override
     public void channelInactive(ChannelHandlerContext ctx) throws Exception {
@@ -36,8 +41,8 @@ public class NettyServerConnectManageHandler extends ChannelDuplexHandler {
         log.info("NETTY SERVER PIPELINE: channelInactive, the channel[{" + remoteAddress + "}]");
         super.channelInactive(ctx);
         // 连接关闭
-        log.warn("[ServerChannelEventListener]: onChannelClose {" + remoteAddress + "}");
-        ReverseInvokeChannelPool.removeClosedChannel(remoteAddress);
+        log.warn("[NettyClientConnectManageHandler]: onChannelClose {" + remoteAddress + "}");
+        nettyConnectPool.removeChannel(remoteAddress, ctx.channel());
     }
 
 
@@ -48,18 +53,17 @@ public class NettyServerConnectManageHandler extends ChannelDuplexHandler {
             if (event.state().equals(IdleState.ALL_IDLE)) {
                 final String remoteAddress = RemotingHelper.parseChannelRemoteAddr(ctx.channel());
                 // 连接空闲
-                log.warn("[ServerChannelEventListener]: onChannelIdle {" + remoteAddress + "}");
+                log.warn("[NettyClientConnectManageHandler]: onChannelIdle {" + remoteAddress + "}");
             }
         }
         ctx.fireUserEventTriggered(evt);
     }
-
 
     @Override
     public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
         final String remoteAddress = RemotingHelper.parseChannelRemoteAddr(ctx.channel());
         // 连接异常
         RemotingUtil.closeChannel(ctx.channel());
-        log.warn("[ServerChannelEventListener]: onChannelException {" + remoteAddress + "}");
+        log.warn("[NettyClientConnectManageHandler]: onChannelException {" + remoteAddress + "}");
     }
 }

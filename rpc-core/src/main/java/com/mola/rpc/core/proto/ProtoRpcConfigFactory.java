@@ -4,7 +4,10 @@ import com.mola.rpc.common.constants.CommonConstants;
 import com.mola.rpc.common.constants.LoadBalanceConstants;
 import com.mola.rpc.common.context.RpcContext;
 import com.mola.rpc.common.entity.RpcMetaData;
+import com.mola.rpc.common.utils.TestUtil;
 import com.mola.rpc.core.properties.RpcProperties;
+import com.mola.rpc.core.remoting.handler.NettyRpcRequestHandler;
+import com.mola.rpc.core.remoting.handler.NettyRpcResponseHandler;
 import com.mola.rpc.core.remoting.netty.NettyConnectPool;
 import com.mola.rpc.core.remoting.netty.NettyRemoteClient;
 import com.mola.rpc.core.remoting.netty.NettyRemoteServer;
@@ -31,7 +34,7 @@ public class ProtoRpcConfigFactory {
 
     private static final Logger log = LoggerFactory.getLogger(ProtoRpcConfigFactory.class);
 
-    public static AtomicBoolean INIT_FLAG = new AtomicBoolean(false);
+    private static AtomicBoolean INIT_FLAG = new AtomicBoolean(false);
 
     /**
      * 全局rpc上下文
@@ -68,12 +71,12 @@ public class ProtoRpcConfigFactory {
      */
     private RpcProperties rpcProperties;
 
-    /**
-     * 自定义configure server实现
-     */
-    private RpcDataManager<RpcMetaData> rpcDataManager;
+    private NettyRpcRequestHandler requestHandler;
+    private NettyRpcResponseHandler responseHandler;
 
-    private ProtoRpcConfigFactory(){}
+    private ObjectFetcher providerObjectFetcher = providerMeta -> providerMeta.getProviderObject();
+
+    protected ProtoRpcConfigFactory(){}
     static class Singleton{
         private static ProtoRpcConfigFactory protoRpcConfigFactory = new ProtoRpcConfigFactory();
     }
@@ -81,18 +84,25 @@ public class ProtoRpcConfigFactory {
     public static ProtoRpcConfigFactory get(){
         return Singleton.protoRpcConfigFactory;
     }
-
     /**
      * 配置
      * @param rpcProperties
      */
-    public static final void init(RpcProperties rpcProperties) {
+    public void init(RpcProperties rpcProperties) {
         try {
-            if (INIT_FLAG.get()) {
+            if (INIT_FLAG.get() && !TestUtil.isJUnitTest()) {
                 log.warn("ProtoRpcConfigFactory has been init!");
                 return;
             }
-            configure(rpcProperties);
+            this.rpcProperties = rpcProperties;
+            // 上下文初始化
+            this.initContext();
+            // 负载均衡初始化
+            this.initLoadBalance();
+            // 网络初始化
+            this.initNettyConfiguration();
+            // config server配置
+            this.initConfigServer();
             INIT_FLAG.compareAndSet(false, true);
         } catch (Exception e) {
             INIT_FLAG.compareAndSet(true, false);
@@ -100,53 +110,66 @@ public class ProtoRpcConfigFactory {
         }
     }
 
-    public static final void configure(RpcProperties rpcProperties) {
-        ProtoRpcConfigFactory protoRpcConfigFactory = get();
-        protoRpcConfigFactory.rpcProperties = rpcProperties;
-        // 上下文初始化
-        protoRpcConfigFactory.initContext();
-        // 负载均衡初始化
-        protoRpcConfigFactory.initLoadBalance();
-        // 网络初始化
-        protoRpcConfigFactory.initNettyConfiguration();
-        // config server配置
-        if (rpcProperties.getStartConfigServer()) {
-            protoRpcConfigFactory.initConfigServer();
-        }
+    protected void initContext() {
+        this.rpcContext = RpcContext.fetch();
     }
 
-    private void initContext() {
-        this.rpcContext = new RpcContext();
-    }
-
-    private void initLoadBalance() {
+    protected void initLoadBalance() {
         LoadBalance loadBalance = new LoadBalance();
         loadBalance.setStrategy(LoadBalanceConstants.LOAD_BALANCE_RANDOM_STRATEGY, new RandomLoadBalance());
         loadBalance.setStrategy(LoadBalanceConstants.LOAD_BALANCE_ROUND_ROBIN_STRATEGY, new RoundRobinBalance());
         loadBalance.setStrategy(LoadBalanceConstants.CONSISTENCY_HASHING_STRATEGY, new ConsistencyHashingBalance());
-        loadBalance.setStrategy(LoadBalanceConstants.LOAD_BALANCE_APPOINTED_RANDOM_STRATEGY, new AppointedRandomLoadBalance());
         this.loadBalance = loadBalance;
     }
 
-    private void initNettyConfiguration() {
+    protected void initNettyConfiguration() {
+        // 请求处理器
+        this.requestHandler = new NettyRpcRequestHandler(rpcContext, this.providerObjectFetcher, rpcProperties);
+        // 响应处理器
+        this.responseHandler = new NettyRpcResponseHandler();
         this.nettyConnectPool = new NettyConnectPool();
-        NettyRemoteClient nettyRemoteClient = new NettyRemoteClient("proto");
+        NettyRemoteClient nettyRemoteClient = new NettyRemoteClient(requestHandler, responseHandler);
         nettyRemoteClient.setNettyConnectPool(nettyConnectPool);
         nettyRemoteClient.setRpcContext(rpcContext);
         nettyRemoteClient.start(true);
         this.nettyRemoteClient = nettyRemoteClient;
-        NettyRemoteServer nettyRemoteServer = new NettyRemoteServer("proto");
+        NettyRemoteServer nettyRemoteServer = new NettyRemoteServer(requestHandler, responseHandler);
         nettyRemoteServer.setRpcProperties(rpcProperties);
         nettyRemoteServer.setRpcContext(rpcContext);
-        nettyRemoteServer.setProviderFetcher(providerName -> {
-            return null;
-        });
         nettyRemoteServer.start();
         this.nettyRemoteServer = nettyRemoteServer;
     }
 
-    private void initConfigServer() {
+    /**
+     * 切换configServer
+     * @param rpcProperties
+     */
+    public void changeConfigServer(RpcProperties rpcProperties) {
+        RpcProperties currentProperties = this.rpcProperties;
+        currentProperties.setConfigServerType(rpcProperties.getConfigServerType());
+        currentProperties.setConfigServerAddress(rpcProperties.getConfigServerAddress());
+        currentProperties.setEnvironment(rpcProperties.getEnvironment());
+        currentProperties.setStartConfigServer(rpcProperties.getStartConfigServer());
+        RpcDataManager<RpcMetaData> rpcDataManager = null;
+        if (CommonConstants.ZOOKEEPER.equals(rpcProperties.getConfigServerType())) {
+            rpcDataManager = new ZkRpcDataManager(rpcProperties);
+        } else if (CommonConstants.NACOS.equals(rpcProperties.getConfigServerType())){
+            rpcDataManager = new NacosRpcDataManager(rpcProperties);
+        } else {
+            rpcDataManager = rpcProperties.getRpcDataManager();
+        }
+        Assert.notNull(rpcDataManager, "rpcDataManager is null");
+        rpcDataManager.init(rpcContext);
+        this.rpcProviderDataInitBean.refresh(rpcDataManager);
+    }
+
+    protected void initConfigServer() {
         RpcProviderDataInitBean rpcProviderDataInitBean = new RpcProviderDataInitBean();
+        if (!rpcProperties.getStartConfigServer()) {
+            log.error("will not start config server! startConfigServer = false");
+            this.rpcProviderDataInitBean = rpcProviderDataInitBean;
+            return;
+        }
         rpcContext.setProviderAddress(NetUtils.getLocalAddress().getHostAddress() + ":" + rpcProperties.getServerPort());
         rpcProviderDataInitBean.setRpcContext(rpcContext);
         rpcProviderDataInitBean.setAppName(rpcProperties.getAppName());
@@ -169,7 +192,6 @@ public class ProtoRpcConfigFactory {
             }
         }
         rpcProviderDataInitBean.init();
-        this.rpcDataManager = rpcDataManager;
         this.rpcProviderDataInitBean = rpcProviderDataInitBean;
     }
 
@@ -201,7 +223,8 @@ public class ProtoRpcConfigFactory {
         return rpcProperties;
     }
 
-    public RpcDataManager<RpcMetaData> getRpcDataManager() {
-        return rpcDataManager;
+    public void setProviderObjectFetcher(ObjectFetcher providerObjectFetcher) {
+        this.providerObjectFetcher = providerObjectFetcher;
+        this.requestHandler.setProviderFetcher(providerObjectFetcher);
     }
 }

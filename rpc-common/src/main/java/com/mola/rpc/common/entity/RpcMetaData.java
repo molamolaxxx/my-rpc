@@ -110,10 +110,24 @@ public class RpcMetaData {
     private SortedMap<Integer, String> virtualAddressNodeMap = new TreeMap<>();
 
     /**
-     * 客户端指定的provider服务器地址
+     * provider反向代理到consumer的服务器地址
+     */
+    @ProviderSide
+    private List<String> appointedAddress;
+
+    /**
+     * 正向模式下，由consumer通过注册中心主动发现provider，但provider如果在当前网络环境中无法被发现
+     * 则需要provider发现consumer，与consumer建立连接
+     * 1、consumer用于判断是否是反向模式调用，反向模式不走configServer
+     * 2、provider用于判断是否向consumer注册自己，目前支持固定节点注册
+     * reverseModeConsumerAddress
      */
     @ConsumerSide
-    private List<String> appointedAddress;
+    @ProviderSide
+    private Boolean reverseMode = Boolean.FALSE;
+
+    @ProviderSide
+    private List<String> reverseModeConsumerAddress;
 
     /**
      * 是否是以原型方式提供的服务
@@ -269,5 +283,21 @@ public class RpcMetaData {
 
     public void setProto(Boolean proto) {
         this.proto = proto;
+    }
+
+    public void setReverseMode(Boolean reverseMode) {
+        this.reverseMode = reverseMode;
+    }
+
+    public Boolean getReverseMode() {
+        return reverseMode;
+    }
+
+    public void setReverseModeConsumerAddress(List<String> reverseModeConsumerAddress) {
+        this.reverseModeConsumerAddress = reverseModeConsumerAddress;
+    }
+
+    public List<String> getReverseModeConsumerAddress() {
+        return reverseModeConsumerAddress;
     }
 }

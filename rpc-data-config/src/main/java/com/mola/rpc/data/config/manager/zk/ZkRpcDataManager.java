@@ -23,7 +23,7 @@ import java.util.stream.Collectors;
  * @author : molamola
  * @Project: my-rpc
  * @Description:
- * provider: myRpc/provider/{providerPath}/ip
+ * provider: myRpc/provider/{environment}/{providerPath}/ip
  * @date : 2022-08-27 20:42
  **/
 public class ZkRpcDataManager extends BaseRpcDataManager {
@@ -47,6 +47,8 @@ public class ZkRpcDataManager extends BaseRpcDataManager {
 
     private BaseRpcProperties rpcProperties;
 
+    private String providerRootPath;
+
     public ZkRpcDataManager(BaseRpcProperties rpcProperties) {
         this.configServerAddress = rpcProperties.getConfigServerAddress();
         this.connectTimeout = 10000;
@@ -63,9 +65,22 @@ public class ZkRpcDataManager extends BaseRpcDataManager {
             createIfNotExist(CommonConstants.PATH_MY_RPC);
             createIfNotExist(CommonConstants.PATH_MY_RPC_PROVIDER);
             createIfNotExist(CommonConstants.PATH_MY_RPC_CONSUMER);
+            // 环境
+            this.providerRootPath = CommonConstants.PATH_MY_RPC_PROVIDER + "/" + rpcProperties.getEnvironment();
+            createIfNotExist(providerRootPath);
+//            createIfNotExist(CommonConstants.PATH_MY_RPC_CONSUMER + "/" + rpcProperties.getEnvironment());
         } catch (Exception e) {
             throw new RuntimeException("zooKeeper init failed!" + e.getMessage());
         }
+    }
+
+    @Override
+    public void destroy() {
+        if (null  != this.zkClient)  {
+            this.zkClient.close();
+        }
+        this.zkClient = null;
+        this.rpcProperties = null;
     }
 
     private void createIfNotExist(String path) {
@@ -149,10 +164,10 @@ public class ZkRpcDataManager extends BaseRpcDataManager {
 
     @Override
     public Map<String, RpcMetaData> getAllProviderMetaData() {
-        List<String> providerKeys = zkClient.getChildren(CommonConstants.PATH_MY_RPC_PROVIDER);
+        List<String> providerKeys = zkClient.getChildren(this.providerRootPath);
         Map<String, RpcMetaData> rpcMetaDataMap = new HashMap<>(providerKeys.size());
         for (String providerKey : providerKeys) {
-            Object providerMetaData = zkClient.readData(CommonConstants.PATH_MY_RPC_PROVIDER + "/" + providerKey);
+            Object providerMetaData = zkClient.readData(this.providerRootPath + "/" + providerKey);
             if (providerMetaData instanceof String && !StringUtils.isEmpty(providerMetaData)) {
                 RpcMetaData rpcMetaData = JSONObject.parseObject((String) providerMetaData, RpcMetaData.class);
                 rpcMetaDataMap.put(providerKey, rpcMetaData);

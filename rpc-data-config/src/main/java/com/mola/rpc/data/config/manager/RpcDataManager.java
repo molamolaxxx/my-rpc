@@ -22,9 +22,10 @@ import java.util.Map;
 public interface RpcDataManager<T extends RpcMetaData> {
 
     /**
-     * 初始化
+     * 初始化/销毁
      */
     void init(RpcContext rpcContext);
+    void destroy();
 
     /**
      * 获取服务提供者数据
@@ -75,8 +76,7 @@ public interface RpcDataManager<T extends RpcMetaData> {
     }
 
     /**
-     * 定时上报心跳
-     * @param providerMetaData
+     * 是否需要定时上报心跳
      */
     @ProviderSide
     default boolean requireSendProviderHeartBeat(){
@@ -128,7 +128,7 @@ public interface RpcDataManager<T extends RpcMetaData> {
      * @return
      */
     default String getRemoteProviderPath(String interfaceClazz, String group, String version, String environment) {
-        return String.format("/myRpc/provider/%s:%s:%s:%s", interfaceClazz, group, version, environment);
+        return String.format("/myRpc/provider/%s/%s:%s:%s", environment, interfaceClazz, group, version);
     }
 
     void setAddressChangeListener(List<AddressChangeListener> addressChangeListeners);

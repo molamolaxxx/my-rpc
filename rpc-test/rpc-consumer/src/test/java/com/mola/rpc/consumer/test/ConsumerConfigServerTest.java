@@ -1,9 +1,11 @@
 package com.mola.rpc.consumer.test;
 
+import com.alibaba.fastjson.JSONObject;
 import com.mola.rpc.common.context.RpcContext;
 import com.mola.rpc.common.entity.AddressInfo;
 import com.mola.rpc.common.entity.RpcMetaData;
 import com.mola.rpc.data.config.manager.RpcDataManager;
+import com.mola.rpc.data.config.manager.zk.ZkRpcDataManager;
 import com.mola.rpc.data.config.spring.RpcProviderDataInitBean;
 import org.junit.Before;
 import org.junit.Test;
@@ -30,7 +32,7 @@ import java.util.stream.Collectors;
 public class ConsumerConfigServerTest {
 
     @Resource
-    private RpcProviderDataInitBean rpcProviderDataInitBean;
+    protected RpcProviderDataInitBean rpcProviderDataInitBean;
 
     @Resource
     private RpcContext rpcContext;
@@ -38,9 +40,11 @@ public class ConsumerConfigServerTest {
     @Before
     public void before() {
         RpcDataManager<RpcMetaData> rpcDataManager = rpcProviderDataInitBean.getRpcDataManager();
+        Assert.isTrue(rpcDataManager instanceof ZkRpcDataManager, "rpcDataManager 类型错误");
         Assert.isTrue(rpcDataManager.isProviderExist("com.mola.rpc.client.UnitTestService", "default", "1.0.0", "pre"), "UnitTestService的provider不存在，请检查是否启动");
         List<AddressInfo> remoteProviderAddress = rpcDataManager.getRemoteProviderAddress("com.mola.rpc.client.UnitTestService", "default", "1.0.0", "pre");
         Assert.notEmpty(remoteProviderAddress, "UnitTestService的provider不存在可用地址，请检查是否启动");
+        rpcProviderDataInitBean.pullProviderDataList();
     }
 
     /**
@@ -59,6 +63,7 @@ public class ConsumerConfigServerTest {
                 Assert.isTrue(addressList.size() == remoteProviderAddress.size(), "cs地址个数与本地不相同，请检查cs同步地址功能是否被修改");
                 Set<String> addressSet = addressList.stream().map(e -> e.getAddress()).collect(Collectors.toSet());
                 for (AddressInfo addressInfo : remoteProviderAddress) {
+                    System.out.println(JSONObject.toJSONString(addressSet) + ":" + addressInfo.getAddress());
                     Assert.isTrue(addressSet.contains(addressInfo.getAddress()), "cs本地地址个数与远程不相同，请检查cs同步地址功能是否被修改");
                 }
             }

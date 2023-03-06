@@ -21,10 +21,6 @@ public class LoadBalance implements LoadBalanceStrategy {
     public String getTargetProviderAddress(RpcMetaData consumerMeta, Object[] args) {
         LoadBalanceStrategy loadBalanceStrategy = loadBalanceStrategyMap.get(consumerMeta.getLoadBalanceStrategy());
         Assert.notNull(loadBalanceStrategy, "loadBalanceStrategy is null");
-        Assert.notNull(consumerMeta.getAddressList(), "addressList is null");
-        if (consumerMeta.getAddressList().size() == 0) {
-            return null;
-        }
         return loadBalanceStrategy.getTargetProviderAddress(consumerMeta, args);
     }
 

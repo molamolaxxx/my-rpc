@@ -1,6 +1,5 @@
 package com.mola.rpc.core.strategy.balance;
 
-import com.mola.rpc.common.entity.AddressInfo;
 import com.mola.rpc.common.entity.RpcMetaData;
 
 import java.util.List;
@@ -16,7 +15,7 @@ public class RandomLoadBalance implements LoadBalanceStrategy {
 
     @Override
     public String getTargetProviderAddress(RpcMetaData consumerMeta, Object[] args) {
-        List<AddressInfo> addressList = consumerMeta.getAddressList();
+        List<String> addressList = getAddressList(consumerMeta);
         Random random = new Random();
         int pos = random.nextInt(addressList.size());
         while (pos >= addressList.size()) {
@@ -25,6 +24,6 @@ public class RandomLoadBalance implements LoadBalanceStrategy {
             }
             pos = random.nextInt(addressList.size());
         }
-        return pos < addressList.size() ? addressList.get(pos).getAddress() : null;
+        return pos < addressList.size() ? addressList.get(pos) : null;
     }
 }

@@ -2,6 +2,7 @@ package com.mola.rpc.data.config.manager.nacos;
 
 import com.alibaba.fastjson.JSONObject;
 import com.alibaba.nacos.api.PropertyKeyConst;
+import com.alibaba.nacos.api.exception.NacosException;
 import com.alibaba.nacos.api.naming.NamingFactory;
 import com.alibaba.nacos.api.naming.NamingService;
 import com.alibaba.nacos.api.naming.pojo.Cluster;
@@ -63,6 +64,19 @@ public class NacosRpcDataManager extends BaseRpcDataManager {
             log.error("NacosRpcDataManager init failed", e);
             throw new RuntimeException(e);
         }
+    }
+
+    @Override
+    public void destroy() {
+        if (null != this.namingService) {
+            try {
+                this.namingService.shutDown();
+            } catch (NacosException e) {
+                // ignore
+            }
+        }
+        this.namingService = null;
+        this.rpcProperties = null;
     }
 
     @Override

@@ -27,6 +27,10 @@ public class BaseRpcDataManager implements RpcDataManager<RpcMetaData> {
     }
 
     @Override
+    public void destroy() {
+    }
+
+    @Override
     public List<AddressInfo> getRemoteProviderAddress(String interfaceClazz, String group, String version, String environment) {
         return Lists.newArrayList();
     }

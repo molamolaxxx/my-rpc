@@ -25,4 +25,4 @@ logging:
 rpc:
   server-port: 15234
   app-name: ${spring.application.name}
-  environment: center
+  environment: pre

@@ -31,18 +31,23 @@ public class ZookeeperGenericRpcServiceTest {
         RpcProperties rpcProperties = new RpcProperties();
         // 环境标
         rpcProperties.setEnvironment("pre");
-        if (ProtoRpcConfigFactory.INIT_FLAG.get()) {
-            ProtoRpcConfigFactory.configure(rpcProperties);
-        } else {
-            ProtoRpcConfigFactory.init(rpcProperties);
-        }
+        ProtoRpcConfigFactory protoRpcConfigFactory = ProtoRpcConfigFactory.get();
+        protoRpcConfigFactory.init(rpcProperties);
     }
 
     @Test
     public void AppointedGenericInvoke() {
-        GenericRpcService genericService = RpcInvoker.genericConsumer(
-                "com.mola.rpc.client.OrderService",
-                Lists.newArrayList("127.0.0.1:9004","127.0.0.1:9003"));
+        GenericRpcService genericService = null;
+        if (this instanceof NacosGenericRpcServiceTest) {
+            genericService = RpcInvoker.genericConsumer(
+                    "com.mola.rpc.client.OrderService",
+                    Lists.newArrayList("127.0.0.1:9013"));
+        } else {
+            genericService = RpcInvoker.genericConsumer(
+                    "com.mola.rpc.client.OrderService",
+                    Lists.newArrayList("127.0.0.1:9003"));
+        }
+
         // #1
         Map<String, String> orderMap = Maps.newHashMap();
         orderMap.put("code", "generic code" + System.currentTimeMillis());
@@ -65,7 +70,7 @@ public class ZookeeperGenericRpcServiceTest {
             Object getServerAddress = genericService.invoke("getServerAddress");
             Assert.isTrue(getServerAddress instanceof String, "genericInvokeWithZk case 0 failed!");
             Assert.isTrue(((String) getServerAddress).contains(":"), "genericInvokeWithZk case 0 failed!");
-            Assert.isTrue(((String) getServerAddress).contains(":9004")
+            Assert.isTrue(((String) getServerAddress).contains(":9013")
                     || ((String) getServerAddress).contains(":9003"),"genericInvokeWithZk case 0 failed!" );
         }
     }

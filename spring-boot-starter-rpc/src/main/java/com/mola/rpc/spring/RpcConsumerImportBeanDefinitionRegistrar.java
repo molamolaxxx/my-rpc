@@ -1,5 +1,6 @@
 package com.mola.rpc.spring;
 
+import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import com.mola.rpc.common.annotation.RpcConsumer;
 import com.mola.rpc.common.annotation.RpcProvider;
@@ -75,6 +76,8 @@ public class RpcConsumerImportBeanDefinitionRegistrar implements ImportBeanDefin
                     clientMeta.setClientTimeout(annotation.timeout());
                     clientMeta.setLoadBalanceStrategy(annotation.loadBalanceStrategy());
                     clientMeta.setAsyncExecuteMethods(Sets.newHashSet(annotation.asyncMethods()));
+                    clientMeta.setReverseMode(Boolean.valueOf(annotation.reverseMode()));
+                    clientMeta.setAppointedAddress(Lists.newArrayList(annotation.appointedAddress()));
                     BeanMetadataAttribute attribute = new BeanMetadataAttribute(CommonConstants.BEAN_DEF_CONSUMER_META,
                             clientMeta);
                     consumerBeanDefinition.addMetadataAttribute(attribute);

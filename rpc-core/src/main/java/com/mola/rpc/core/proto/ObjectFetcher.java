@@ -1,5 +1,7 @@
 package com.mola.rpc.core.proto;
 
+import com.mola.rpc.common.entity.RpcMetaData;
+
 /**
  * @author : molamola
  * @Project: my-rpc
@@ -10,8 +12,8 @@ public interface ObjectFetcher {
 
     /**
      * 获取对象
-     * @param objectName
+     * @param providerMeta
      * @return
      */
-    Object getObject(String objectName);
+    Object getObject(RpcMetaData providerMeta);
 }

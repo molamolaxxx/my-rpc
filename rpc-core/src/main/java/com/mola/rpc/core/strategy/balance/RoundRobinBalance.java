@@ -2,6 +2,7 @@ package com.mola.rpc.core.strategy.balance;
 
 import com.mola.rpc.common.entity.RpcMetaData;
 
+import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**
@@ -19,7 +20,8 @@ public class RoundRobinBalance implements LoadBalanceStrategy {
 
     @Override
     public String getTargetProviderAddress(RpcMetaData consumerMeta, Object[] args) {
-        Integer idx = idxCounter.getAndIncrement() % consumerMeta.getAddressList().size();
-        return consumerMeta.getAddressList().get(idx).getAddress();
+        List<String> addressList = getAddressList(consumerMeta);
+        Integer idx = idxCounter.getAndIncrement() % addressList.size();
+        return addressList.get(idx);
     }
 }

@@ -5,10 +5,7 @@ import com.mola.rpc.common.context.RpcContext;
 import com.mola.rpc.core.proxy.InvokeMethod;
 import com.mola.rpc.core.remoting.AsyncResponseFuture;
 import com.mola.rpc.core.remoting.ResponseFuture;
-import com.mola.rpc.core.remoting.handler.NettyClientHandler;
-import com.mola.rpc.core.remoting.handler.NettyDecoder;
-import com.mola.rpc.core.remoting.handler.NettyEncoder;
-import com.mola.rpc.core.remoting.handler.NettyServerConnectManageHandler;
+import com.mola.rpc.core.remoting.handler.*;
 import com.mola.rpc.core.remoting.protocol.RemotingCommand;
 import com.mola.rpc.core.util.RemotingHelper;
 import com.mola.rpc.core.util.RemotingUtil;
@@ -21,6 +18,7 @@ import io.netty.handler.timeout.IdleStateHandler;
 import io.netty.util.concurrent.DefaultEventExecutorGroup;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.util.Assert;
 
 import java.lang.reflect.Method;
 import java.net.SocketAddress;
@@ -65,13 +63,22 @@ public class NettyRemoteClient {
     private AtomicBoolean startFlag = new AtomicBoolean(false);
 
     /**
-     * client名称
+     * pipeline上的请求处理器，用于provider的反射调用和结果写回(in)
      */
-    private String name;
+    private NettyRpcRequestHandler requestHandler;
+
+    /**
+     * pipeline上的响应处理器，用于consumer的结果同步(in)
+     */
+    private NettyRpcResponseHandler responseHandler;
 
 
-    public NettyRemoteClient(String name) {
-        this.name = name;
+    public NettyRemoteClient(NettyRpcRequestHandler requestHandler, NettyRpcResponseHandler responseHandler) {
+        Assert.notNull(requestHandler, "requestHandler is required");
+        Assert.notNull(responseHandler, "responseHandler is required");
+        this.requestHandler = requestHandler;
+        this.responseHandler = responseHandler;
+        this.responseHandler.setNettyRemoteClient(this);
         this.clientBootstrap = new Bootstrap();
         // worker 线程池
         this.eventLoopGroupWorker = new NioEventLoopGroup(10, new ThreadFactory() {
@@ -91,7 +98,7 @@ public class NettyRemoteClient {
      */
     public void start(boolean forceStart) {
         if (rpcContext.getConsumerMetaMap().size() == 0 && !forceStart) {
-            log.info("[NettyRemoteClient-"+ name +"]:there are no consumer registered, netty client will not start");
+            log.info("[NettyRemoteClient]:there are no consumer registered, netty client will not start");
             return;
         }
         final NettyRemoteClient self = this;
@@ -125,11 +132,13 @@ public class NettyRemoteClient {
                                 new NettyEncoder(), //out
                                 new NettyDecoder(), //in
                                 new IdleStateHandler(0, 0, 120),//闲置时间
-                                new NettyServerConnectManageHandler(), //Duplex
-                                new NettyClientHandler(self)); //in
+                                new NettyClientConnectManageHandler(nettyConnectPool), //Duplex
+                                requestHandler, // in
+                                responseHandler // in
+                        ); //in
                     }
                 });
-        log.info("[NettyRemoteClient-"+ name +"]: netty client start");
+        log.info("[NettyRemoteClient]: netty client start");
         this.startFlag.compareAndSet(false, true);
     }
 
@@ -190,6 +199,15 @@ public class NettyRemoteClient {
                 this.closeChannel(address, channel);
                 throw new RuntimeException("channel is exception, address = " + address);
             }
+            return syncInvokeWithChannel(channel, request, invokeMethod, timeout);
+        } catch (Exception e) {
+            log.error("syncInvoke failed remote host[{" + address + "}], request" + request , e);
+            throw new RuntimeException(e);
+        }
+    }
+
+    public RemotingCommand syncInvokeWithChannel(Channel channel, RemotingCommand request, InvokeMethod invokeMethod, long timeout) {
+        try {
             ResponseFuture responseFuture = new ResponseFuture(request.getOpaque());
             // 缓存对外请求
             this.responseFutureManager.putSyncResponseFuture(request.getOpaque(), responseFuture);
@@ -223,13 +241,12 @@ public class NettyRemoteClient {
             }
             return response;
         } catch (Exception e) {
-            log.warn("syncInvoke failed remote host[{" + address + "}], request" + request , e);
+            log.warn("syncInvokeWithChannel failed remote host[{" + channel.remoteAddress() + "}], request" + request , e);
             throw new RuntimeException(e);
         } finally {
             this.responseFutureManager.removeSyncResponseFuture(request.getOpaque());
         }
     }
-
 
     /**
      * 异步调用远程服务
@@ -289,8 +306,6 @@ public class NettyRemoteClient {
             RemotingUtil.closeChannel(channel);
             // 移除channel
             nettyConnectPool.removeChannel(addressRemote, channel);
-            // 关闭channel
-            RemotingUtil.closeChannel(channel);
             log.info("closeChannel: begin close the channel[{" + address + "}] Found: {" + (channel != null) + "}");
         } catch (Exception e) {
             log.error("closeChannel exception", e);

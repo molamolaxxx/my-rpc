@@ -2,19 +2,23 @@ package com.mola.rpc.core.remoting.netty;
 
 import com.google.common.collect.Maps;
 import io.netty.channel.Channel;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.Map;
 
 /**
  * @author : molamola
  * @Project: my-rpc
- * @Description:
+ * @Description: 客户端连接管理
  * @date : 2022-07-30 22:31
  **/
 public class NettyConnectPool {
 
+    private static final Logger log = LoggerFactory.getLogger(NettyConnectPool.class);
+
     /**
-     * 缓存 addr -> wrapper
+     * 缓存 远端addr -> wrapper
      */
     private Map<String, ChannelWrapper> channelWrapperMap = Maps.newConcurrentMap();
 

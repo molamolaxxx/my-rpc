@@ -22,4 +22,16 @@ public @interface RpcConsumer {
     String loadBalanceStrategy() default LoadBalanceConstants.LOAD_BALANCE_RANDOM_STRATEGY;
 
     String[] asyncMethods() default {};
+
+    /**
+     * 反转模式
+     * @return
+     */
+    boolean reverseMode() default false;
+
+    /**
+     * 指定调用地址，优先级最高
+     * @return
+     */
+    String[] appointedAddress() default {};
 }

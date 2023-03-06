@@ -22,9 +22,4 @@ public class LoadBalanceConstants {
      * 一致性哈希负载均衡策略
      */
     public static final String CONSISTENCY_HASHING_STRATEGY = "CONSISTENCY_HASHING";
-
-    /**
-     * 在指定的地址中，执行随机负载均衡策略
-     */
-    public static final String LOAD_BALANCE_APPOINTED_RANDOM_STRATEGY = "APPOINTED_RANDOM";
 }

@@ -1,18 +1,11 @@
 package com.mola.rpc.spring;
 
-import com.mola.rpc.common.constants.CommonConstants;
-import com.mola.rpc.common.constants.LoadBalanceConstants;
 import com.mola.rpc.common.context.RpcContext;
-import com.mola.rpc.common.entity.RpcMetaData;
+import com.mola.rpc.core.proto.ProtoRpcConfigFactory;
 import com.mola.rpc.core.remoting.netty.NettyConnectPool;
 import com.mola.rpc.core.remoting.netty.NettyRemoteClient;
 import com.mola.rpc.core.remoting.netty.NettyRemoteServer;
-import com.mola.rpc.core.strategy.balance.*;
-import com.mola.rpc.core.util.NetUtils;
-import com.mola.rpc.data.config.listener.AddressChangeListener;
-import com.mola.rpc.data.config.manager.RpcDataManager;
-import com.mola.rpc.data.config.manager.nacos.NacosRpcDataManager;
-import com.mola.rpc.data.config.manager.zk.ZkRpcDataManager;
+import com.mola.rpc.core.strategy.balance.LoadBalance;
 import com.mola.rpc.data.config.spring.RpcProviderDataInitBean;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -22,7 +15,6 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
-import org.springframework.util.Assert;
 
 /**
  * @author : molamola
@@ -38,50 +30,47 @@ public class RpcBeanPropertiesConfiguration {
     private static final Logger log = LoggerFactory.getLogger(RpcBeanPropertiesConfiguration.class);
 
     @Bean
-    public RpcContext rpcContext() {
-        RpcContext rpcContext = new RpcContext();
-        return rpcContext;
+    public RpcContext rpcContext(ProtoRpcConfigFactory protoRpcConfigFactory) {
+        return protoRpcConfigFactory.getRpcContext();
     }
 
     @Bean
-    public LoadBalance loadBalance() {
-        LoadBalance loadBalance = new LoadBalance();
-        loadBalance.setStrategy(LoadBalanceConstants.LOAD_BALANCE_RANDOM_STRATEGY, new RandomLoadBalance());
-        loadBalance.setStrategy(LoadBalanceConstants.LOAD_BALANCE_ROUND_ROBIN_STRATEGY, new RoundRobinBalance());
-        loadBalance.setStrategy(LoadBalanceConstants.CONSISTENCY_HASHING_STRATEGY, new ConsistencyHashingBalance());
-        loadBalance.setStrategy(LoadBalanceConstants.LOAD_BALANCE_APPOINTED_RANDOM_STRATEGY, new AppointedRandomLoadBalance());
-        return loadBalance;
+    public LoadBalance loadBalance(ProtoRpcConfigFactory protoRpcConfigFactory) {
+        return protoRpcConfigFactory.getLoadBalance();
     }
 
     @Bean
-    public NettyConnectPool nettyConnectPool() {
-        NettyConnectPool nettyConnectPool = new NettyConnectPool();
-        return nettyConnectPool;
+    public NettyConnectPool nettyConnectPool(ProtoRpcConfigFactory protoRpcConfigFactory) {
+        return protoRpcConfigFactory.getNettyConnectPool();
     }
 
     @Bean
-    public NettyRemoteClient nettyRemoteClient(NettyConnectPool nettyConnectPool, RpcContext rpcContext) {
-        NettyRemoteClient nettyRemoteClient = new NettyRemoteClient("spring");
-        nettyRemoteClient.setNettyConnectPool(nettyConnectPool);
-        nettyRemoteClient.setRpcContext(rpcContext);
-        nettyRemoteClient.start(false);
-        return nettyRemoteClient;
+    public NettyRemoteClient nettyRemoteClient(ProtoRpcConfigFactory protoRpcConfigFactory) {
+        return protoRpcConfigFactory.getNettyRemoteClient();
     }
 
     @Bean
-    public NettyRemoteServer nettyRemoteServer(RpcSpringConfigurationProperties rpcProperties, RpcContext rpcContext, ApplicationContext applicationContext) {
-        NettyRemoteServer nettyRemoteServer = new NettyRemoteServer("spring");
-        nettyRemoteServer.setRpcProperties(rpcProperties);
-        nettyRemoteServer.setRpcContext(rpcContext);
-        nettyRemoteServer.setProviderFetcher(providerName -> applicationContext.getBean(providerName));
-        nettyRemoteServer.start();
-        return nettyRemoteServer;
+    public ProtoRpcConfigFactory protoRpcConfigFactory(RpcSpringConfigurationProperties rpcProperties, ApplicationContext applicationContext) {
+        ProtoRpcConfigFactory protoRpcConfigFactory = ProtoRpcConfigFactory.get();
+        protoRpcConfigFactory.init(rpcProperties);
+        protoRpcConfigFactory.setProviderObjectFetcher(providerMeta -> {
+            if (null != providerMeta.getProviderObject()) {
+                return providerMeta.getProviderObject();
+            }
+            return applicationContext.getBean(providerMeta.getProviderBeanName());
+        });
+        return protoRpcConfigFactory;
     }
 
     @Bean
-    public BeanFactoryPostProcessor rpcConsumerBeanFactoryPostProcessor(RpcContext rpcContext){
+    public NettyRemoteServer nettyRemoteServer(ProtoRpcConfigFactory protoRpcConfigFactory){
+        return protoRpcConfigFactory.getNettyRemoteServer();
+    }
+
+    @Bean
+    public BeanFactoryPostProcessor rpcConsumerBeanFactoryPostProcessor(){
         RpcBeanFactoryPostProcessor rpcConsumerBeanFactoryPostProcessor = new RpcBeanFactoryPostProcessor();
-        rpcConsumerBeanFactoryPostProcessor.setRpcContext(rpcContext);
+        rpcConsumerBeanFactoryPostProcessor.setRpcContext(RpcContext.fetch());
         return rpcConsumerBeanFactoryPostProcessor;
     }
 
@@ -92,34 +81,7 @@ public class RpcBeanPropertiesConfiguration {
     }
 
     @Bean
-    public RpcProviderDataInitBean rpcProviderDataPuller(RpcContext rpcContext, RpcSpringConfigurationProperties rpcProperties, ApplicationContext applicationContext, LoadBalance loadBalance) {
-        RpcProviderDataInitBean rpcProviderDataInitBean = new RpcProviderDataInitBean();
-        if (!rpcProperties.getStartConfigServer()) {
-            log.error("will not start config server! startConfigServer = false");
-            return rpcProviderDataInitBean;
-        }
-        rpcContext.setProviderAddress(NetUtils.getLocalAddress().getHostAddress() + ":" + rpcProperties.getServerPort());
-        rpcProviderDataInitBean.setRpcContext(rpcContext);
-        rpcProviderDataInitBean.setAppName(rpcProperties.getAppName());
-        rpcProviderDataInitBean.setEnvironment(rpcProperties.getEnvironment());
-        RpcDataManager<RpcMetaData> rpcDataManager = null;
-        if (CommonConstants.ZOOKEEPER.equals(rpcProperties.getConfigServerType())) {
-            rpcDataManager = new ZkRpcDataManager(rpcProperties);
-        } else if (CommonConstants.NACOS.equals(rpcProperties.getConfigServerType())){
-            rpcDataManager = new NacosRpcDataManager(rpcProperties);
-        } else {
-            throw new RuntimeException("unsupported config server type " + rpcProperties.getConfigServerType());
-        }
-        Assert.notNull(rpcDataManager, "rpcDataManager is null");
-        rpcDataManager.init(rpcContext);
-        rpcProviderDataInitBean.setRpcDataManager(rpcDataManager);
-        // 负载均衡监听变化
-        for (LoadBalanceStrategy loadBalanceStrategy : loadBalance.getStrategyCollection()) {
-            if (loadBalanceStrategy instanceof AddressChangeListener) {
-                rpcProviderDataInitBean.addAddressChangeListener((AddressChangeListener) loadBalanceStrategy);
-            }
-        }
-        rpcProviderDataInitBean.init();
-        return rpcProviderDataInitBean;
+    public RpcProviderDataInitBean rpcProviderDataPuller(ProtoRpcConfigFactory protoRpcConfigFactory) {
+        return protoRpcConfigFactory.getRpcProviderDataInitBean();
     }
 }

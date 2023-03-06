@@ -8,20 +8,24 @@ import com.mola.rpc.core.remoting.Async;
 import com.mola.rpc.core.remoting.AsyncResponseFuture;
 import com.mola.rpc.core.remoting.netty.NettyConnectPool;
 import com.mola.rpc.core.remoting.netty.NettyRemoteClient;
+import com.mola.rpc.core.remoting.netty.ReverseInvokeChannelPool;
 import com.mola.rpc.core.remoting.protocol.RemotingCommand;
 import com.mola.rpc.core.remoting.protocol.RemotingCommandCode;
 import com.mola.rpc.core.strategy.balance.LoadBalance;
+import com.mola.rpc.core.system.ReverseInvokeHelper;
 import com.mola.rpc.core.util.BytesUtil;
+import com.mola.rpc.core.util.RemotingUtil;
 import com.mola.rpc.core.util.TypeUtil;
+import io.netty.channel.Channel;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.util.Assert;
 import org.springframework.util.CollectionUtils;
 
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
 import java.util.List;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 /**
  * @author : molamola
@@ -68,25 +72,24 @@ public class RpcProxyInvokeHandler implements InvocationHandler {
         if (null == consumerMeta) {
             throw new RuntimeException("consumer invoke failed, consumerMeta is null, clazz = " + method.getDeclaringClass().getName());
         }
+        // 客户端如果是反向调用，则不走服务发现，直接在应用内部寻找channel
+        if (Boolean.TRUE.equals(consumerMeta.getReverseMode())) {
+            return handlerReverseInvoke(consumerMeta, obj, method, args);
+        }
         List<AddressInfo> addressInfoList = consumerMeta.getAddressList();
-        if (CollectionUtils.isEmpty(addressInfoList)) {
+        if (CollectionUtils.isEmpty(addressInfoList) && CollectionUtils.isEmpty(consumerMeta.getAppointedAddress())) {
             throw new RuntimeException("consumer invoke failed, provider's addressList is empty, meta = " + JSONObject.toJSONString(consumerMeta));
         }
         // 过滤掉无效的地址
         // 1、不可用服务（心跳超时、主动下线、规则下线）
         // 2、路由脚本过滤服务
-        List<String> addressList = addressInfoList.stream()
-                .map(AddressInfo::getAddress)
-                .collect(Collectors.toList());
+//        List<String> addressList = addressInfoList.stream()
+//                .map(AddressInfo::getAddress)
+//                .collect(Collectors.toList());
 
         // 负载均衡策略
         String targetProviderAddress = loadBalance.getTargetProviderAddress(consumerMeta, args);
-        if (null == targetProviderAddress) {
-            if (addressList.size() == 0) {
-                throw new RuntimeException("no provider available");
-            }
-            targetProviderAddress = addressList.get(0);
-        }
+        Assert.notNull(targetProviderAddress, "no available targetProviderAddress! meta = " + JSONObject.toJSONString(consumerMeta));
         // 构建request
         InvokeMethod invokeMethod = assemblyInvokeMethod(method, args);
         RemotingCommand request = buildRemotingCommand(method, invokeMethod, consumerMeta.getClientTimeout(), targetProviderAddress, consumerMeta);
@@ -151,12 +154,10 @@ public class RpcProxyInvokeHandler implements InvocationHandler {
                     + ", methodName:" + method.getName());
             return null;
         }
-
         request.setCode(RemotingCommandCode.NORMAL);
         request.setBody(requestBody);
         request.setVersion(consumerMeta.getVersion());
         request.setGroup(consumerMeta.getGroup());
-
         return request;
     }
 
@@ -194,6 +195,44 @@ public class RpcProxyInvokeHandler implements InvocationHandler {
                 method.getReturnType().getName(),
                 method.getDeclaringClass().getName());
         return invokeMethod;
+    }
+
+    /**
+     * 反向调用，仅支持随机同步调用
+     * @param consumerMeta
+     * @param obj
+     * @param method
+     * @param args
+     * @return
+     */
+    private Object handlerReverseInvoke(RpcMetaData consumerMeta, Object obj, Method method, Object[] args) {
+        Channel reverseInvokeChannel = null;
+        while (reverseInvokeChannel == null || !reverseInvokeChannel.isActive()) {
+            // 获取channel
+            reverseInvokeChannel = ReverseInvokeChannelPool.getReverseInvokeChannel(ReverseInvokeHelper.getServiceKey(consumerMeta, true));
+            Assert.notNull(reverseInvokeChannel, "no available reverse channel  to use , meta = " + JSONObject.toJSONString(consumerMeta));
+            // 连接有问题，关闭连接，抛出异常
+            if (!reverseInvokeChannel.isActive()) {
+                // 关闭channel
+                RemotingUtil.closeChannel(reverseInvokeChannel);
+                ReverseInvokeChannelPool.removeChannel(ReverseInvokeHelper.getServiceKey(consumerMeta, true), reverseInvokeChannel);
+            }
+        }
+        // 构建request
+        InvokeMethod invokeMethod = assemblyInvokeMethod(method, args);
+        RemotingCommand request = buildRemotingCommand(method, invokeMethod, consumerMeta.getClientTimeout(), reverseInvokeChannel.remoteAddress().toString(), consumerMeta);
+        // handle这个请求的是服务端的pipeline
+        RemotingCommand response = nettyRemoteClient.syncInvokeWithChannel(reverseInvokeChannel, request, invokeMethod, consumerMeta.getClientTimeout());
+        // 服务端执行异常
+        if (response.getCode() == RemotingCommandCode.SYSTEM_ERROR) {
+            throw new RuntimeException(response.getRemark());
+        }
+        // 读取服务端返回结果
+        if (null == response) {
+            return null;
+        }
+        // response转换成对象
+        return BytesUtil.bytesToObject(response.getBody(), method.getReturnType());
     }
 
 

@@ -19,6 +19,12 @@ public class UnitTestServiceImpl implements UnitTestService {
     @Resource
     private UserService userService;
 
+    @Resource
+    private UserService userServiceReverse;
+
+    @Resource
+    private UserService userServiceReverseInAnno;
+
     @Override
     public ServerResponse<String> test001(String input) {
         if (input.contains("async")) {
@@ -112,5 +118,15 @@ public class UnitTestServiceImpl implements UnitTestService {
     @Override
     public SpecialObject specialObjectTransform(SpecialObject specialObject) {
         return specialObject;
+    }
+
+    @Override
+    public String testReverseLoopBack(String id) {
+        return userServiceReverse.queryUserName(id);
+    }
+
+    @Override
+    public String testReverseLoopBackWithAnno(String id) {
+        return userServiceReverseInAnno.queryUserName(id);
     }
 }

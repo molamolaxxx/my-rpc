@@ -3,6 +3,8 @@ package com.mola.rpc.common.context;
 import com.mola.rpc.common.annotation.ConsumerSide;
 import com.mola.rpc.common.annotation.ProviderSide;
 import com.mola.rpc.common.entity.RpcMetaData;
+import com.mola.rpc.common.utils.TestUtil;
+import org.springframework.util.Assert;
 
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -14,6 +16,11 @@ import java.util.concurrent.ConcurrentHashMap;
  * @date : 2022-07-30 21:51
  **/
 public class RpcContext {
+
+    private RpcContext() {}
+    static class Singleton {
+        private static RpcContext rpcContext = new RpcContext();
+    }
 
     /**
      * 消费者元数据
@@ -55,6 +62,7 @@ public class RpcContext {
 
     public void addProviderMeta(String providerClazzName, RpcMetaData rpcMetaData) {
         String key = providerClazzName + ":" + rpcMetaData.getGroup() + ":" + rpcMetaData.getVersion();
+        Assert.isTrue(TestUtil.isJUnitTest() || !this.providerMetaMap.containsKey(key), "provider already exist, key = " + key);
         this.providerMetaMap.put(key, rpcMetaData);
     }
 
@@ -74,4 +82,7 @@ public class RpcContext {
         this.providerAddress = providerAddress;
     }
 
+    public static RpcContext fetch() {
+        return Singleton.rpcContext;
+    }
 }

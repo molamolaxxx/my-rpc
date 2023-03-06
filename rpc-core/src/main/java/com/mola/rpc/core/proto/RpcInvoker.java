@@ -1,6 +1,7 @@
 package com.mola.rpc.core.proto;
 
-import com.mola.rpc.common.constants.LoadBalanceConstants;
+import com.alibaba.fastjson.JSONObject;
+import com.google.common.collect.Lists;
 import com.mola.rpc.common.context.RpcContext;
 import com.mola.rpc.common.entity.RpcMetaData;
 import com.mola.rpc.core.properties.RpcProperties;
@@ -8,6 +9,8 @@ import com.mola.rpc.core.proxy.GenericRpcServiceProxyFactory;
 import com.mola.rpc.core.proxy.RpcProxyInvokeHandler;
 import com.mola.rpc.core.remoting.netty.NettyRemoteClient;
 import com.mola.rpc.core.remoting.netty.NettyRemoteServer;
+import com.mola.rpc.core.system.ReverseInvokeHelper;
+import com.mola.rpc.core.system.SystemConsumer;
 import com.mola.rpc.data.config.spring.RpcProviderDataInitBean;
 import org.springframework.util.Assert;
 
@@ -45,7 +48,6 @@ public class RpcInvoker {
         RpcMetaData rpcMetaData = new RpcMetaData();
         // 指定provider的服务提供者
         rpcMetaData.setAppointedAddress(addressList);
-        rpcMetaData.setLoadBalanceStrategy(LoadBalanceConstants.LOAD_BALANCE_APPOINTED_RANDOM_STRATEGY);
         return consumer(consumerInterface, rpcMetaData, PROTO_MODE_CONSUMER);
     }
 
@@ -69,14 +71,10 @@ public class RpcInvoker {
         RpcMetaData rpcMetaData = new RpcMetaData();
         // 指定provider的服务提供者
         rpcMetaData.setAppointedAddress(addressList);
-        rpcMetaData.setLoadBalanceStrategy(LoadBalanceConstants.LOAD_BALANCE_APPOINTED_RANDOM_STRATEGY);
         return GenericRpcServiceProxyFactory.getProxy(interfaceClazzName, rpcMetaData);
     }
 
     public static <T> T consumer(Class<T> consumerInterface, RpcMetaData rpcMetaData, String consumerName) {
-        if (!ProtoRpcConfigFactory.INIT_FLAG.get()) {
-            throw new RuntimeException("please init rpc config in proto mode!");
-        }
         ProtoRpcConfigFactory protoRpcConfigFactory = ProtoRpcConfigFactory.get();
         RpcProperties rpcProperties = protoRpcConfigFactory.getRpcProperties();
         // 订阅服务
@@ -116,9 +114,6 @@ public class RpcInvoker {
     }
 
     public static <T> void provider(Class<T> consumerInterface, T providerObject, RpcMetaData rpcMetaData) {
-        if (!ProtoRpcConfigFactory.INIT_FLAG.get()) {
-            throw new RuntimeException("please init rpc config in proto mode!");
-        }
         ProtoRpcConfigFactory protoRpcConfigFactory = ProtoRpcConfigFactory.get();
         // 提供服务
         RpcContext rpcContext = protoRpcConfigFactory.getRpcContext();
@@ -136,6 +131,16 @@ public class RpcInvoker {
         if (rpcProperties.getStartConfigServer()) {
             RpcProviderDataInitBean rpcProviderDataInitBean = protoRpcConfigFactory.getRpcProviderDataInitBean();
             rpcProviderDataInitBean.uploadRemoteProviderData(rpcMetaData);
+        }
+        // 反向代理模式下，向consumer端注册provider的key
+        if (Boolean.TRUE.equals(rpcMetaData.getReverseMode())) {
+            Assert.notEmpty(rpcMetaData.getReverseModeConsumerAddress(),
+                    "provider in reverse mode, reverseModeConsumerAddress can not be empty! " + JSONObject.toJSONString(rpcMetaData));
+            SystemConsumer<SystemConsumer.ReverseInvokerCaller> systemConsumer = SystemConsumer.Multipart.reverseInvokerCaller;
+            for (String reverseModeConsumerAddress : rpcMetaData.getReverseModeConsumerAddress()) {
+                systemConsumer.setAppointedAddress(Lists.newArrayList(reverseModeConsumerAddress));
+                systemConsumer.fetch().register(ReverseInvokeHelper.getServiceKey(rpcMetaData, false));
+            }
         }
     }
 }

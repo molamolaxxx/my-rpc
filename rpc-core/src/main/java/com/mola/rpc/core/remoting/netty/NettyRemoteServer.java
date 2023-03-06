@@ -2,11 +2,7 @@ package com.mola.rpc.core.remoting.netty;
 
 import com.mola.rpc.common.context.RpcContext;
 import com.mola.rpc.core.properties.RpcProperties;
-import com.mola.rpc.core.proto.ObjectFetcher;
-import com.mola.rpc.core.remoting.handler.NettyDecoder;
-import com.mola.rpc.core.remoting.handler.NettyEncoder;
-import com.mola.rpc.core.remoting.handler.NettyServerConnectManageHandler;
-import com.mola.rpc.core.remoting.handler.NettyServerHandler;
+import com.mola.rpc.core.remoting.handler.*;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelInitializer;
@@ -19,6 +15,7 @@ import io.netty.handler.timeout.IdleStateHandler;
 import io.netty.util.concurrent.DefaultEventExecutorGroup;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.util.Assert;
 
 import java.net.InetSocketAddress;
 import java.util.concurrent.ThreadFactory;
@@ -59,17 +56,23 @@ public class NettyRemoteServer {
 
     private RpcContext rpcContext;
 
-    private ObjectFetcher providerFetcher;
-
     private AtomicBoolean startFlag = new AtomicBoolean(false);
 
     /**
-     * server名称
+     * pipeline上的请求处理器，用于provider的反射调用和结果写回(in)
      */
-    private String name;
+    private NettyRpcRequestHandler requestHandler;
 
-    public NettyRemoteServer(String name) {
-        this.name = name;
+    /**
+     * pipeline上的响应处理器，用于consumer的结果同步(in)
+     */
+    private NettyRpcResponseHandler responseHandler;
+
+    public NettyRemoteServer(NettyRpcRequestHandler requestHandler, NettyRpcResponseHandler responseHandler) {
+        Assert.notNull(requestHandler, "requestHandler is required");
+        Assert.notNull(responseHandler, "responseHandler is required");
+        this.requestHandler = requestHandler;
+        this.responseHandler  = responseHandler;
         this.serverBootstrap = new ServerBootstrap();
         // 初始化boss，负责建立连接
         this.eventLoopGroupBoss = new NioEventLoopGroup(1, new ThreadFactory() {
@@ -95,7 +98,7 @@ public class NettyRemoteServer {
 
     public void start() {
         if (rpcContext.getProviderMetaMap().size() == 0) {
-            log.info("[NettyRemoteServer-"+ name +"]:there are no provider registered, netty server will not start");
+            log.info("[NettyRemoteServer]:there are no provider registered, netty server will not start");
             return;
         }
         defaultEventExecutorGroup = new DefaultEventExecutorGroup(
@@ -133,7 +136,9 @@ public class NettyRemoteServer {
                                 new NettyDecoder(),
                                 new IdleStateHandler(0, 0, 120),
                                 new NettyServerConnectManageHandler(), // 监听与连接相关的事件
-                                new NettyServerHandler(rpcContext, providerFetcher, rpcProperties));
+                                requestHandler, // in
+                                responseHandler // in
+                        );
                     }
                 });
 
@@ -142,7 +147,7 @@ public class NettyRemoteServer {
         try {
             ChannelFuture sync = this.serverBootstrap.bind().sync();
             InetSocketAddress address = (InetSocketAddress) sync.channel().localAddress();
-            log.info("[NettyRemoteServer-"+ name +"]: netty server start at " + address);
+            log.info("[NettyRemoteServer]: netty server start at " + address);
         }
         catch (InterruptedException e1) {
             throw new RuntimeException("this.serverBootstrap.bind().sync() InterruptedException", e1);
@@ -164,14 +169,6 @@ public class NettyRemoteServer {
 
     public void setRpcContext(RpcContext rpcContext) {
         this.rpcContext = rpcContext;
-    }
-
-    public ObjectFetcher getProviderFetcher() {
-        return providerFetcher;
-    }
-
-    public void setProviderFetcher(ObjectFetcher providerFetcher) {
-        this.providerFetcher = providerFetcher;
     }
 
     public boolean isStart() {

@@ -15,4 +15,10 @@ public class RpcConsumerConfig {
 
     @RpcConsumer
     private UserService userService;
+
+    @RpcConsumer(reverseMode = true, group = "reverse_proto")
+    private UserService userServiceReverse;
+
+    @RpcConsumer(reverseMode = true, group = "reverse_anno")
+    private UserService userServiceReverseInAnno;
 }

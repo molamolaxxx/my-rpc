@@ -39,9 +39,6 @@ public class GenericRpcServiceProxyFactory {
         if (genericRpcServiceMap.containsKey(interfaceClazzName)) {
             return genericRpcServiceMap.get(interfaceClazzName);
         }
-        if (!ProtoRpcConfigFactory.INIT_FLAG.get()) {
-            throw new RuntimeException("please init rpc config in proto mode!");
-        }
         ProtoRpcConfigFactory protoRpcConfigFactory = ProtoRpcConfigFactory.get();
         RpcProperties rpcProperties = protoRpcConfigFactory.getRpcProperties();
         // 订阅服务

@@ -107,6 +107,25 @@ public class InvokeMethod {
 		try {
 			Assert.notNull(providerBean, "providerBean not exist, name = " + providerBean);
 			// 1、反序列化类型
+			Class<?>[] paramTypes = this.fetchParamTypes();
+			// 2、反序列化参数
+			Object[] args = new Object[this.serializedArguments.length];
+			for (int i = 0; i < this.serializedArguments.length; i++) {
+				args[i] = BytesUtil.bytesToObject((this.serializedArguments[i]), paramTypes[i]);
+			}
+			// 3、反射调用，带方法缓存
+			return MethodInvokeHelper.invokeMethod(providerBean, this.methodName, paramTypes, args);
+		} catch (Exception e) {
+			throw new RuntimeException(e);
+		}
+	}
+
+	/**
+	 * 获取方法参数类型
+	 * @return
+	 */
+	public Class<?>[] fetchParamTypes() {
+		try {
 			Class<?>[] paramTypes = new Class<?>[this.parameterTypes.length];
 			for (int i = 0; i < this.parameterTypes.length; i++) {
 				// 判断是否是基础类型
@@ -117,13 +136,24 @@ public class InvokeMethod {
 				}
 				paramTypes[i] = Class.forName(this.parameterTypes[i]);
 			}
-			// 2、反序列化参数
+			return paramTypes;
+		} catch (Exception e) {
+			throw new RuntimeException(e);
+		}
+	}
+
+	/**
+	 * 获取方法入参对象
+	 * @return
+	 */
+	public Object[] fetchArgs() {
+		try {
+			Class<?>[] paramTypes = this.fetchParamTypes();
 			Object[] args = new Object[this.serializedArguments.length];
 			for (int i = 0; i < this.serializedArguments.length; i++) {
 				args[i] = BytesUtil.bytesToObject((this.serializedArguments[i]), paramTypes[i]);
 			}
-			// 3、反射调用，带方法缓存
-			return MethodInvokeHelper.invokeMethod(providerBean, this.methodName, paramTypes, args);
+			return args;
 		} catch (Exception e) {
 			throw new RuntimeException(e);
 		}

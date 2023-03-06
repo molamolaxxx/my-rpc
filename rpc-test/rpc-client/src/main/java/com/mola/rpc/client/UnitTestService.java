@@ -140,4 +140,13 @@ public interface UnitTestService {
      * @return
      */
     SpecialObject specialObjectTransform(SpecialObject specialObject);
+
+    /**
+     * 反向代理环路测试
+     * client(consumer1) --正向--> server(provider1) --> server(consumer2) --反向--> client(provider2)
+     * @param id
+     * @return
+     */
+    String testReverseLoopBack(String id);
+    String testReverseLoopBackWithAnno(String id);
 }

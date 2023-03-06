@@ -5,6 +5,7 @@ import com.mola.rpc.common.constants.LoadBalanceConstants;
 import com.mola.rpc.common.entity.AddressInfo;
 import com.mola.rpc.common.entity.RpcMetaData;
 import com.mola.rpc.data.config.listener.AddressChangeListener;
+import org.springframework.util.Assert;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
 
@@ -29,6 +30,8 @@ public class ConsistencyHashingBalance implements LoadBalanceStrategy, AddressCh
 
     @Override
     public String getTargetProviderAddress(RpcMetaData consumerMeta, Object[] args) {
+        Assert.isTrue(CollectionUtils.isEmpty(consumerMeta.getAppointedAddress()),
+                "consistency hashing balance not support appointed address!");
         SortedMap<Integer, String> virtualAddressNodeMap = consumerMeta.getVirtualAddressNodeMap();
         if (null == virtualAddressNodeMap || virtualAddressNodeMap.size() == 0) {
             throw new RuntimeException("virtualAddressNodeMap is empty");
