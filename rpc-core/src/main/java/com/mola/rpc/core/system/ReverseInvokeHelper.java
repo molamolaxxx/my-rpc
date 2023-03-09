@@ -1,6 +1,22 @@
 package com.mola.rpc.core.system;
 
+import com.alibaba.fastjson.JSONObject;
+import com.google.common.collect.Lists;
+import com.mola.rpc.common.context.RpcContext;
 import com.mola.rpc.common.entity.RpcMetaData;
+import com.mola.rpc.core.proto.ProtoRpcConfigFactory;
+import com.mola.rpc.core.remoting.netty.NettyConnectPool;
+import io.netty.channel.Channel;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.util.Assert;
+
+import java.util.List;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ThreadFactory;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * @author : molamola
@@ -18,8 +34,71 @@ import com.mola.rpc.common.entity.RpcMetaData;
  **/
 public class ReverseInvokeHelper {
 
-    public static String getServiceKey(RpcMetaData rpcMetaData, boolean isConsumer) {
+    private static final Logger log = LoggerFactory.getLogger(ReverseInvokeHelper.class);
+
+    /**
+     * 定时上报服务端代理连接
+     */
+    private ScheduledExecutorService reverseProviderConnectMonitorThread;
+
+    private ReverseInvokeHelper(){}
+    public static class Singleton{
+        private static ReverseInvokeHelper reverseInvokeHelper = new ReverseInvokeHelper();
+    }
+
+    public static ReverseInvokeHelper instance() {
+        return Singleton.reverseInvokeHelper;
+    }
+
+    public void startMonitor() {
+        ProtoRpcConfigFactory protoRpcConfigFactory = ProtoRpcConfigFactory.get();
+        RpcContext rpcContext = protoRpcConfigFactory.getRpcContext();
+        NettyConnectPool nettyConnectPool = protoRpcConfigFactory.getNettyConnectPool();
+        this.reverseProviderConnectMonitorThread = Executors.newScheduledThreadPool(1,
+                new ThreadFactory() {
+                    AtomicInteger threadIndex = new AtomicInteger(0);
+                    @Override
+                    public Thread newThread(Runnable r) {
+                        return new Thread(r, "reverse-provider-connect-monitor-thread-" + this.threadIndex.incrementAndGet());
+                    }
+                });
+        this.reverseProviderConnectMonitorThread.scheduleAtFixedRate(() -> {
+            try {
+                // 获取所有提供服务信息
+                for (RpcMetaData rpcMetaData : rpcContext.getProviderMetaMap().values()) {
+                    if (!rpcMetaData.getReverseMode()) {
+                        continue;
+                    }
+                    List<String> reverseModeConsumerAddress = rpcMetaData.getReverseModeConsumerAddress();
+                    for (String consumerAddress : reverseModeConsumerAddress) {
+                        Channel channel = nettyConnectPool.getChannel(consumerAddress);
+                        if (null == channel || !channel.isActive()) {
+                            this.registerProviderProxyToServer(rpcMetaData);
+                        }
+                    }
+                }
+            } catch (Exception e) {
+                log.error("reverseProviderConnectMonitorThread schedule failed!", e);
+            }
+
+        },10, 30, TimeUnit.SECONDS);
+    }
+
+    public String getServiceKey(RpcMetaData rpcMetaData, boolean isConsumer) {
         return String.format("%s:%s:%s", rpcMetaData.getInterfaceClazz().getName(),
                 rpcMetaData.getGroup(), rpcMetaData.getVersion());
+    }
+
+    public void registerProviderProxyToServer(RpcMetaData providerMeta) {
+        // 反向代理模式下，向consumer端注册provider的key
+        if (Boolean.TRUE.equals(providerMeta.getReverseMode())) {
+            Assert.notEmpty(providerMeta.getReverseModeConsumerAddress(),
+                    "provider in reverse mode, reverseModeConsumerAddress can not be empty! " + JSONObject.toJSONString(providerMeta));
+            SystemConsumer<SystemConsumer.ReverseInvokerCaller> systemConsumer = SystemConsumer.Multipart.reverseInvokerCaller;
+            for (String reverseModeConsumerAddress : providerMeta.getReverseModeConsumerAddress()) {
+                systemConsumer.setAppointedAddress(Lists.newArrayList(reverseModeConsumerAddress));
+                systemConsumer.fetch().register(this.getServiceKey(providerMeta, false));
+            }
+        }
     }
 }

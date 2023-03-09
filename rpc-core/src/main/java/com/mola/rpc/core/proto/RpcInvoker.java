@@ -1,7 +1,5 @@
 package com.mola.rpc.core.proto;
 
-import com.alibaba.fastjson.JSONObject;
-import com.google.common.collect.Lists;
 import com.mola.rpc.common.context.RpcContext;
 import com.mola.rpc.common.entity.RpcMetaData;
 import com.mola.rpc.core.properties.RpcProperties;
@@ -10,7 +8,6 @@ import com.mola.rpc.core.proxy.RpcProxyInvokeHandler;
 import com.mola.rpc.core.remoting.netty.NettyRemoteClient;
 import com.mola.rpc.core.remoting.netty.NettyRemoteServer;
 import com.mola.rpc.core.system.ReverseInvokeHelper;
-import com.mola.rpc.core.system.SystemConsumer;
 import com.mola.rpc.data.config.spring.RpcProviderDataInitBean;
 import org.springframework.util.Assert;
 
@@ -139,15 +136,6 @@ public class RpcInvoker {
             RpcProviderDataInitBean rpcProviderDataInitBean = protoRpcConfigFactory.getRpcProviderDataInitBean();
             rpcProviderDataInitBean.uploadRemoteProviderData(rpcMetaData);
         }
-        // 反向代理模式下，向consumer端注册provider的key
-        if (Boolean.TRUE.equals(rpcMetaData.getReverseMode())) {
-            Assert.notEmpty(rpcMetaData.getReverseModeConsumerAddress(),
-                    "provider in reverse mode, reverseModeConsumerAddress can not be empty! " + JSONObject.toJSONString(rpcMetaData));
-            SystemConsumer<SystemConsumer.ReverseInvokerCaller> systemConsumer = SystemConsumer.Multipart.reverseInvokerCaller;
-            for (String reverseModeConsumerAddress : rpcMetaData.getReverseModeConsumerAddress()) {
-                systemConsumer.setAppointedAddress(Lists.newArrayList(reverseModeConsumerAddress));
-                systemConsumer.fetch().register(ReverseInvokeHelper.getServiceKey(rpcMetaData, false));
-            }
-        }
+        ReverseInvokeHelper.instance().registerProviderProxyToServer(rpcMetaData);
     }
 }

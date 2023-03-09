@@ -12,6 +12,7 @@ import com.mola.rpc.core.remoting.netty.NettyConnectPool;
 import com.mola.rpc.core.remoting.netty.NettyRemoteClient;
 import com.mola.rpc.core.remoting.netty.NettyRemoteServer;
 import com.mola.rpc.core.strategy.balance.*;
+import com.mola.rpc.core.system.ReverseInvokeHelper;
 import com.mola.rpc.core.util.NetUtils;
 import com.mola.rpc.data.config.listener.AddressChangeListener;
 import com.mola.rpc.data.config.manager.RpcDataManager;
@@ -76,7 +77,6 @@ public class ProtoRpcConfigFactory {
     private NettyRpcResponseHandler responseHandler;
 
     private ObjectFetcher providerObjectFetcher = providerMeta -> providerMeta.getProviderObject();
-
     protected ProtoRpcConfigFactory(){}
     static class Singleton{
         private static ProtoRpcConfigFactory protoRpcConfigFactory = new ProtoRpcConfigFactory();
@@ -159,6 +159,7 @@ public class ProtoRpcConfigFactory {
         nettyRemoteServer.setRpcContext(rpcContext);
         nettyRemoteServer.start();
         this.nettyRemoteServer = nettyRemoteServer;
+        ReverseInvokeHelper.instance().startMonitor();
     }
 
     /**
