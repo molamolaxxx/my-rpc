@@ -5,10 +5,7 @@ import com.mola.rpc.common.entity.RpcMetaData;
 import com.mola.rpc.core.properties.RpcProperties;
 import com.mola.rpc.core.remoting.handler.*;
 import io.netty.bootstrap.ServerBootstrap;
-import io.netty.channel.ChannelFuture;
-import io.netty.channel.ChannelInitializer;
-import io.netty.channel.ChannelOption;
-import io.netty.channel.EventLoopGroup;
+import io.netty.channel.*;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
@@ -69,6 +66,8 @@ public class NettyRemoteServer {
      * pipeline上的响应处理器，用于consumer的结果同步(in)
      */
     private NettyRpcResponseHandler responseHandler;
+
+    private Channel serverChannel;
 
     public NettyRemoteServer(NettyRpcRequestHandler requestHandler, NettyRpcResponseHandler responseHandler) {
         Assert.notNull(requestHandler, "requestHandler is required");
@@ -150,11 +149,20 @@ public class NettyRemoteServer {
             ChannelFuture sync = this.serverBootstrap.bind().sync();
             InetSocketAddress address = (InetSocketAddress) sync.channel().localAddress();
             log.info("[NettyRemoteServer]: netty server start at " + address);
+            this.serverChannel = sync.channel();
         }
         catch (InterruptedException e1) {
             throw new RuntimeException("this.serverBootstrap.bind().sync() InterruptedException", e1);
         }
         this.startFlag.compareAndSet(false, true);
+    }
+
+    public void shutdown() {
+        if (serverChannel != null) {
+            log.info("[NettyRemoteServer]: netty server close");
+            serverChannel.close();
+            serverChannel = null;
+        }
     }
 
     private boolean ignoreNettyServerStart() {

@@ -22,6 +22,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.util.Assert;
 
+import java.util.Collection;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
@@ -108,6 +109,26 @@ public class ProtoRpcConfigFactory {
             INIT_FLAG.compareAndSet(true, false);
             throw e;
         }
+    }
+
+    public void shutdown() {
+        // 关闭netty服务器
+        if (null != nettyRemoteServer && nettyRemoteServer.isStart()) {
+            nettyRemoteServer.shutdown();
+        }
+        // 删除配置中心数据
+        Assert.notNull(this.rpcProperties, "rpcProperties is null");
+        if (!rpcProperties.getStartConfigServer()) {
+            return;
+        }
+        RpcContext rpcContext = rpcProviderDataInitBean.getRpcContext();
+        RpcDataManager rpcDataManager = rpcProviderDataInitBean.getRpcDataManager();
+        Collection<RpcMetaData> providerMetaDataCollection = rpcContext.getProviderMetaMap().values();
+        for (RpcMetaData providerMetaData : providerMetaDataCollection) {
+            rpcDataManager.deleteRemoteProviderData(providerMetaData,
+                    rpcProviderDataInitBean.getEnvironment(), rpcProviderDataInitBean.getAppName(), rpcContext.getProviderAddress());
+        }
+        log.info("delete config server data success!");
     }
 
     protected void initContext() {
