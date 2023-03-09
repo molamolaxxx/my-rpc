@@ -1,6 +1,7 @@
 package com.mola.rpc.core.remoting.netty;
 
 import com.mola.rpc.common.context.RpcContext;
+import com.mola.rpc.common.entity.RpcMetaData;
 import com.mola.rpc.core.properties.RpcProperties;
 import com.mola.rpc.core.remoting.handler.*;
 import io.netty.bootstrap.ServerBootstrap;
@@ -18,6 +19,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.util.Assert;
 
 import java.net.InetSocketAddress;
+import java.util.Map;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -97,8 +99,8 @@ public class NettyRemoteServer {
     }
 
     public void start() {
-        if (rpcContext.getProviderMetaMap().size() == 0) {
-            log.info("[NettyRemoteServer]:there are no provider registered, netty server will not start");
+        if (ignoreNettyServerStart()) {
+            log.info("[NettyRemoteServer]:there are no provider or reverse consumer registered, netty server will not start");
             return;
         }
         defaultEventExecutorGroup = new DefaultEventExecutorGroup(
@@ -153,6 +155,16 @@ public class NettyRemoteServer {
             throw new RuntimeException("this.serverBootstrap.bind().sync() InterruptedException", e1);
         }
         this.startFlag.compareAndSet(false, true);
+    }
+
+    private boolean ignoreNettyServerStart() {
+        Map<String, RpcMetaData> consumerMetaMap = rpcContext.getConsumerMetaMap();
+        for (RpcMetaData rpcMetaData : consumerMetaMap.values()) {
+            if (rpcMetaData.getReverseMode()) {
+                return false;
+            }
+        }
+        return rpcContext.getProviderMetaMap().size() == 0;
     }
 
     public RpcProperties getRpcProperties() {

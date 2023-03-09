@@ -84,6 +84,13 @@ public class RpcInvoker {
         // 启动client
         NettyRemoteClient nettyRemoteClient = protoRpcConfigFactory.getNettyRemoteClient();
         Assert.isTrue(nettyRemoteClient.isStart(), "nettyRemoteClient has not been start! please call ProtoRpcConfigFactory.configure first");
+        // 反向调用，启动server
+        if (rpcMetaData.getReverseMode()) {
+            NettyRemoteServer nettyRemoteServer = protoRpcConfigFactory.getNettyRemoteServer();
+            if (!nettyRemoteServer.isStart()) {
+                nettyRemoteServer.start();
+            }
+        }
         // config server 动态注册
         if (rpcProperties.getStartConfigServer()) {
             RpcProviderDataInitBean rpcProviderDataInitBean = protoRpcConfigFactory.getRpcProviderDataInitBean();
