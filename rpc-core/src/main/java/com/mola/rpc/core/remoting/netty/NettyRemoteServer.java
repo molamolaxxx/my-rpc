@@ -149,7 +149,7 @@ public class NettyRemoteServer {
             ChannelFuture sync = this.serverBootstrap.bind().sync();
             InetSocketAddress address = (InetSocketAddress) sync.channel().localAddress();
             log.info("[NettyRemoteServer]: netty server start at " + address);
-            this.serverChannel = sync.channel();
+//            this.serverChannel = sync.channel();
         }
         catch (InterruptedException e1) {
             throw new RuntimeException("this.serverBootstrap.bind().sync() InterruptedException", e1);
@@ -158,10 +158,19 @@ public class NettyRemoteServer {
     }
 
     public void shutdown() {
-        if (serverChannel != null) {
-            log.info("[NettyRemoteServer]: netty server close");
-            serverChannel.close();
-            serverChannel = null;
+//        if (serverChannel != null) {
+//            log.info("[NettyRemoteServer]: netty server close");
+//            serverChannel.close();
+//            serverChannel = null;
+//        }
+        if (eventLoopGroupBoss != null) {
+            eventLoopGroupBoss.shutdownGracefully();
+        }
+        if (eventLoopGroupWorker != null) {
+            eventLoopGroupWorker.shutdownGracefully();
+        }
+        if (defaultEventExecutorGroup != null) {
+            defaultEventExecutorGroup.shutdownGracefully();
         }
     }
 

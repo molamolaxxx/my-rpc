@@ -142,6 +142,18 @@ public class NettyRemoteClient {
         this.startFlag.compareAndSet(false, true);
     }
 
+    public void shutdown() {
+        if (eventLoopGroupWorker != null) {
+            eventLoopGroupWorker.shutdownGracefully();
+        }
+        if (eventLoopGroupWorker != null) {
+            eventLoopGroupWorker.shutdownGracefully();
+        }
+        if (defaultEventExecutorGroup != null) {
+            defaultEventExecutorGroup.shutdownGracefully();
+        }
+    }
+
     /**
      * 与服务端创建连接，采用异步连接的方式
      * @param address

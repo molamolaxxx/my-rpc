@@ -59,7 +59,9 @@ public class ReverseInvokeHelper {
                     AtomicInteger threadIndex = new AtomicInteger(0);
                     @Override
                     public Thread newThread(Runnable r) {
-                        return new Thread(r, "reverse-provider-connect-monitor-thread-" + this.threadIndex.incrementAndGet());
+                        Thread thread = new Thread(r, "reverse-provider-connect-monitor-thread-" + this.threadIndex.incrementAndGet());
+                        thread.setDaemon(true);
+                        return thread;
                     }
                 });
         this.reverseProviderConnectMonitorThread.scheduleAtFixedRate(() -> {
@@ -72,7 +74,8 @@ public class ReverseInvokeHelper {
                     List<String> reverseModeConsumerAddress = rpcMetaData.getReverseModeConsumerAddress();
                     for (String consumerAddress : reverseModeConsumerAddress) {
                         Channel channel = nettyConnectPool.getChannel(consumerAddress);
-                        if (null == channel || !channel.isActive()) {
+                        if (null == channel || !channel.isActive() || !channel.isOpen()) {
+                            log.error("remote address " + consumerAddress +" 's channel exception! processing re-register");
                             this.registerProviderProxyToServer(rpcMetaData);
                         }
                     }
@@ -82,6 +85,12 @@ public class ReverseInvokeHelper {
             }
 
         },10, 30, TimeUnit.SECONDS);
+    }
+
+    public void shutdownMonitor() {
+        if (null != reverseProviderConnectMonitorThread) {
+            reverseProviderConnectMonitorThread.shutdown();
+        }
     }
 
     public String getServiceKey(RpcMetaData rpcMetaData, boolean isConsumer) {

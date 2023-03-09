@@ -22,9 +22,7 @@ public class ApplicationDestroyHookConfiguration {
     private ProtoRpcConfigFactory protoRpcConfigFactory;
 
 
-    public ApplicationDestroyHookConfiguration(
-            @Autowired ProtoRpcConfigFactory protoRpcConfigFactory
-            ) {
+    public ApplicationDestroyHookConfiguration(@Autowired ProtoRpcConfigFactory protoRpcConfigFactory) {
         this.protoRpcConfigFactory = protoRpcConfigFactory;
     }
 

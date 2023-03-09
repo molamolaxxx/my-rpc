@@ -162,7 +162,9 @@ public class RpcProviderDataInitBean {
                     AtomicInteger threadIndex = new AtomicInteger(0);
                     @Override
                     public Thread newThread(Runnable r) {
-                        return new Thread(r, "provider-info-upload-monitor-thread-" + this.threadIndex.incrementAndGet());
+                        Thread thread = new Thread(r, "provider-info-upload-monitor-thread-" + this.threadIndex.incrementAndGet());
+                        thread.setDaemon(true);
+                        return thread;
                     }
                 });
         this.providerInfoUploadMonitorService.scheduleAtFixedRate(() -> {
@@ -181,7 +183,9 @@ public class RpcProviderDataInitBean {
                     AtomicInteger threadIndex = new AtomicInteger(0);
                     @Override
                     public Thread newThread(Runnable r) {
-                        return new Thread(r, "consumer-info-download-monitor-thread-" + this.threadIndex.incrementAndGet());
+                        Thread thread = new Thread(r, "consumer-info-download-monitor-thread-" + this.threadIndex.incrementAndGet());
+                        thread.setDaemon(true);
+                        return thread;
                     }
                 });
         this.consumerInfoDownloadMonitorService.scheduleAtFixedRate(() -> {
@@ -238,5 +242,14 @@ public class RpcProviderDataInitBean {
             this.consumerInfoDownloadMonitorService.shutdown();
         }
         init();
+    }
+
+    public void shutdownMonitor() {
+        if (null != this.providerInfoUploadMonitorService) {
+            this.providerInfoUploadMonitorService.shutdown();
+        }
+        if (null != this.consumerInfoDownloadMonitorService) {
+            this.consumerInfoDownloadMonitorService.shutdown();
+        }
     }
 }

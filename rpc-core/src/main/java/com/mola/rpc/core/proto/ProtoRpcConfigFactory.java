@@ -116,6 +116,12 @@ public class ProtoRpcConfigFactory {
         if (null != nettyRemoteServer && nettyRemoteServer.isStart()) {
             nettyRemoteServer.shutdown();
         }
+        if (null != nettyRemoteClient && nettyRemoteClient.isStart()) {
+            nettyRemoteClient.shutdown();
+        }
+        // 关闭监听线程
+        ReverseInvokeHelper.instance().shutdownMonitor();
+        rpcProviderDataInitBean.shutdownMonitor();
         // 删除配置中心数据
         Assert.notNull(this.rpcProperties, "rpcProperties is null");
         if (!rpcProperties.getStartConfigServer()) {
