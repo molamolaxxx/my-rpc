@@ -48,7 +48,7 @@ public class RemotingHelper {
             return "";
         }
         final SocketAddress remote = channel.remoteAddress();
-        final String addr = remote != null ? remote.toString() : "";
+        final String addr = (remote != null ? remote.toString() : "");
 
         if (addr.length() > 0) {
             int index = addr.lastIndexOf("/");

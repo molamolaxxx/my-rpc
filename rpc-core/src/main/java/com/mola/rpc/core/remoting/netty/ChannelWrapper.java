@@ -26,7 +26,7 @@ public class ChannelWrapper {
     }
 
     public boolean isOk() {
-        return null != channelFuture && channelFuture.channel().isActive();
+        return null != channelFuture && channelFuture.channel().isActive() && channelFuture.channel().isWritable();
     }
 
     public static final ChannelWrapper of(ChannelFuture channelFuture) {

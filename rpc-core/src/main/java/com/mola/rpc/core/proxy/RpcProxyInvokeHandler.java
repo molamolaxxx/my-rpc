@@ -207,12 +207,12 @@ public class RpcProxyInvokeHandler implements InvocationHandler {
      */
     private Object handlerReverseInvoke(RpcMetaData consumerMeta, Object obj, Method method, Object[] args) {
         Channel reverseInvokeChannel = null;
-        while (reverseInvokeChannel == null || !reverseInvokeChannel.isActive()) {
+        while (!RemotingUtil.channelIsAvailable(reverseInvokeChannel)) {
             // 获取channel
             reverseInvokeChannel = ReverseInvokeChannelPool.getReverseInvokeChannel(ReverseInvokeHelper.instance().getServiceKey(consumerMeta, true));
             Assert.notNull(reverseInvokeChannel, "no available reverse channel  to use , meta = " + JSONObject.toJSONString(consumerMeta));
             // 连接有问题，关闭连接，抛出异常
-            if (!reverseInvokeChannel.isActive()) {
+            if (!RemotingUtil.channelIsAvailable(reverseInvokeChannel)) {
                 // 关闭channel
                 RemotingUtil.closeChannel(reverseInvokeChannel);
                 ReverseInvokeChannelPool.removeChannel(ReverseInvokeHelper.instance().getServiceKey(consumerMeta, true), reverseInvokeChannel);

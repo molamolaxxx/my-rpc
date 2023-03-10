@@ -182,9 +182,9 @@ public class NettyRemoteClient {
             if (channelFuture.awaitUninterruptibly(3000)) {
                 // 同步等待完成
                 if (channelWrapper.isOk()) {
-                    log.info("connect host {} success", address);
+                    log.info("connect host {} success, channel is {}", address, channelWrapper.getChannel());
                 } else {
-                    log.info("connect host {} failed", address);
+                    log.info("connect host {} failed, channel is {}", address, channelWrapper.getChannel());
                 }
             } else {
                 log.warn("createChannel: connect remote host[{" + address + "}] timeout 3000 ms, {" + channelFuture.toString() + "}");
@@ -202,15 +202,7 @@ public class NettyRemoteClient {
      */
     public RemotingCommand syncInvoke(String address, RemotingCommand request, InvokeMethod invokeMethod, long timeout) {
         try {
-            Channel channel = nettyConnectPool.getChannel(address);
-            if (null == channel) {
-                channel = createChannel(address);
-            }
-            // 连接有问题，关闭连接，抛出异常
-            if (null == channel || !channel.isActive()) {
-                this.closeChannel(address, channel);
-                throw new RuntimeException("channel is exception, address = " + address);
-            }
+            Channel channel = this.getAvailableChannel(address);
             return syncInvokeWithChannel(channel, request, invokeMethod, timeout);
         } catch (Exception e) {
             log.error("syncInvoke failed remote host[{" + address + "}], request" + request , e);
@@ -253,7 +245,7 @@ public class NettyRemoteClient {
             }
             return response;
         } catch (Exception e) {
-            log.warn("syncInvokeWithChannel failed remote host[{" + channel.remoteAddress() + "}], request" + request , e);
+            log.warn("syncInvokeWithChannel failed with channel: [" + channel.toString() + "], request" + request , e);
             throw new RuntimeException(e);
         } finally {
             this.responseFutureManager.removeSyncResponseFuture(request.getOpaque());
@@ -268,15 +260,7 @@ public class NettyRemoteClient {
      */
     public AsyncResponseFuture asyncInvoke(String address, RemotingCommand request, InvokeMethod invokeMethod, Method method, long timeout) {
         try {
-            Channel channel = nettyConnectPool.getChannel(address);
-            if (null == channel) {
-                channel = createChannel(address);
-            }
-            // 连接有问题，关闭连接，抛出异常
-            if (null == channel || !channel.isActive()) {
-                this.closeChannel(address, channel);
-                throw new RuntimeException("channel is exception, address = " + address);
-            }
+            Channel channel = this.getAvailableChannel(address);
             AsyncResponseFuture responseFuture = new AsyncResponseFuture(request.getOpaque(), timeout);
             responseFuture.setMethod(method);
             // 缓存对外请求
@@ -301,6 +285,31 @@ public class NettyRemoteClient {
             log.warn("asyncInvoke failed remote host[{" + address + "}], request" + request , e);
             throw new RuntimeException(e);
         }
+    }
+
+    /**
+     * 获取一个可用的通道
+     * @param address 远程地址
+     * @return
+     */
+    public Channel getAvailableChannel(String address) {
+        Channel channel = null;
+        int retryCount = 0;
+        while (!RemotingUtil.channelIsAvailable(channel) && ++retryCount < 10) {
+            channel = nettyConnectPool.getChannel(address);
+            if (null == channel) {
+                channel = createChannel(address);
+            }
+            // 连接有问题，关闭连接，抛出异常
+            if (!RemotingUtil.channelIsAvailable(channel)) {
+                this.closeChannel(address, channel);
+                log.error("channel is exception, retry count = "+retryCount+", address = " + address);
+            }
+        }
+        if (retryCount == 10) {
+            throw new RuntimeException("all retry failed! address = " + address);
+        }
+        return channel;
     }
 
     /**

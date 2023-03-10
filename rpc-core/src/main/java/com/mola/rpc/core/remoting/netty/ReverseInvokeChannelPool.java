@@ -46,13 +46,13 @@ public class ReverseInvokeChannelPool {
             addressChannelMap.put(remoteAddress, channel);
             return;
         }
-        if (!pre.isActive()) {
-            log.warn("channel is exist but not active, change it, remote address = " + channel.remoteAddress().toString());
+        if (!RemotingUtil.channelIsAvailable(pre)) {
+            log.warn("channel is exist but not writable, change it, remote address = " + channel.remoteAddress().toString());
             RemotingUtil.closeChannel(channel);
             addressChannelMap.put(remoteAddress, channel);
             return;
         }
-        log.warn("channel has been registered, ignore, remote address = " + channel.remoteAddress().toString());
+        log.warn("channel has been registered, remote address = " + channel.remoteAddress().toString());
     }
 
     public static void removeChannel(String serviceKey, Channel channel) {
@@ -66,7 +66,8 @@ public class ReverseInvokeChannelPool {
     public static void removeClosedChannel(String remoteAddress) {
         for (Map<String, Channel> map : reverseChannelsKeyMap.values()) {
             Channel channel = map.get(remoteAddress);
-            if (null != channel && !channel.isActive()) {
+            if (null != channel && !RemotingUtil.channelIsAvailable(channel)) {
+                RemotingUtil.closeChannel(channel);
                 map.remove(remoteAddress);
             }
         }

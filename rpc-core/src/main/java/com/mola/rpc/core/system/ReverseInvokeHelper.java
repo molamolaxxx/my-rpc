@@ -74,9 +74,10 @@ public class ReverseInvokeHelper {
                     List<String> reverseModeConsumerAddress = rpcMetaData.getReverseModeConsumerAddress();
                     for (String consumerAddress : reverseModeConsumerAddress) {
                         Channel channel = nettyConnectPool.getChannel(consumerAddress);
-                        if (null == channel || !channel.isActive() || !channel.isOpen()) {
-                            log.error("remote address " + consumerAddress +" 's channel exception! processing re-register");
+                        try {
                             this.registerProviderProxyToServer(rpcMetaData);
+                        } catch (Exception e) {
+                            log.error("remote address " + (channel == null ? consumerAddress : channel.toString()) +" 's channel heart beat exception! ", e);
                         }
                     }
                 }

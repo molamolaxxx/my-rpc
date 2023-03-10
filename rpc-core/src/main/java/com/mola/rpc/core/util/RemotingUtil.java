@@ -89,7 +89,11 @@ public class RemotingUtil {
     public static void closeChannel(Channel channel) {
         final String addrRemote = RemotingHelper.parseChannelRemoteAddr(channel);
         channel.close().addListener((ChannelFutureListener) future ->
-                logger.info("closeChannel: close the connection to remote address[{" + addrRemote + "}] result: {" + future.isSuccess() + "}"));
+                logger.info("closeChannel: close the connection to channel[" + channel.toString() + "] result: {" + future.isSuccess() + "}"));
+    }
+
+    public static boolean channelIsAvailable(Channel channel) {
+        return channel != null && channel.isActive() && channel.isWritable();
     }
 
     public static String socketAddress2String(final SocketAddress addr) {
