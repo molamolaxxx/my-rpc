@@ -16,7 +16,7 @@ public class SystemRpcConfigFactory extends ProtoRpcConfigFactory {
     private static final Logger log = LoggerFactory.getLogger(SystemRpcConfigFactory.class);
 
     protected SystemRpcConfigFactory(){}
-    static class Singleton{
+    private static class Singleton{
         private static SystemRpcConfigFactory systemRpcConfigFactory = new SystemRpcConfigFactory();
     }
 

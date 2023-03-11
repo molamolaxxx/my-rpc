@@ -18,6 +18,8 @@ import org.springframework.util.CollectionUtils;
 
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 /**
  * @author : molamola
@@ -31,6 +33,8 @@ public class NacosProviderConfigChangeListenerImpl implements EventListener {
 
     private RpcMetaData consumerMetaData;
 
+    private Lock addressListChangeLock;
+
     /**
      * 地址变更监听器
      */
@@ -39,6 +43,7 @@ public class NacosProviderConfigChangeListenerImpl implements EventListener {
     public NacosProviderConfigChangeListenerImpl(RpcMetaData consumerMetaData, List<AddressChangeListener> addressChangeListeners) {
         this.consumerMetaData = consumerMetaData;
         this.addressChangeListeners = addressChangeListeners;
+        this.addressListChangeLock = new ReentrantLock();
     }
 
     @Override
@@ -47,24 +52,32 @@ public class NacosProviderConfigChangeListenerImpl implements EventListener {
             NamingEvent namingEvent = (NamingEvent) event;
             log.info("receive event ,serviceName = {}, event = {}", namingEvent.getServiceName(), JSONObject.toJSONString(event));
             List<Instance> instances = namingEvent.getInstances();
-            List<AddressInfo> addressList = consumerMetaData.getAddressList();
-            Map<String, AddressInfo> addressInfoMap = Maps.newHashMap();
-            addressList.forEach(addressInfo -> addressInfoMap.put(addressInfo.getAddress(), addressInfo));
-            List<AddressInfo> newAddressInfo = Lists.newArrayList();
-            instances.forEach(
-                    instance -> {
-                        String addressStr = instance.getIp() + ":" + instance.getPort();
-                        ProviderConfigData providerConfigData = ObjectUtils.parseMap(instance.getMetadata(), ProviderConfigData.class);
-                        SystemInfo systemInfo = JSONObject.parseObject(instance.getMetadata().get("systemInfoKey"), SystemInfo.class);
-                        providerConfigData.setSystemInfo(systemInfo);
-                        if (!addressInfoMap.containsKey(addressStr)) {
-                            newAddressInfo.add(new AddressInfo(addressStr, providerConfigData));
-                        } else {
-                            newAddressInfo.add(addressInfoMap.get(addressStr));
+            this.addressListChangeLock.lock();
+            try {
+                List<AddressInfo> addressList = consumerMetaData.getAddressList();
+                // 老的地址放在这个map里，减缓访问configserver的频次
+                Map<String, AddressInfo> addressInfoMap = Maps.newHashMap();
+                if (!CollectionUtils.isEmpty(addressList)) {
+                    addressList.forEach(addressInfo -> addressInfoMap.put(addressInfo.getAddress(), addressInfo));
+                }
+                List<AddressInfo> newAddressInfo = Lists.newArrayList();
+                instances.forEach(
+                        instance -> {
+                            String addressStr = instance.getIp() + ":" + instance.getPort();
+                            ProviderConfigData providerConfigData = ObjectUtils.parseMap(instance.getMetadata(), ProviderConfigData.class);
+                            SystemInfo systemInfo = JSONObject.parseObject(instance.getMetadata().get("systemInfoKey"), SystemInfo.class);
+                            providerConfigData.setSystemInfo(systemInfo);
+                            if (!addressInfoMap.containsKey(addressStr)) {
+                                newAddressInfo.add(new AddressInfo(addressStr, providerConfigData));
+                            } else {
+                                newAddressInfo.add(addressInfoMap.get(addressStr));
+                            }
                         }
-                    }
-            );
-            consumerMetaData.setAddressList(newAddressInfo);
+                );
+                consumerMetaData.setAddressList(newAddressInfo);
+            } finally {
+                this.addressListChangeLock.unlock();
+            }
             // 监听器回调
             if (!CollectionUtils.isEmpty(addressChangeListeners)) {
                 addressChangeListeners.forEach(listener -> listener.afterAddressChange(consumerMetaData));

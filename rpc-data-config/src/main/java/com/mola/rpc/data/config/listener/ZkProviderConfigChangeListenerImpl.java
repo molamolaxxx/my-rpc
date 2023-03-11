@@ -14,6 +14,8 @@ import org.springframework.util.CollectionUtils;
 
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 /**
  * @author : molamola
@@ -29,6 +31,8 @@ public class ZkProviderConfigChangeListenerImpl implements IZkChildListener {
 
     private ZkClient zkClient;
 
+    private Lock addressListChangeLock;
+
     /**
      * 地址变更监听器
      */
@@ -38,26 +42,35 @@ public class ZkProviderConfigChangeListenerImpl implements IZkChildListener {
         this.consumerMetaData = consumerMetaData;
         this.zkClient = zkClient;
         this.addressChangeListeners = addressChangeListeners;
+        this.addressListChangeLock  = new ReentrantLock();
     }
 
     @Override
     public void handleChildChange(String parentPath, List<String> childList) throws Exception {
         log.warn("remote address available , service is " + this.consumerMetaData.getInterfaceClazz().getName() + ":" + JSONObject.toJSONString(childList));
-        List<AddressInfo> addressList = consumerMetaData.getAddressList();
-        Map<String, AddressInfo> addressInfoMap = Maps.newHashMap();
-        addressList.forEach(addressInfo -> addressInfoMap.put(addressInfo.getAddress(), addressInfo));
-        List<AddressInfo> newAddressInfo = Lists.newArrayList();
-        childList.forEach(
-                addressStr -> {
-                    if (!addressInfoMap.containsKey(addressStr)) {
-                        newAddressInfo.add(new AddressInfo(addressStr,
-                                JSONObject.parseObject(zkClient.readData(parentPath + "/" + addressStr), ProviderConfigData.class)));
-                    } else {
-                        newAddressInfo.add(addressInfoMap.get(addressStr));
+        this.addressListChangeLock.lock();
+        try {
+            List<AddressInfo> addressList = consumerMetaData.getAddressList();
+            Map<String, AddressInfo> addressInfoMap = Maps.newHashMap();
+            if (!CollectionUtils.isEmpty(addressList)) {
+                addressList.forEach(addressInfo -> addressInfoMap.put(addressInfo.getAddress(), addressInfo));
+            }
+            addressList.forEach(addressInfo -> addressInfoMap.put(addressInfo.getAddress(), addressInfo));
+            List<AddressInfo> newAddressInfo = Lists.newArrayList();
+            childList.forEach(
+                    addressStr -> {
+                        if (!addressInfoMap.containsKey(addressStr)) {
+                            newAddressInfo.add(new AddressInfo(addressStr,
+                                    JSONObject.parseObject(zkClient.readData(parentPath + "/" + addressStr), ProviderConfigData.class)));
+                        } else {
+                            newAddressInfo.add(addressInfoMap.get(addressStr));
+                        }
                     }
-                }
-        );
-        consumerMetaData.setAddressList(newAddressInfo);
+            );
+            consumerMetaData.setAddressList(newAddressInfo);
+        } finally {
+            this.addressListChangeLock.unlock();
+        }
         // 监听器回调
         if (!CollectionUtils.isEmpty(addressChangeListeners)) {
             addressChangeListeners.forEach(listener -> listener.afterAddressChange(consumerMetaData));

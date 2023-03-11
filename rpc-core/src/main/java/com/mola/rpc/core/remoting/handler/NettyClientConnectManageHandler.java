@@ -52,8 +52,9 @@ public class NettyClientConnectManageHandler extends ChannelDuplexHandler {
             IdleStateEvent event = (IdleStateEvent) evt;
             if (event.state().equals(IdleState.ALL_IDLE)) {
                 final String remoteAddress = RemotingHelper.parseChannelRemoteAddr(ctx.channel());
-                // 连接空闲
-                log.warn("[NettyClientConnectManageHandler]: onChannelIdle {" + remoteAddress + "}");
+                // 连接在读写上都空闲，关闭
+                log.warn("[NettyClientConnectManageHandler]: onChannelIdle ,processing close {" + remoteAddress + "}");
+                RemotingUtil.closeChannel(ctx.channel());
             }
         }
         ctx.fireUserEventTriggered(evt);

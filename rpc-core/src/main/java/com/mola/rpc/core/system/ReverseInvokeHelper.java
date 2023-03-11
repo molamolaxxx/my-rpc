@@ -42,7 +42,7 @@ public class ReverseInvokeHelper {
     private ScheduledExecutorService reverseProviderConnectMonitorThread;
 
     private ReverseInvokeHelper(){}
-    public static class Singleton{
+    private static class Singleton{
         private static ReverseInvokeHelper reverseInvokeHelper = new ReverseInvokeHelper();
     }
 
@@ -85,7 +85,7 @@ public class ReverseInvokeHelper {
                 log.error("reverseProviderConnectMonitorThread schedule failed!", e);
             }
 
-        },10, 30, TimeUnit.SECONDS);
+        },30, 60, TimeUnit.SECONDS);
     }
 
     public void shutdownMonitor() {
