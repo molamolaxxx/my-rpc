@@ -111,12 +111,15 @@ public class ZkRpcDataManager extends BaseRpcDataManager {
     }
 
     @Override
-    public boolean isProviderExist(String interfaceClazz, String group, String version, String environment) {
-        if (!this.rpcProperties.getCheckDependencyProviderBeforeStart()) {
-            return true;
-        }
+    public boolean isProviderAvailable(String interfaceClazz, String group, String version, String environment) {
         String remoteProviderPath = getRemoteProviderPath(interfaceClazz, group, version, environment);
         return zkClient.exists(remoteProviderPath);
+    }
+
+    @Override
+    public boolean isInstanceAvailable(String interfaceClazz, String group, String version, String environment, String address) {
+        String remoteProviderPath = getRemoteProviderPath(interfaceClazz, group, version, environment);
+        return zkClient.exists(remoteProviderPath +  "/" + address);
     }
 
     @Override

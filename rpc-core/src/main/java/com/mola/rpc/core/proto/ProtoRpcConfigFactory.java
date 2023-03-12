@@ -219,7 +219,7 @@ public class ProtoRpcConfigFactory {
                 rpcProviderDataInitBean.addAddressChangeListener((AddressChangeListener) loadBalanceStrategy);
             }
         }
-        rpcProviderDataInitBean.init();
+        rpcProviderDataInitBean.init(rpcProperties);
         this.rpcProviderDataInitBean = rpcProviderDataInitBean;
     }
 

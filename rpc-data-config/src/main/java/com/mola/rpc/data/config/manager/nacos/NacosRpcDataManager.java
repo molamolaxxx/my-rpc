@@ -114,10 +114,7 @@ public class NacosRpcDataManager extends BaseRpcDataManager {
     }
 
     @Override
-    public boolean isProviderExist(String interfaceClazz, String group, String version, String environment) {
-        if (!this.rpcProperties.getCheckDependencyProviderBeforeStart()) {
-            return true;
-        }
+    public boolean isProviderAvailable(String interfaceClazz, String group, String version, String environment) {
         String serviceName = String.format("%s:%s:%s", interfaceClazz, group, version);
         try {
             List<Instance> allInstances = this.namingService.selectInstances(serviceName, true);

@@ -41,7 +41,7 @@ public class BaseRpcDataManager implements RpcDataManager<RpcMetaData> {
     }
 
     @Override
-    public boolean isProviderExist(String interfaceClazz, String group, String version, String environment) {
+    public boolean isProviderAvailable(String interfaceClazz, String group, String version, String environment) {
         return false;
     }
 

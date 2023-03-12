@@ -1,8 +1,10 @@
 package com.mola.rpc.data.config.spring;
 
+import com.alibaba.fastjson.JSONObject;
 import com.google.common.collect.Lists;
 import com.mola.rpc.common.context.RpcContext;
 import com.mola.rpc.common.entity.AddressInfo;
+import com.mola.rpc.common.entity.BaseRpcProperties;
 import com.mola.rpc.common.entity.RpcMetaData;
 import com.mola.rpc.data.config.listener.AddressChangeListener;
 import com.mola.rpc.data.config.manager.RpcDataManager;
@@ -64,8 +66,11 @@ public class RpcProviderDataInitBean {
      */
     private ScheduledExecutorService consumerInfoDownloadMonitorService;
 
-    public void init() {
+    private BaseRpcProperties rpcProperties;
+
+    public void init(BaseRpcProperties rpcProperties) {
         Assert.notNull(rpcContext, "拉取数据失败，上下文为空");
+        this.rpcProperties = rpcProperties;
         rpcDataManager.setAddressChangeListener(addressChangeListeners);
         // 上报提供的provider数据
         Collection<RpcMetaData> providerMetaDataCollection = rpcContext.getProviderMetaMap().values();
@@ -141,8 +146,10 @@ public class RpcProviderDataInitBean {
         // version
         String version = consumerMetaData.getVersion();
         // 判断服务是否存在
-        if (!rpcDataManager.isProviderExist(serviceName, group, version, environment)) {
-            throw new RuntimeException("provider not exist! env = " + environment + ", meta = " + consumerMetaData.toString());
+        if (!rpcDataManager.isProviderAvailable(serviceName, group, version, environment)) {
+            if (this.rpcProperties.getCheckDependencyProviderBeforeStart()) {
+                throw new RuntimeException("provider not exist! env = " + environment + ", meta = " + consumerMetaData.toString());
+            }
         }
         List<AddressInfo> addressInfoList = rpcDataManager.getRemoteProviderAddress(serviceName, group, version, environment);
         if (null == addressInfoList) {
@@ -170,11 +177,17 @@ public class RpcProviderDataInitBean {
         this.providerInfoUploadMonitorService.scheduleAtFixedRate(() -> {
             // 获取所有提供服务信息
             for (RpcMetaData rpcMetaData : rpcContext.getProviderMetaMap().values()) {
+                // 判断服务是否存在
+                if (!rpcDataManager.isInstanceAvailable(rpcMetaData.getInterfaceClazz().getName(),
+                        rpcMetaData.getGroup(), rpcMetaData.getVersion(), environment, rpcContext.getProviderAddress())) {
+                    log.warn("service is not exist! will never upload, meta = " + JSONObject.toJSONString(rpcMetaData));
+                    continue;
+                }
                 // 获取主机运行状态
                 // 上报信息
                 rpcDataManager.uploadRemoteProviderData(rpcMetaData, environment, appName, rpcContext.getProviderAddress());
             }
-        },90, 60, TimeUnit.SECONDS);
+        },30, 60, TimeUnit.SECONDS);
     }
 
     private void startConsumerInfoDownloadMonitor() {
@@ -241,7 +254,7 @@ public class RpcProviderDataInitBean {
         if (null != this.consumerInfoDownloadMonitorService) {
             this.consumerInfoDownloadMonitorService.shutdown();
         }
-        init();
+        init(rpcProperties);
     }
 
     public void shutdownMonitor() {

@@ -62,7 +62,12 @@ public interface RpcDataManager<T extends RpcMetaData> {
      * @return
      */
     @ConsumerSide
-    default boolean isProviderExist(String interfaceClazz, String group, String version, String environment){
+    default boolean isProviderAvailable(String interfaceClazz, String group, String version, String environment){
+        throw new NotImplementedException();
+    }
+
+    @ProviderSide
+    default boolean isInstanceAvailable(String interfaceClazz, String group, String version, String environment, String address){
         throw new NotImplementedException();
     }
 

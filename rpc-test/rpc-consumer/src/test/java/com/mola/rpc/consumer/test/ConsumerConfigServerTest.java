@@ -41,7 +41,7 @@ public class ConsumerConfigServerTest {
     public void before() {
         RpcDataManager<RpcMetaData> rpcDataManager = rpcProviderDataInitBean.getRpcDataManager();
         Assert.isTrue(rpcDataManager instanceof ZkRpcDataManager, "rpcDataManager 类型错误");
-        Assert.isTrue(rpcDataManager.isProviderExist("com.mola.rpc.client.UnitTestService", "default", "1.0.0", "pre"), "UnitTestService的provider不存在，请检查是否启动");
+        Assert.isTrue(rpcDataManager.isProviderAvailable("com.mola.rpc.client.UnitTestService", "default", "1.0.0", "pre"), "UnitTestService的provider不存在，请检查是否启动");
         List<AddressInfo> remoteProviderAddress = rpcDataManager.getRemoteProviderAddress("com.mola.rpc.client.UnitTestService", "default", "1.0.0", "pre");
         Assert.notEmpty(remoteProviderAddress, "UnitTestService的provider不存在可用地址，请检查是否启动");
         rpcProviderDataInitBean.pullProviderDataList();
