@@ -1,6 +1,7 @@
 package com.mola.rpc.core.remoting.netty;
 
 import com.google.common.collect.Maps;
+import com.mola.rpc.core.util.RemotingUtil;
 import io.netty.channel.Channel;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -42,9 +43,19 @@ public class NettyConnectPool {
         if (!channelWrapperMap.containsKey(address)) {
             throw new RuntimeException("address not found");
         }
-        if (channel != channelWrapperMap.get(address)) {
+        if (channel != channelWrapperMap.get(address).getChannel()) {
             throw new RuntimeException("channel has been changed");
         }
         channelWrapperMap.remove(address);
+    }
+
+    public void shutdown() {
+        for (ChannelWrapper channelWrapper : channelWrapperMap.values()) {
+            if (channelWrapper != null) {
+                RemotingUtil.closeChannel(channelWrapper.getChannel());
+            }
+        }
+        // for gc
+        channelWrapperMap = Maps.newConcurrentMap();
     }
 }

@@ -1,6 +1,5 @@
 package com.mola.rpc.core.remoting.netty;
 
-import com.alibaba.fastjson.JSONObject;
 import com.mola.rpc.common.context.RpcContext;
 import com.mola.rpc.core.proxy.InvokeMethod;
 import com.mola.rpc.core.remoting.AsyncResponseFuture;
@@ -152,6 +151,9 @@ public class NettyRemoteClient {
         if (defaultEventExecutorGroup != null) {
             defaultEventExecutorGroup.shutdownGracefully();
         }
+        if (nettyConnectPool != null) {
+            nettyConnectPool.shutdown();
+        }
     }
 
     /**
@@ -236,7 +238,8 @@ public class NettyRemoteClient {
             if (null == response) {
                 // 发送请求成功，读取应答超时
                 if (responseFuture.isSendRequestOK()) {
-                    throw new RuntimeException("provider time out, method = " + JSONObject.toJSONString(invokeMethod));
+                    throw new RuntimeException("provider time out, method = "
+                            + invokeMethod.getInterfaceClazz() + "@" + invokeMethod.getMethodName() + " channel is " + channel.toString());
                 }
                 if (null != responseFuture.getCause()) {
                     throw new RuntimeException(responseFuture.getCause());

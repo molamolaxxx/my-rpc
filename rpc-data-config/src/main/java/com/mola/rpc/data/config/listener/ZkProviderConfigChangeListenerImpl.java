@@ -47,7 +47,7 @@ public class ZkProviderConfigChangeListenerImpl implements IZkChildListener {
 
     @Override
     public void handleChildChange(String parentPath, List<String> childList) throws Exception {
-        log.warn("remote address available , service is " + this.consumerMetaData.getInterfaceClazz().getName() + ":" + JSONObject.toJSONString(childList));
+        log.info("remote address refresh from zk , service is " + this.consumerMetaData.getInterfaceClazz().getName() + ":" + JSONObject.toJSONString(childList));
         this.addressListChangeLock.lock();
         try {
             List<AddressInfo> addressList = consumerMetaData.getAddressList();

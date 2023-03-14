@@ -50,7 +50,7 @@ public class NacosProviderConfigChangeListenerImpl implements EventListener {
     public void onEvent(Event event) {
         if (event instanceof NamingEvent) {
             NamingEvent namingEvent = (NamingEvent) event;
-            log.info("receive event ,serviceName = {}, event = {}", namingEvent.getServiceName(), JSONObject.toJSONString(event));
+            log.info("remote address refresh from nacos, serviceName = {}, event = {}", namingEvent.getServiceName(), JSONObject.toJSONString(event));
             List<Instance> instances = namingEvent.getInstances();
             this.addressListChangeLock.lock();
             try {
