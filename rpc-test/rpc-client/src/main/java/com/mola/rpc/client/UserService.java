@@ -11,4 +11,11 @@ public interface UserService {
      * @return
      */
     String queryUserName(String id);
+
+    /**
+     * 查询用户姓名
+     * @param id
+     * @return
+     */
+    String queryUserNameAsync(String id);
 }

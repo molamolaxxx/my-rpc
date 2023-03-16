@@ -45,8 +45,12 @@ public class RpcConsumerImportBeanDefinitionRegistrar implements ImportBeanDefin
                     RpcMetaData providerMeta = RpcMetaData.of((String) annotationAttributes.get("group"),
                             (String) annotationAttributes.get("version"),
                             (Class<?>) annotationAttributes.get("interfaceClazz"));
+                    // 是否使用协程
                     providerMeta.setInFiber((Boolean) annotationAttributes.get("inFiber"));
-                    BeanMetadataAttribute attribute = new BeanMetadataAttribute(CommonConstants.BEAN_DEF_PROVIDER_META,providerMeta);
+                    // 反向模式
+                    providerMeta.setReverseMode((Boolean) annotationAttributes.get("reverseMode"));
+                    providerMeta.setReverseModeConsumerAddress(Lists.newArrayList((String[]) annotationAttributes.get("reverseModeConsumerAddress")));
+                    BeanMetadataAttribute attribute = new BeanMetadataAttribute(CommonConstants.BEAN_DEF_PROVIDER_META, providerMeta);
                     scannedGenericBeanDefinition.addMetadataAttribute(attribute);
                     String providerKey = providerMeta.getInterfaceClazz().getName() + ":" + providerMeta.getGroup() + ":" + providerMeta.getVersion();
                     if (providerAlreadyAddedSet.contains(providerKey)) {

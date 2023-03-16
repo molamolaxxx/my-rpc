@@ -3,9 +3,13 @@ package com.mola.rpc.provider;
 import com.google.common.collect.Lists;
 import com.mola.rpc.client.*;
 import com.mola.rpc.common.annotation.RpcProvider;
+import com.mola.rpc.core.remoting.Async;
+import org.springframework.util.Assert;
 
 import javax.annotation.Resource;
 import java.util.List;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 
 /**
  * @author : molamola
@@ -23,7 +27,7 @@ public class UnitTestServiceImpl implements UnitTestService {
     private UserService userServiceReverse;
 
     @Resource
-    private UserService userServiceReverseInAnno;
+    private UserService userServiceReverseInSpring;
 
     @Override
     public ServerResponse<String> test001(String input) {
@@ -126,7 +130,32 @@ public class UnitTestServiceImpl implements UnitTestService {
     }
 
     @Override
-    public String testReverseLoopBackWithAnno(String id) {
-        return userServiceReverseInAnno.queryUserName(id);
+    public String testReverseLoopBackInSpring(String id) {
+        return userServiceReverseInSpring.queryUserName(id);
+    }
+
+    @Override
+    public String testReverseLoopBackInAsync(String id) {
+        CountDownLatch cdl = new CountDownLatch(1);
+        Async.from(userServiceReverseInSpring.queryUserNameAsync(id))
+                .consume(res -> {
+                    Assert.isTrue(res.equals("reverse-spring-mode-async-" + id), "testReverseLoopBackInAsync failed");
+                    cdl.countDown();
+                });
+        try {
+            cdl.await(1000,  TimeUnit.MILLISECONDS);
+        } catch (InterruptedException e) {
+        }
+        Assert.isTrue(cdl.getCount() == 0, "testReverseLoopBackInAsync failed");
+        return "ok";
+    }
+
+    @Override
+    public String processDelayLongTime(int second) {
+        try {
+            Thread.sleep(second * 1000);
+        } catch (InterruptedException e) {
+        }
+        return "ok";
     }
 }

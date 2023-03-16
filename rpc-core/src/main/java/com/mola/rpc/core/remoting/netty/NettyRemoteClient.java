@@ -130,7 +130,7 @@ public class NettyRemoteClient {
                                 defaultEventExecutorGroup, // 执行pipe的线程池
                                 new NettyEncoder(), //out
                                 new NettyDecoder(), //in
-                                new IdleStateHandler(0, 0, 120),//闲置时间
+                                new IdleStateHandler(0, 0, 200),//闲置时间
                                 new NettyClientConnectManageHandler(nettyConnectPool), //Duplex
                                 requestHandler, // in
                                 responseHandler // in
@@ -202,19 +202,29 @@ public class NettyRemoteClient {
      * @param request
      * @return
      */
-    public RemotingCommand syncInvoke(String address, RemotingCommand request, InvokeMethod invokeMethod, long timeout) {
+    public RemotingCommand syncInvoke(String address, RemotingCommand request, InvokeMethod invokeMethod,Method method, long timeout) {
         try {
             Channel channel = this.getAvailableChannel(address);
-            return syncInvokeWithChannel(channel, request, invokeMethod, timeout);
+            return syncInvokeWithChannel(channel, request, invokeMethod, method, timeout);
         } catch (Exception e) {
-            log.error("syncInvoke failed remote host[{" + address + "}], request" + request , e);
+            log.error("syncInvoke failed to remote host[{" + address + "}], request" + request , e);
             throw new RuntimeException(e);
         }
     }
 
-    public RemotingCommand syncInvokeWithChannel(Channel channel, RemotingCommand request, InvokeMethod invokeMethod, long timeout) {
+    /**
+     * 发送请求给服务端
+     * @param channel  发送使用的通道
+     * @param request 请求报文
+     * @param invokeMethod 执行方法包装
+     * @param method 具体方法
+     * @param timeout 客户端超时时间
+     * @return
+     */
+    public RemotingCommand syncInvokeWithChannel(Channel channel, RemotingCommand request, InvokeMethod invokeMethod, Method method, long timeout) {
         try {
             ResponseFuture responseFuture = new ResponseFuture(request.getOpaque());
+            responseFuture.setMethod(method);
             // 缓存对外请求
             this.responseFutureManager.putSyncResponseFuture(request.getOpaque(), responseFuture);
             // 写入channel
@@ -248,22 +258,15 @@ public class NettyRemoteClient {
             }
             return response;
         } catch (Exception e) {
-            log.warn("syncInvokeWithChannel failed with channel: [" + channel.toString() + "], request" + request , e);
+            log.error("syncInvokeWithChannel failed in channel: [" + channel.toString() + "], request" + request , e);
             throw new RuntimeException(e);
         } finally {
             this.responseFutureManager.removeSyncResponseFuture(request.getOpaque());
         }
     }
 
-    /**
-     * 异步调用远程服务
-     * @param address
-     * @param request
-     * @return
-     */
-    public AsyncResponseFuture asyncInvoke(String address, RemotingCommand request, InvokeMethod invokeMethod, Method method, long timeout) {
+    public AsyncResponseFuture asyncInvokeWithChannel(Channel channel, RemotingCommand request, InvokeMethod invokeMethod, Method method, long timeout) {
         try {
-            Channel channel = this.getAvailableChannel(address);
             AsyncResponseFuture responseFuture = new AsyncResponseFuture(request.getOpaque(), timeout);
             responseFuture.setMethod(method);
             // 缓存对外请求
@@ -285,7 +288,23 @@ public class NettyRemoteClient {
             });
             return responseFuture;
         } catch (Exception e) {
-            log.warn("asyncInvoke failed remote host[{" + address + "}], request" + request , e);
+            log.error("asyncInvoke failed in channel[" + channel + "], request" + request , e);
+            throw new RuntimeException(e);
+        }
+    }
+
+    /**
+     * 异步调用远程服务
+     * @param address
+     * @param request
+     * @return
+     */
+    public AsyncResponseFuture asyncInvoke(String address, RemotingCommand request, InvokeMethod invokeMethod, Method method, long timeout) {
+        try {
+            Channel channel = this.getAvailableChannel(address);
+            return asyncInvokeWithChannel(channel, request, invokeMethod, method, timeout);
+        } catch (Exception e) {
+            log.warn("asyncInvoke failed to remote host[{" + address + "}], request" + request , e);
             throw new RuntimeException(e);
         }
     }

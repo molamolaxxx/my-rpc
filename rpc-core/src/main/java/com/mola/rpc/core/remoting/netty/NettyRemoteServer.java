@@ -135,7 +135,7 @@ public class NettyRemoteServer {
                                 defaultEventExecutorGroup,
                                 new NettyEncoder(),
                                 new NettyDecoder(),
-                                new IdleStateHandler(0, 0, 120),
+                                new IdleStateHandler(0, 0, 200),
                                 new NettyServerConnectManageHandler(), // 监听与连接相关的事件
                                 requestHandler, // in
                                 responseHandler // in

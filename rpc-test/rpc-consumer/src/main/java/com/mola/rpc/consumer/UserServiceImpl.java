@@ -16,4 +16,9 @@ public class UserServiceImpl implements UserService {
     public String queryUserName(String id) {
         return "mola:" + id;
     }
+
+    @Override
+    public String queryUserNameAsync(String id) {
+        return null;
+    }
 }

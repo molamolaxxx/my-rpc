@@ -33,18 +33,35 @@ public class NacosReverseInvokeTest extends ReverseInvokeTest {
     private UnitTestService unitTestServiceAppointNacos;
 
     @Test
-    public void test() throws InterruptedException {
+    public void testSync() throws InterruptedException {
         RpcMetaData rpcMetaData = new RpcMetaData();
         rpcMetaData.setReverseMode(Boolean.TRUE);
         rpcMetaData.setReverseModeConsumerAddress(Lists.newArrayList("127.0.0.1:9013"));
         rpcMetaData.setGroup("reverse_proto");
         RpcInvoker.provider(
                 UserService.class,
-                id -> "reverse-proto-mode-nacos-" + id,
+                new UserService() {
+                    @Override
+                    public String queryUserName(String id) {
+                        return  "reverse-proto-mode-nacos-" + id;
+                    }
+
+                    @Override
+                    public String queryUserNameAsync(String id) {
+                        return "reverse-proto-mode-async-" + id;
+                    }
+                },
                 rpcMetaData
         );
         String id = System.currentTimeMillis() + "";
         String res = unitTestServiceAppointNacos.testReverseLoopBack(id);
         Assert.isTrue(("reverse-proto-mode-nacos-"+id).equals(res), "ReverseInvokeTest case 1 failed");
+    }
+
+    @Test
+    public void testSyncInSpring() throws InterruptedException {
+        String id = System.currentTimeMillis() + "";
+        String res = unitTestServiceAppointNacos.testReverseLoopBackInSpring(id);
+        Assert.isTrue(("reverse-spring-mode-"+id).equals(res), "ReverseInvokeTest case 2 failed");
     }
 }

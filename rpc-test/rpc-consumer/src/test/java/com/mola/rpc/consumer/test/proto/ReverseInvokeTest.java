@@ -29,19 +29,46 @@ public class ReverseInvokeTest {
     @Resource
     private UnitTestService unitTestServiceAppointZk;
 
+    @Resource
+    private UnitTestService unitTestServiceAppointAsync;
+
     @Test
-    public void test() throws InterruptedException {
+    public void testSync() throws InterruptedException {
         RpcMetaData rpcMetaData = new RpcMetaData();
         rpcMetaData.setReverseMode(Boolean.TRUE);
         rpcMetaData.setGroup("reverse_proto");
         rpcMetaData.setReverseModeConsumerAddress(Lists.newArrayList("127.0.0.1:9003"));
         RpcInvoker.provider(
                 UserService.class,
-                id -> "reverse-proto-mode-" + id,
+                new UserService() {
+                    @Override
+                    public String queryUserName(String id) {
+                        return  "reverse-proto-mode-" + id;
+                    }
+
+                    @Override
+                    public String queryUserNameAsync(String id) {
+                        return "reverse-proto-mode-async-" + id;
+                    }
+                },
                 rpcMetaData
         );
         String id = System.currentTimeMillis() + "";
         String res = unitTestServiceAppointZk.testReverseLoopBack(id);
         Assert.isTrue(("reverse-proto-mode-"+id).equals(res), "ReverseInvokeTest case 1 failed");
+    }
+
+    @Test
+    public void testSyncInSpring() throws InterruptedException {
+        String id = System.currentTimeMillis() + "";
+        String res = unitTestServiceAppointZk.testReverseLoopBackInSpring(id);
+        Assert.isTrue(("reverse-spring-mode-"+id).equals(res), "ReverseInvokeTest case 2 failed");
+    }
+
+    @Test
+    public void testAsync() throws InterruptedException {
+        String id = System.currentTimeMillis() + "";
+        String res = unitTestServiceAppointZk.testReverseLoopBackInAsync(id);
+        Assert.isTrue("ok".equals(res), "ReverseInvokeTest case 3 failed");
     }
 }

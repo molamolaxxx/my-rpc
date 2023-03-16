@@ -19,4 +19,8 @@ public @interface RpcProvider {
     Class<?> interfaceClazz();
 
     boolean inFiber() default false;
+
+    boolean reverseMode() default false;
+
+    String[] reverseModeConsumerAddress() default {};
 }

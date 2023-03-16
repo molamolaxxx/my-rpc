@@ -25,9 +25,12 @@ public class ConsumerTestConf {
     @RpcConsumer(asyncMethods = "*")
     private UnitTestService unitTestServiceAsync;
 
-    @RpcConsumer(appointedAddress = "127.0.0.1:9003")
+    @RpcConsumer
     private UnitTestService unitTestServiceAppointZk;
 
-    @RpcConsumer(appointedAddress = "127.0.0.1:9013")
+    @RpcConsumer
+    private UnitTestService unitTestServiceAppointAsync;
+
+    @RpcConsumer
     private UnitTestService unitTestServiceAppointNacos;
 }

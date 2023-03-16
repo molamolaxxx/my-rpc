@@ -2,9 +2,11 @@ package com.mola.rpc.core.remoting.netty;
 
 import com.mola.rpc.core.remoting.AsyncResponseFuture;
 import com.mola.rpc.core.remoting.ResponseFuture;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-import java.util.Deque;
-import java.util.LinkedList;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -16,6 +18,8 @@ import java.util.concurrent.atomic.AtomicInteger;
  * @date : 2022-10-09 23:47
  **/
 public class ResponseFutureManager {
+
+    private static final Logger log = LoggerFactory.getLogger(ResponseFutureManager.class);
 
     /**
      * 缓存对外所有同步请求
@@ -57,13 +61,16 @@ public class ResponseFutureManager {
      */
     private void delTimeoutFutures(Map<Integer, ? extends ResponseFuture> responseMap, Integer timeout) {
         long currentTime = System.currentTimeMillis();
-        Deque<Integer> needDelFutures = new LinkedList<>();
+        List<ResponseFuture> needDelFutures = new ArrayList<>();
         for (ResponseFuture future : responseMap.values()) {
             if (currentTime - future.getBeginTimestamp() > timeout) {
-                needDelFutures.addLast(future.getOpaque());
+                needDelFutures.add(future);
             }
         }
-        needDelFutures.forEach(opaque -> responseMap.remove(opaque));
+        for (ResponseFuture needDelFuture : needDelFutures) {
+            log.warn("task has been remove by future monitor! task is " + needDelFuture);
+            responseMap.remove(needDelFuture.getOpaque());
+        }
     }
 
     public void putSyncResponseFuture(Integer opaque, ResponseFuture responseFuture) {

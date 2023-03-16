@@ -72,7 +72,7 @@ public class RpcProviderDataInitBean {
         Assert.notNull(rpcContext, "拉取数据失败，上下文为空");
         this.rpcProperties = rpcProperties;
         rpcDataManager.setAddressChangeListener(addressChangeListeners);
-        // 上报提供的provider数据
+        // 上报provider信息
         Collection<RpcMetaData> providerMetaDataCollection = rpcContext.getProviderMetaMap().values();
         for (RpcMetaData providerMetaData : providerMetaDataCollection) {
             uploadRemoteProviderData(providerMetaData);
@@ -81,13 +81,17 @@ public class RpcProviderDataInitBean {
         pullProviderDataList();
         // 注册监听器
         registerProviderDataListeners();
-        // 上报服务线程
+        // 定时上报服务
         startProviderInfoUploadMonitor();
-        // 刷新consumer线程
+        // 定时刷新consumer
         startConsumerInfoDownloadMonitor();
     }
 
     public void uploadRemoteProviderData(RpcMetaData providerMetaData) {
+        // 反向代理模式不用进行服务发现
+        if (Boolean.TRUE.equals(providerMetaData.getReverseMode())) {
+            return;
+        }
         rpcDataManager.uploadRemoteProviderData(providerMetaData, environment, appName, rpcContext.getProviderAddress());
     }
 
@@ -122,7 +126,7 @@ public class RpcProviderDataInitBean {
         Collection<RpcMetaData> consumerMetaDataCollection = rpcContext.getConsumerMetaMap().values();
         for (RpcMetaData consumerMetaData : consumerMetaDataCollection) {
             // 反向代理模式不用进行服务发现
-            if (consumerMetaData.getReverseMode()) {
+            if (Boolean.TRUE.equals(consumerMetaData.getReverseMode())) {
                 continue;
             }
             pullProviderData(consumerMetaData);

@@ -75,7 +75,7 @@ public class ReverseInvokeHelper {
                     for (String consumerAddress : reverseModeConsumerAddress) {
                         Channel channel = nettyConnectPool.getChannel(consumerAddress);
                         try {
-                            this.registerProviderProxyToServer(rpcMetaData);
+                            this.registerProviderToServer(rpcMetaData);
                         } catch (Exception e) {
                             log.error("remote address " + (channel == null ? consumerAddress : channel.toString()) +" 's channel heart beat exception! ", e);
                         }
@@ -99,16 +99,14 @@ public class ReverseInvokeHelper {
                 rpcMetaData.getGroup(), rpcMetaData.getVersion());
     }
 
-    public void registerProviderProxyToServer(RpcMetaData providerMeta) {
+    public void registerProviderToServer(RpcMetaData providerMeta) {
         // 反向代理模式下，向consumer端注册provider的key
-        if (Boolean.TRUE.equals(providerMeta.getReverseMode())) {
-            Assert.notEmpty(providerMeta.getReverseModeConsumerAddress(),
-                    "provider in reverse mode, reverseModeConsumerAddress can not be empty! " + JSONObject.toJSONString(providerMeta));
-            SystemConsumer<SystemConsumer.ReverseInvokerCaller> systemConsumer = SystemConsumer.Multipart.reverseInvokerCaller;
-            for (String reverseModeConsumerAddress : providerMeta.getReverseModeConsumerAddress()) {
-                systemConsumer.setAppointedAddress(Lists.newArrayList(reverseModeConsumerAddress));
-                systemConsumer.fetch().register(this.getServiceKey(providerMeta, false));
-            }
+        Assert.notEmpty(providerMeta.getReverseModeConsumerAddress(),
+                "provider in reverse mode, reverseModeConsumerAddress can not be empty! " + JSONObject.toJSONString(providerMeta));
+        SystemConsumer<SystemConsumer.ReverseInvokerCaller> systemConsumer = SystemConsumer.Multipart.reverseInvokerCaller;
+        for (String reverseModeConsumerAddress : providerMeta.getReverseModeConsumerAddress()) {
+            systemConsumer.setAppointedAddress(Lists.newArrayList(reverseModeConsumerAddress));
+            systemConsumer.fetch().register(this.getServiceKey(providerMeta, false));
         }
     }
 }

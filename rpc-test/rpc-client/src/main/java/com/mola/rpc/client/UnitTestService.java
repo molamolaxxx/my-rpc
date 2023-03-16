@@ -148,5 +148,13 @@ public interface UnitTestService {
      * @return
      */
     String testReverseLoopBack(String id);
-    String testReverseLoopBackWithAnno(String id);
+    String testReverseLoopBackInSpring(String id);
+    String testReverseLoopBackInAsync(String id);
+
+    /**
+     * 长时间方法执行，测试连接是否中断
+     * @param second
+     * @return
+     */
+    String processDelayLongTime(int second);
 }

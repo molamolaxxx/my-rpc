@@ -95,7 +95,8 @@ public class RpcProxyInvokeHandler implements InvocationHandler {
         RemotingCommand request = buildRemotingCommand(method, invokeMethod, consumerMeta.getClientTimeout(), targetProviderAddress, consumerMeta);
         // 执行远程调用
         if (isAsyncExecute(consumerMeta, method)) {
-            AsyncResponseFuture asyncResponseFuture = nettyRemoteClient.asyncInvoke(targetProviderAddress, request, invokeMethod, method, consumerMeta.getClientTimeout());
+            AsyncResponseFuture asyncResponseFuture = nettyRemoteClient.asyncInvoke(targetProviderAddress, request,
+                    invokeMethod, method, consumerMeta.getClientTimeout());
             Async.addFuture(asyncResponseFuture);
             // 异步返回基础类型返回值存在null装箱失败，需要返回object
             Object fakeResult = TypeUtil.getBaseTypeDefaultObject(method.getReturnType().getName());
@@ -104,7 +105,8 @@ public class RpcProxyInvokeHandler implements InvocationHandler {
             }
             return null;
         }
-        RemotingCommand response = nettyRemoteClient.syncInvoke(targetProviderAddress, request, invokeMethod, consumerMeta.getClientTimeout());
+        RemotingCommand response = nettyRemoteClient.syncInvoke(targetProviderAddress, request,
+                invokeMethod,method, consumerMeta.getClientTimeout());
         // 服务端执行异常
         if (response.getCode() == RemotingCommandCode.SYSTEM_ERROR) {
             throw new RuntimeException(response.getRemark());
@@ -221,8 +223,20 @@ public class RpcProxyInvokeHandler implements InvocationHandler {
         // 构建request
         InvokeMethod invokeMethod = assemblyInvokeMethod(method, args);
         RemotingCommand request = buildRemotingCommand(method, invokeMethod, consumerMeta.getClientTimeout(), reverseInvokeChannel.remoteAddress().toString(), consumerMeta);
+        // 执行远程调用
+        if (isAsyncExecute(consumerMeta, method)) {
+            AsyncResponseFuture asyncResponseFuture = nettyRemoteClient.asyncInvokeWithChannel(reverseInvokeChannel, request,
+                    invokeMethod, method, consumerMeta.getClientTimeout());
+            Async.addFuture(asyncResponseFuture);
+            // 异步返回基础类型返回值存在null装箱失败，需要返回object
+            Object fakeResult = TypeUtil.getBaseTypeDefaultObject(method.getReturnType().getName());
+            if (null != fakeResult) {
+                return fakeResult;
+            }
+            return null;
+        }
         // handle这个请求的是服务端的pipeline
-        RemotingCommand response = nettyRemoteClient.syncInvokeWithChannel(reverseInvokeChannel, request, invokeMethod, consumerMeta.getClientTimeout());
+        RemotingCommand response = nettyRemoteClient.syncInvokeWithChannel(reverseInvokeChannel, request, invokeMethod, method, consumerMeta.getClientTimeout());
         // 服务端执行异常
         if (response.getCode() == RemotingCommandCode.SYSTEM_ERROR) {
             throw new RuntimeException(response.getRemark());

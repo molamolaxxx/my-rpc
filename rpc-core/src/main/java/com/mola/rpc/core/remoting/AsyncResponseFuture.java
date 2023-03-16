@@ -7,7 +7,6 @@ import com.mola.rpc.core.util.BytesUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.lang.reflect.Method;
 import java.util.function.Consumer;
 
 /**
@@ -18,11 +17,6 @@ public class AsyncResponseFuture<T> extends ResponseFuture {
     private static final Logger log = LoggerFactory.getLogger(AsyncResponseFuture.class);
 
     private Consumer<T> consumer;
-
-    /**
-     * consumer调用方法
-     */
-    private Method method;
 
     private long timeout;
 
@@ -63,10 +57,6 @@ public class AsyncResponseFuture<T> extends ResponseFuture {
 
     public void setConsumer(Consumer<T> consumer) {
         this.consumer = consumer;
-    }
-
-    public void setMethod(Method method) {
-        this.method = method;
     }
 
     public void setTimeout(long timeout) {

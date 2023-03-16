@@ -29,6 +29,11 @@ public class ReverseProviderConfig {
                     public String queryUserName(String id) {
                         return id;
                     }
+
+                    @Override
+                    public String queryUserNameAsync(String id) {
+                        return "async-" + id;
+                    }
                 },
                 rpcMetaData
         );

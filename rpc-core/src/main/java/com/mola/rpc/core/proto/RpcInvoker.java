@@ -136,6 +136,8 @@ public class RpcInvoker {
             RpcProviderDataInitBean rpcProviderDataInitBean = protoRpcConfigFactory.getRpcProviderDataInitBean();
             rpcProviderDataInitBean.uploadRemoteProviderData(rpcMetaData);
         }
-        ReverseInvokeHelper.instance().registerProviderProxyToServer(rpcMetaData);
+        if (Boolean.TRUE.equals(rpcMetaData.getReverseMode())) {
+            ReverseInvokeHelper.instance().registerProviderToServer(rpcMetaData);
+        }
     }
 }

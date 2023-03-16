@@ -2,6 +2,7 @@ package com.mola.rpc.core.remoting;
 
 import com.mola.rpc.core.remoting.protocol.RemotingCommand;
 
+import java.lang.reflect.Method;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -16,6 +17,11 @@ public class ResponseFuture {
     private volatile Throwable cause;
     private final int opaque;
     private final long beginTimestamp = System.currentTimeMillis();
+
+    /**
+     * consumer调用方法
+     */
+    protected Method method;
 
     /**
      * 用于监听response的发令枪
@@ -82,10 +88,15 @@ public class ResponseFuture {
     }
 
 
+    public void setMethod(Method method) {
+        this.method = method;
+    }
+
     @Override
     public String toString() {
         return "ResponseFuture [responseCommand=" + responseCommand + ", sendRequestOK=" + sendRequestOK
                 + ", cause=" + cause + ", opaque=" + opaque
+                + ", method=" + method.toString()
                 + ", beginTimestamp=" + beginTimestamp
                 + ", countDownLatch=" + countDownLatch + "]";
     }

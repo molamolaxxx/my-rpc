@@ -19,6 +19,6 @@ public class RpcConsumerConfig {
     @RpcConsumer(reverseMode = true, group = "reverse_proto")
     private UserService userServiceReverse;
 
-    @RpcConsumer(reverseMode = true, group = "reverse_anno")
-    private UserService userServiceReverseInAnno;
+    @RpcConsumer(reverseMode = true, group = "reverse_spring", asyncMethods = "queryUserNameAsync")
+    private UserService userServiceReverseInSpring;
 }

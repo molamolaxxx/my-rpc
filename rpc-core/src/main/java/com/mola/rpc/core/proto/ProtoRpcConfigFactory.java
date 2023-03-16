@@ -104,6 +104,8 @@ public class ProtoRpcConfigFactory {
             this.initNettyConfiguration();
             // config server配置
             this.initConfigServer();
+            // 反向provider注册
+            this.registerReverseProvider();
             INIT_FLAG.compareAndSet(false, true);
         } catch (Exception e) {
             INIT_FLAG.compareAndSet(true, false);
@@ -221,6 +223,15 @@ public class ProtoRpcConfigFactory {
         }
         rpcProviderDataInitBean.init(rpcProperties);
         this.rpcProviderDataInitBean = rpcProviderDataInitBean;
+    }
+
+    private void registerReverseProvider() {
+        Collection<RpcMetaData> rpcMetaDataCollection = this.rpcContext.getProviderMetaMap().values();
+        for (RpcMetaData providerMeta : rpcMetaDataCollection) {
+            if (Boolean.TRUE.equals(providerMeta.getReverseMode())) {
+                ReverseInvokeHelper.instance().registerProviderToServer(providerMeta);
+            }
+        }
     }
 
     public RpcContext getRpcContext() {
