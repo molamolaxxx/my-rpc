@@ -93,7 +93,7 @@ public class RemotingUtil {
     }
 
     public static boolean channelIsAvailable(Channel channel) {
-        return channel != null && channel.isActive() && channel.isWritable();
+        return channel != null && channel.isOpen() && channel.isActive() && channel.isWritable();
     }
 
     public static String socketAddress2String(final SocketAddress addr) {

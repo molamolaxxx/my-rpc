@@ -26,6 +26,7 @@ import java.nio.file.AccessMode;
 import java.util.Date;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 
 /**
  * @author : molamola
@@ -179,13 +180,15 @@ public class ConsumerInvokeTest {
         Async<char[]> from = Async.from(unitTestServiceAsync.test003(1, 'a', 20000L, (short) 3, true));
         char[] chars = from.get();
         Assert.isTrue("1;a;20000;3;true".equals(new String(chars)), "asyncInvokeTest-case2测试失败");
-        countDownLatch.await();
+        countDownLatch.await(3000, TimeUnit.MILLISECONDS);
+        Assert.isTrue(countDownLatch.getCount() == 0, "asyncInvokeTest-case2测试失败");
         CountDownLatch countDownLatch2 = new CountDownLatch(1);
         Async.from(unitTestServiceAsync.test003(1)).consume(res -> {
             Assert.isTrue(res == 2, "asyncInvokeTest-case3测试失败");
             countDownLatch2.countDown();
         });
-        countDownLatch2.await();
+        countDownLatch2.await(3000, TimeUnit.MILLISECONDS);
+        Assert.isTrue(countDownLatch2.getCount() == 0, "asyncInvokeTest-case2测试失败");
         // 同步调用，报异常
         try {
             Async.from(unitTestService.test003(1)).consume(res -> {

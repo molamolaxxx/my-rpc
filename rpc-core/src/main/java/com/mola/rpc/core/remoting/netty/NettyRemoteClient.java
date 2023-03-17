@@ -235,6 +235,9 @@ public class NettyRemoteClient {
                     responseFuture.setSendRequestOK(true);
                     return;
                 }
+                if (!RemotingUtil.channelIsAvailable(channel)) {
+                    RemotingUtil.closeChannel(channel);
+                }
                 // 调用失败
                 responseFuture.setSendRequestOK(false);
                 this.responseFutureManager.removeSyncResponseFuture(request.getOpaque());
@@ -248,6 +251,9 @@ public class NettyRemoteClient {
             if (null == response) {
                 // 发送请求成功，读取应答超时
                 if (responseFuture.isSendRequestOK()) {
+                    if (!RemotingUtil.channelIsAvailable(channel)) {
+                        RemotingUtil.closeChannel(channel);
+                    }
                     throw new RuntimeException("provider time out, method = "
                             + invokeMethod.getInterfaceClazz() + "@" + invokeMethod.getMethodName() + " channel is " + channel.toString());
                 }
@@ -280,6 +286,9 @@ public class NettyRemoteClient {
                     return;
                 }
                 // 调用失败
+                if (!RemotingUtil.channelIsAvailable(channel)) {
+                    RemotingUtil.closeChannel(channel);
+                }
                 responseFuture.setSendRequestOK(false);
                 this.responseFutureManager.removeAsyncResponseFuture(request.getOpaque());
                 responseFuture.setCause(future.cause());
