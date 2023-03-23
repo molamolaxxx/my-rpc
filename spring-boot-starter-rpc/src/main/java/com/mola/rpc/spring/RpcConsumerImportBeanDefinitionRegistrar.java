@@ -63,7 +63,7 @@ public class RpcConsumerImportBeanDefinitionRegistrar implements ImportBeanDefin
                 Field[] fields = clazz.getDeclaredFields();
                 for (Field field : fields) {
                     RpcConsumer annotation = field.getAnnotation(RpcConsumer.class);
-                    if (null == annotation) {
+                    if (annotation == null) {
                         continue;
                     }
                     Class<?> type = field.getType();

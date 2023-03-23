@@ -6,7 +6,8 @@ import com.mola.rpc.core.properties.RpcProperties;
 import com.mola.rpc.core.biz.BizProcessAsyncExecutor;
 import com.mola.rpc.core.proto.ObjectFetcher;
 import com.mola.rpc.core.proxy.InvokeMethod;
-import com.mola.rpc.core.remoting.netty.ReverseInvokeChannelPool;
+import com.mola.rpc.core.remoting.netty.pool.ChannelWrapper;
+import com.mola.rpc.core.remoting.netty.pool.NettyConnectPool;
 import com.mola.rpc.core.remoting.protocol.RemotingCommand;
 import com.mola.rpc.core.remoting.protocol.RemotingCommandCode;
 import com.mola.rpc.core.util.BytesUtil;
@@ -40,10 +41,14 @@ public class NettyRpcRequestHandler extends SimpleChannelInboundHandler<Remoting
 
     private BizProcessAsyncExecutor bizProcessAsyncExecutor;
 
-    public NettyRpcRequestHandler(RpcContext rpcContext, ObjectFetcher providerFetcher, RpcProperties rpcProperties) {
+    private NettyConnectPool nettyConnectPool;
+
+    public NettyRpcRequestHandler(RpcContext rpcContext, ObjectFetcher providerFetcher,
+                                  RpcProperties rpcProperties, NettyConnectPool nettyConnectPool) {
         this.rpcContext = rpcContext;
         this.providerFetcher = providerFetcher;
         this.bizProcessAsyncExecutor = new BizProcessAsyncExecutor(rpcProperties);
+        this.nettyConnectPool = nettyConnectPool;
     }
 
     @Override
@@ -99,7 +104,7 @@ public class NettyRpcRequestHandler extends SimpleChannelInboundHandler<Remoting
         Assert.isTrue(args[0] instanceof String,"handleReverseInvokeCommand args[0] require String Type, " + invokeMethod.toString());
         String reverseKey = (String) args[0];
         // 写入连接池
-        ReverseInvokeChannelPool.registerReverseInvokeChannel(reverseKey, channel);
+        nettyConnectPool.registerReverseInvokeChannel(reverseKey, ChannelWrapper.of(channel));
         RemotingCommand response = buildRemotingCommand(request, null, RemotingCommandCode.SUCCESS, null);
         final String responseStr = response.toString();
         final SocketAddress remoteAddress = channel.remoteAddress();
@@ -132,7 +137,7 @@ public class NettyRpcRequestHandler extends SimpleChannelInboundHandler<Remoting
                     + ", result:" + RemotingSerializableUtil.toJson(result, false), e);
             return null;
         }
-        if(null == responseBody) {
+        if(responseBody == null) {
             log.error("[NettyServerHandler]: responseBody is null"
                     + ", result:" + RemotingSerializableUtil.toJson(result, false));
             return null;

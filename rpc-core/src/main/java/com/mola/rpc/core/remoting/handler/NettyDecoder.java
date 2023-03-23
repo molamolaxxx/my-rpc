@@ -34,7 +34,7 @@ public class NettyDecoder extends LengthFieldBasedFrameDecoder {
 
         try {
             frame = (ByteBuf) super.decode(ctx, in);
-            if (null == frame) {
+            if (frame == null) {
                 return null;
             }
 

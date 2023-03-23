@@ -33,7 +33,7 @@ public class ConsistencyHashingBalance implements LoadBalanceStrategy, AddressCh
         Assert.isTrue(CollectionUtils.isEmpty(consumerMeta.getAppointedAddress()),
                 "consistency hashing balance not support appointed address!");
         SortedMap<Integer, String> virtualAddressNodeMap = consumerMeta.getVirtualAddressNodeMap();
-        if (null == virtualAddressNodeMap || virtualAddressNodeMap.size() == 0) {
+        if (virtualAddressNodeMap == null || virtualAddressNodeMap.size() == 0) {
             throw new RuntimeException("virtualAddressNodeMap is empty");
         }
         int hash = getHash(JSONObject.toJSONString(args));

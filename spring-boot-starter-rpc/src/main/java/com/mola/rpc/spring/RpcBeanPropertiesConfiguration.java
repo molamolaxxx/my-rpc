@@ -2,7 +2,7 @@ package com.mola.rpc.spring;
 
 import com.mola.rpc.common.context.RpcContext;
 import com.mola.rpc.core.proto.ProtoRpcConfigFactory;
-import com.mola.rpc.core.remoting.netty.NettyConnectPool;
+import com.mola.rpc.core.remoting.netty.pool.NettyConnectPool;
 import com.mola.rpc.core.remoting.netty.NettyRemoteClient;
 import com.mola.rpc.core.remoting.netty.NettyRemoteServer;
 import com.mola.rpc.core.strategy.balance.LoadBalance;

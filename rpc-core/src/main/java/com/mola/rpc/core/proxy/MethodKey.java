@@ -28,7 +28,7 @@ public class MethodKey {
      */
     @Override
     public boolean equals(Object object) {
-        if(null == object) {
+        if(object == null) {
             return false;
         }
         if(!(object instanceof MethodKey)) {

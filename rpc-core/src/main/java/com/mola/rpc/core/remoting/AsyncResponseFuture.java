@@ -41,10 +41,10 @@ public class AsyncResponseFuture<T> extends ResponseFuture {
 
     public T get() throws InterruptedException {
         RemotingCommand remotingCommand = getResponseCommand();
-        if (null == getResponseCommand()) {
+        if (getResponseCommand() == null) {
             remotingCommand = super.waitResponse(timeout);
         }
-        if (null == remotingCommand) {
+        if (remotingCommand == null) {
             return null;
         }
         // 服务端执行异常

@@ -44,7 +44,7 @@ public class RemotingHelper {
     }
 
     public static String parseChannelRemoteAddr(final Channel channel) {
-        if (null == channel) {
+        if (channel == null) {
             return "";
         }
         final SocketAddress remote = channel.remoteAddress();
@@ -64,7 +64,7 @@ public class RemotingHelper {
 
 
     public static String parseChannelRemoteName(final Channel channel) {
-        if (null == channel) {
+        if (channel == null) {
             return "";
         }
         final InetSocketAddress remote = (InetSocketAddress) channel.remoteAddress();

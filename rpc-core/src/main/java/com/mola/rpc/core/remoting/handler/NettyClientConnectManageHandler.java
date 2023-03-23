@@ -1,6 +1,6 @@
 package com.mola.rpc.core.remoting.handler;
 
-import com.mola.rpc.core.remoting.netty.NettyConnectPool;
+import com.mola.rpc.core.remoting.netty.pool.NettyConnectPool;
 import com.mola.rpc.core.util.RemotingHelper;
 import com.mola.rpc.core.util.RemotingUtil;
 import io.netty.channel.ChannelDuplexHandler;

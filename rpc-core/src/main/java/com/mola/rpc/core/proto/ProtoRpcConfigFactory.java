@@ -8,7 +8,7 @@ import com.mola.rpc.common.utils.TestUtil;
 import com.mola.rpc.core.properties.RpcProperties;
 import com.mola.rpc.core.remoting.handler.NettyRpcRequestHandler;
 import com.mola.rpc.core.remoting.handler.NettyRpcResponseHandler;
-import com.mola.rpc.core.remoting.netty.NettyConnectPool;
+import com.mola.rpc.core.remoting.netty.pool.NettyConnectPool;
 import com.mola.rpc.core.remoting.netty.NettyRemoteClient;
 import com.mola.rpc.core.remoting.netty.NettyRemoteServer;
 import com.mola.rpc.core.strategy.balance.*;
@@ -152,11 +152,12 @@ public class ProtoRpcConfigFactory {
     }
 
     protected void initNettyConfiguration() {
-        // 请求处理器
-        this.requestHandler = new NettyRpcRequestHandler(rpcContext, this.providerObjectFetcher, rpcProperties);
         // 响应处理器
         this.responseHandler = new NettyRpcResponseHandler();
+        // rpc连接池
         this.nettyConnectPool = new NettyConnectPool();
+        // 请求处理器
+        this.requestHandler = new NettyRpcRequestHandler(rpcContext, providerObjectFetcher, rpcProperties, nettyConnectPool);
         NettyRemoteClient nettyRemoteClient = new NettyRemoteClient(requestHandler, responseHandler);
         nettyRemoteClient.setNettyConnectPool(nettyConnectPool);
         nettyRemoteClient.setRpcContext(rpcContext);

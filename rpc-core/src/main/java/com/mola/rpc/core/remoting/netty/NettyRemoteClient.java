@@ -5,6 +5,8 @@ import com.mola.rpc.core.proxy.InvokeMethod;
 import com.mola.rpc.core.remoting.AsyncResponseFuture;
 import com.mola.rpc.core.remoting.ResponseFuture;
 import com.mola.rpc.core.remoting.handler.*;
+import com.mola.rpc.core.remoting.netty.pool.ChannelFutureWrapper;
+import com.mola.rpc.core.remoting.netty.pool.NettyConnectPool;
 import com.mola.rpc.core.remoting.protocol.RemotingCommand;
 import com.mola.rpc.core.util.RemotingHelper;
 import com.mola.rpc.core.util.RemotingUtil;
@@ -168,30 +170,30 @@ public class NettyRemoteClient {
             return channel;
         }
 
-        ChannelWrapper channelWrapper = nettyConnectPool.getChannelWrapper(address);
-        if (null != channelWrapper && !channelWrapper.getChannelFuture().isDone()) {
+        ChannelFutureWrapper channelFutureWrapper = nettyConnectPool.getChannelFutureWrapper(address);
+        if (null != channelFutureWrapper && !channelFutureWrapper.getChannelFuture().isDone()) {
             log.info("[connecting]: connect host {} connecting", address);
-            return channelWrapper.getChannel();
+            return channelFutureWrapper.getChannel();
         }
 
         ChannelFuture future = this.clientBootstrap.connect(RemotingHelper.string2SocketAddress(address));
         log.info("createChannel: begin to connect remote host[{" + address + "}] asynchronously");
-        nettyConnectPool.addChannelWrapper(address, ChannelWrapper.of(future));
-        channelWrapper = nettyConnectPool.getChannelWrapper(address);
+        nettyConnectPool.addChannelWrapper(address, ChannelFutureWrapper.of(future));
+        channelFutureWrapper = nettyConnectPool.getChannelFutureWrapper(address);
         // 等待连接完成，输出日志
-        if (null != channelWrapper) {
-            ChannelFuture channelFuture = channelWrapper.getChannelFuture();
+        if (null != channelFutureWrapper) {
+            ChannelFuture channelFuture = channelFutureWrapper.getChannelFuture();
             if (channelFuture.awaitUninterruptibly(3000)) {
                 // 同步等待完成
-                if (channelWrapper.isOk()) {
-                    log.info("connect host {} success, channel is {}", address, channelWrapper.getChannel());
+                if (channelFutureWrapper.isOk()) {
+                    log.info("connect host {} success, channel is {}", address, channelFutureWrapper.getChannel());
                 } else {
-                    log.info("connect host {} failed, channel is {}", address, channelWrapper.getChannel());
+                    log.info("connect host {} failed, channel is {}", address, channelFutureWrapper.getChannel());
                 }
             } else {
                 log.warn("createChannel: connect remote host[{" + address + "}] timeout 3000 ms, {" + channelFuture.toString() + "}");
             }
-            return channelWrapper.getChannel();
+            return channelFutureWrapper.getChannel();
         }
         return null;
     }
@@ -248,7 +250,7 @@ public class NettyRemoteClient {
 
             // 基于发令枪，同步等待服务端返回
             RemotingCommand response = responseFuture.waitResponse(timeout);
-            if (null == response) {
+            if (response == null) {
                 // 发送请求成功，读取应答超时
                 if (responseFuture.isSendRequestOK()) {
                     if (!RemotingUtil.channelIsAvailable(channel)) {
@@ -328,7 +330,7 @@ public class NettyRemoteClient {
         int retryCount = 0;
         while (!RemotingUtil.channelIsAvailable(channel) && ++retryCount < 10) {
             channel = nettyConnectPool.getChannel(address);
-            if (null == channel) {
+            if (channel == null) {
                 channel = createChannel(address);
             }
             // 连接有问题，关闭连接，抛出异常
@@ -350,10 +352,10 @@ public class NettyRemoteClient {
      */
     public void closeChannel(final String address, final Channel channel) {
         try {
-            if (null == channel) {
+            if (channel == null) {
                 return;
             }
-            final String addressRemote = null == address ? RemotingHelper.parseChannelRemoteAddr(channel) : address;
+            final String addressRemote = address == null ? RemotingHelper.parseChannelRemoteAddr(channel) : address;
             // 关闭channel
             RemotingUtil.closeChannel(channel);
             // 移除channel

@@ -49,7 +49,7 @@ public class ProviderMetaService {
 
     public void updateProviderInfoStorage(String providerKey, RpcMetaData rpcMetaData) {
         String[] splitRes = providerKey.split(":");
-        if (null == splitRes || splitRes.length != 4) {
+        if (splitRes== null || splitRes.length != 4) {
             log.error("ProviderRefreshAllHandler run failed, provider key illegal! " + providerKey);
             return;
         }

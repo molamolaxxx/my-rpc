@@ -42,7 +42,7 @@ public class RpcContext {
 
     public RpcMetaData getConsumerMeta(String consumerClazzName, String beanName) {
         String key = consumerClazzName + ":" + beanName;
-        if (null == consumerMetaMap || !consumerMetaMap.containsKey(key)) {
+        if (consumerMetaMap == null || !consumerMetaMap.containsKey(key)) {
             return null;
         }
         return consumerMetaMap.get(key);
@@ -50,7 +50,7 @@ public class RpcContext {
 
     public RpcMetaData getProviderMeta(String consumerClazzName, String group, String version) {
         String key = consumerClazzName + ":" + group + ":" + version;
-        if (null == providerMetaMap || !providerMetaMap.containsKey(key)) {
+        if (providerMetaMap == null || !providerMetaMap.containsKey(key)) {
             return null;
         }
         return providerMetaMap.get(key);

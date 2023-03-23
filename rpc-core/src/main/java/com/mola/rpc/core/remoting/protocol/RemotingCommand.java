@@ -269,7 +269,7 @@ public class RemotingCommand {
 
 
     public void addExtField(String key, String value) {
-        if (null == extFields) {
+        if (extFields == null) {
             extFields = new HashMap<String, String>();
         }
         extFields.put(key, value);

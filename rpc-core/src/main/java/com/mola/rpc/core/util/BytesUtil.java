@@ -20,7 +20,7 @@ public class BytesUtil {
 	 * @return
 	 */
 	public static boolean isEmpty(byte[] bytes) {
-		if(null == bytes) {
+		if(bytes == null) {
 			return true;
 		}
 		if(bytes.length <= 0) {
@@ -56,7 +56,7 @@ public class BytesUtil {
 	 * @return
 	 */
 	public static Object bytesToObject(byte[] bytes) {
-		if(null == bytes) {
+		if(bytes == null) {
 			throw new RuntimeException("bytes is null");
 		}
 		ByteArrayInputStream byteArrayInputStream = new ByteArrayInputStream(bytes);
@@ -72,7 +72,7 @@ public class BytesUtil {
 	}
 
 	public static Object bytesToObject(byte[] bytes, Class clazz) {
-		if(null == bytes) {
+		if(bytes == null) {
 			throw new RuntimeException("bytes is null");
 		}
 		ByteArrayInputStream byteArrayInputStream = new ByteArrayInputStream(bytes);

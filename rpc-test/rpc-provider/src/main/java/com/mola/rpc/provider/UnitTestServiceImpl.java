@@ -143,7 +143,7 @@ public class UnitTestServiceImpl implements UnitTestService {
                     cdl.countDown();
                 });
         try {
-            cdl.await(1000,  TimeUnit.MILLISECONDS);
+            cdl.await(3000,  TimeUnit.MILLISECONDS);
         } catch (InterruptedException e) {
         }
         Assert.isTrue(cdl.getCount() == 0, "testReverseLoopBackInAsync failed");

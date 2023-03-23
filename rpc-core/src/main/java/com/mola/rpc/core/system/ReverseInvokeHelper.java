@@ -5,7 +5,7 @@ import com.google.common.collect.Lists;
 import com.mola.rpc.common.context.RpcContext;
 import com.mola.rpc.common.entity.RpcMetaData;
 import com.mola.rpc.core.proto.ProtoRpcConfigFactory;
-import com.mola.rpc.core.remoting.netty.NettyConnectPool;
+import com.mola.rpc.core.remoting.netty.pool.NettyConnectPool;
 import io.netty.channel.Channel;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -81,11 +81,12 @@ public class ReverseInvokeHelper {
                         }
                     }
                 }
+                nettyConnectPool.clearBadReverseChannels();
             } catch (Exception e) {
                 log.error("reverseProviderConnectMonitorThread schedule failed!", e);
             }
 
-        },30, 60, TimeUnit.SECONDS);
+        },30, 45, TimeUnit.SECONDS);
     }
 
     public void shutdownMonitor() {

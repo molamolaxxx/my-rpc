@@ -33,7 +33,7 @@ public class MethodInvokeHelper {
      */
     public static Object invokeMethod(Object object, String methodName, Class<?>[] parameterTypes, Object[] arguments) {
         Method method = getMethod(object, methodName, parameterTypes);
-        if(null == method) {
+        if(method == null) {
             throw new RuntimeException("no such method");
         }
         Object result = null;

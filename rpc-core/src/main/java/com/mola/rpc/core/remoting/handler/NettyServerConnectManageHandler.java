@@ -1,6 +1,7 @@
 package com.mola.rpc.core.remoting.handler;
 
-import com.mola.rpc.core.remoting.netty.ReverseInvokeChannelPool;
+import com.mola.rpc.core.proto.ProtoRpcConfigFactory;
+import com.mola.rpc.core.remoting.netty.pool.NettyConnectPool;
 import com.mola.rpc.core.util.RemotingHelper;
 import com.mola.rpc.core.util.RemotingUtil;
 import io.netty.channel.ChannelDuplexHandler;
@@ -37,7 +38,8 @@ public class NettyServerConnectManageHandler extends ChannelDuplexHandler {
         super.channelInactive(ctx);
         // 连接关闭
         log.warn("[ServerChannelEventListener]: onChannelClose {" + remoteAddress + "}");
-        ReverseInvokeChannelPool.removeClosedChannel(remoteAddress);
+        NettyConnectPool nettyConnectPool = ProtoRpcConfigFactory.get().getNettyConnectPool();
+        nettyConnectPool.removeClosedReverseChannel((remoteAddress));
     }
 
 

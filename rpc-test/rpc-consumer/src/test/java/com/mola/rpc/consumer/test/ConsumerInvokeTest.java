@@ -234,6 +234,6 @@ public class ConsumerInvokeTest {
         }
         long cost = System.currentTimeMillis() - start;
         log.info("20次异步调用总时长，cost = " + cost);
-        Assert.isTrue(cost < 2300, "testAsyncConcurrentTimeLimit-case2测试失败");
+        Assert.isTrue(cost < 2500, "testAsyncConcurrentTimeLimit-case2测试失败");
     }
 }

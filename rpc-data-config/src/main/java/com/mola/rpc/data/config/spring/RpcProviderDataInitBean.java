@@ -156,7 +156,7 @@ public class RpcProviderDataInitBean {
             }
         }
         List<AddressInfo> addressInfoList = rpcDataManager.getRemoteProviderAddress(serviceName, group, version, environment);
-        if (null == addressInfoList) {
+        if (addressInfoList == null) {
             log.warn("addressInfoList is null , meta : " + consumerMetaData.toString());
             return;
         }

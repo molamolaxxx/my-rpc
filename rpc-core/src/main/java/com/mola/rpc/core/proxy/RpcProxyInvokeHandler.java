@@ -6,14 +6,14 @@ import com.mola.rpc.common.entity.AddressInfo;
 import com.mola.rpc.common.entity.RpcMetaData;
 import com.mola.rpc.core.remoting.Async;
 import com.mola.rpc.core.remoting.AsyncResponseFuture;
-import com.mola.rpc.core.remoting.netty.NettyConnectPool;
 import com.mola.rpc.core.remoting.netty.NettyRemoteClient;
-import com.mola.rpc.core.remoting.netty.ReverseInvokeChannelPool;
+import com.mola.rpc.core.remoting.netty.pool.NettyConnectPool;
 import com.mola.rpc.core.remoting.protocol.RemotingCommand;
 import com.mola.rpc.core.remoting.protocol.RemotingCommandCode;
 import com.mola.rpc.core.strategy.balance.LoadBalance;
 import com.mola.rpc.core.system.ReverseInvokeHelper;
 import com.mola.rpc.core.util.BytesUtil;
+import com.mola.rpc.core.util.RemotingHelper;
 import com.mola.rpc.core.util.RemotingUtil;
 import com.mola.rpc.core.util.TypeUtil;
 import io.netty.channel.Channel;
@@ -69,7 +69,7 @@ public class RpcProxyInvokeHandler implements InvocationHandler {
         }
         // 获取服务对应的元数据唯一key
         RpcMetaData consumerMeta = rpcContext.getConsumerMeta(getConsumerClazzName(method, args), beanName);
-        if (null == consumerMeta) {
+        if (consumerMeta == null) {
             throw new RuntimeException("consumer invoke failed, consumerMeta is null, clazz = " + method.getDeclaringClass().getName());
         }
         // 客户端如果是反向调用，则不走服务发现，直接在应用内部寻找channel
@@ -112,7 +112,7 @@ public class RpcProxyInvokeHandler implements InvocationHandler {
             throw new RuntimeException(response.getRemark());
         }
         // 读取服务端返回结果
-        if (null == response) {
+        if (response == null) {
             return null;
         }
         // response转换成对象
@@ -149,7 +149,7 @@ public class RpcProxyInvokeHandler implements InvocationHandler {
                     + ", methodName:" + method.getName(), e);
             return null;
         }
-        if(null == requestBody) {
+        if(requestBody == null) {
             log.error("[RpcProxyInvokeHandler]: requestBody is null"
                     + ", server:" + address
                     + ", timeout:" + timeout
@@ -193,7 +193,7 @@ public class RpcProxyInvokeHandler implements InvocationHandler {
         // 构建invokeMethod
         InvokeMethod invokeMethod = new InvokeMethod(method.getName(),
                 parameterTypesString,
-                null == args ? new Object[]{} : args,
+                args == null ? new Object[]{} : args,
                 method.getReturnType().getName(),
                 method.getDeclaringClass().getName());
         return invokeMethod;
@@ -211,13 +211,14 @@ public class RpcProxyInvokeHandler implements InvocationHandler {
         Channel reverseInvokeChannel = null;
         while (!RemotingUtil.channelIsAvailable(reverseInvokeChannel)) {
             // 获取channel
-            reverseInvokeChannel = ReverseInvokeChannelPool.getReverseInvokeChannel(ReverseInvokeHelper.instance().getServiceKey(consumerMeta, true));
+            reverseInvokeChannel = nettyConnectPool.getReverseInvokeChannel(ReverseInvokeHelper.instance().getServiceKey(consumerMeta, true));
             Assert.notNull(reverseInvokeChannel, "no available reverse channel  to use , meta = " + JSONObject.toJSONString(consumerMeta));
             // 连接有问题，关闭连接，抛出异常
             if (!RemotingUtil.channelIsAvailable(reverseInvokeChannel)) {
                 // 关闭channel
                 RemotingUtil.closeChannel(reverseInvokeChannel);
-                ReverseInvokeChannelPool.removeChannel(ReverseInvokeHelper.instance().getServiceKey(consumerMeta, true), reverseInvokeChannel);
+                nettyConnectPool.removeReverseChannel(ReverseInvokeHelper.instance().getServiceKey(consumerMeta, true),
+                        RemotingHelper.parseChannelRemoteAddr(reverseInvokeChannel));
             }
         }
         // 构建request
@@ -242,7 +243,7 @@ public class RpcProxyInvokeHandler implements InvocationHandler {
             throw new RuntimeException(response.getRemark());
         }
         // 读取服务端返回结果
-        if (null == response) {
+        if (response == null) {
             return null;
         }
         // response转换成对象
