@@ -8,6 +8,7 @@ import com.mola.rpc.core.remoting.handler.*;
 import com.mola.rpc.core.remoting.netty.pool.ChannelFutureWrapper;
 import com.mola.rpc.core.remoting.netty.pool.NettyConnectPool;
 import com.mola.rpc.core.remoting.protocol.RemotingCommand;
+import com.mola.rpc.core.util.MultiKeyReentrantLock;
 import com.mola.rpc.core.util.RemotingHelper;
 import com.mola.rpc.core.util.RemotingUtil;
 import io.netty.bootstrap.Bootstrap;
@@ -62,6 +63,8 @@ public class NettyRemoteClient {
     private RpcContext rpcContext;
 
     private AtomicBoolean startFlag = new AtomicBoolean(false);
+
+    private final MultiKeyReentrantLock channelCreateLock = new MultiKeyReentrantLock();
 
     /**
      * pipeline上的请求处理器，用于provider的反射调用和结果写回(in)
@@ -132,7 +135,7 @@ public class NettyRemoteClient {
                                 defaultEventExecutorGroup, // 执行pipe的线程池
                                 new NettyEncoder(), //out
                                 new NettyDecoder(), //in
-                                new IdleStateHandler(0, 0, 200),//闲置时间
+                                new IdleStateHandler(300, 0, 0),//闲置时间
                                 new NettyClientConnectManageHandler(nettyConnectPool), //Duplex
                                 requestHandler, // in
                                 responseHandler // in
@@ -176,24 +179,33 @@ public class NettyRemoteClient {
             return channelFutureWrapper.getChannel();
         }
 
-        ChannelFuture future = this.clientBootstrap.connect(RemotingHelper.string2SocketAddress(address));
-        log.info("createChannel: begin to connect remote host[{" + address + "}] asynchronously");
-        nettyConnectPool.addChannelWrapper(address, ChannelFutureWrapper.of(future));
-        channelFutureWrapper = nettyConnectPool.getChannelFutureWrapper(address);
-        // 等待连接完成，输出日志
-        if (null != channelFutureWrapper) {
-            ChannelFuture channelFuture = channelFutureWrapper.getChannelFuture();
-            if (channelFuture.awaitUninterruptibly(3000)) {
-                // 同步等待完成
-                if (channelFutureWrapper.isOk()) {
-                    log.info("connect host {} success, channel is {}", address, channelFutureWrapper.getChannel());
-                } else {
-                    log.info("connect host {} failed, channel is {}", address, channelFutureWrapper.getChannel());
-                }
-            } else {
-                log.warn("createChannel: connect remote host[{" + address + "}] timeout 3000 ms, {" + channelFuture.toString() + "}");
+        channelCreateLock.lock(address);
+        try {
+            channelFutureWrapper = nettyConnectPool.getChannelFutureWrapper(address);
+            if (channelFutureWrapper != null) {
+                return channelFutureWrapper.getChannel();
             }
-            return channelFutureWrapper.getChannel();
+            ChannelFuture future = this.clientBootstrap.connect(RemotingHelper.string2SocketAddress(address));
+            log.info("createChannel: begin to connect remote host[{" + address + "}] asynchronously");
+            nettyConnectPool.addChannelWrapper(address, ChannelFutureWrapper.of(future));
+            channelFutureWrapper = nettyConnectPool.getChannelFutureWrapper(address);
+            // 等待连接完成，输出日志
+            if (null != channelFutureWrapper) {
+                ChannelFuture channelFuture = channelFutureWrapper.getChannelFuture();
+                if (channelFuture.awaitUninterruptibly(3000)) {
+                    // 同步等待完成
+                    if (channelFutureWrapper.isOk()) {
+                        log.info("connect host {} success, channel is {}", address, channelFutureWrapper.getChannel());
+                    } else {
+                        log.info("connect host {} failed, channel is {}", address, channelFutureWrapper.getChannel());
+                    }
+                } else {
+                    log.warn("createChannel: connect remote host[{" + address + "}] timeout 3000 ms, {" + channelFuture.toString() + "}");
+                }
+                return channelFutureWrapper.getChannel();
+            }
+        } finally {
+            channelCreateLock.unlock(address);
         }
         return null;
     }

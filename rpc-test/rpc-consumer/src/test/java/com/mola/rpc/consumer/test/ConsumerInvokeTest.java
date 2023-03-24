@@ -26,6 +26,8 @@ import java.nio.file.AccessMode;
 import java.util.Date;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -235,5 +237,34 @@ public class ConsumerInvokeTest {
         long cost = System.currentTimeMillis() - start;
         log.info("20次异步调用总时长，cost = " + cost);
         Assert.isTrue(cost < 2500, "testAsyncConcurrentTimeLimit-case2测试失败");
+    }
+
+    @Test
+    public void testMultiThreadInvoke() {
+        ExecutorService executorService = Executors.newFixedThreadPool(8);
+        CountDownLatch cdl = new CountDownLatch(800);
+        for (int i = 0; i < 800; i++) {
+            executorService.submit(
+                    () -> {
+                        String input1 = System.currentTimeMillis() + "";
+                        ServerResponse<String> response = unitTestService.test001(input1);
+                        Assert.isTrue(response != null && response.isSuccess(), "001-case1测试失败,调用失败");
+                        Assert.isTrue(input1.equals(response.getData()), "001-case1测试失败");
+                        BigDecimal bigDecimal = new BigDecimal("3.1415926");
+                        Date date = new Date();
+                        SpecialObject specialObject = unitTestService.specialObjectTransform(new SpecialObject(bigDecimal, date, AccessMode.READ, null));
+                        Assert.isTrue(bigDecimal.compareTo(specialObject.getBigDecimal()) == 0, "specialObjectTransform-case1测试失败");
+                        Assert.isTrue(date.compareTo(specialObject.getDate()) == 0, "specialObjectTransform-case2测试失败");
+                        Assert.isTrue(AccessMode.READ.equals(specialObject.getAccessMode()), "specialObjectTransform-case3测试失败");
+                        cdl.countDown();
+                    }
+            );
+        }
+
+        try {
+            cdl.await(3000, TimeUnit.MILLISECONDS);
+        } catch (InterruptedException e) {
+        }
+        Assert.isTrue(cdl.getCount() == 0, "001-case1测试失败, cdl = " + cdl.getCount());
     }
 }
