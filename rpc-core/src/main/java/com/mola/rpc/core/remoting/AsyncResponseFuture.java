@@ -6,6 +6,7 @@ import com.mola.rpc.core.remoting.protocol.RemotingCommandCode;
 import com.mola.rpc.core.util.BytesUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.util.Assert;
 
 import java.util.function.Consumer;
 
@@ -41,12 +42,10 @@ public class AsyncResponseFuture<T> extends ResponseFuture {
 
     public T get() throws InterruptedException {
         RemotingCommand remotingCommand = getResponseCommand();
-        if (getResponseCommand() == null) {
+        if (remotingCommand == null) {
             remotingCommand = super.waitResponse(timeout);
         }
-        if (remotingCommand == null) {
-            return null;
-        }
+        Assert.notNull(remotingCommand, "remotingCommand is null, perhaps provider timeout, timeout = " + timeout);
         // 服务端执行异常
         if (remotingCommand.getCode() == RemotingCommandCode.SYSTEM_ERROR) {
             throw new RuntimeException(remotingCommand.getRemark());
@@ -57,6 +56,21 @@ public class AsyncResponseFuture<T> extends ResponseFuture {
 
     public void setConsumer(Consumer<T> consumer) {
         this.consumer = consumer;
+    }
+
+    /**
+     * 可能存在放置consumer时已经回调结束，需要立即执行consumer
+     */
+    public void processConsumerIfReady() {
+        RemotingCommand remotingCommand = getResponseCommand();
+        if (getResponseCommand() != null) {
+            // 服务端执行异常
+            if (remotingCommand.getCode() == RemotingCommandCode.SYSTEM_ERROR) {
+                throw new RuntimeException(remotingCommand.getRemark());
+            }
+            // response转换成对象
+            consumer.accept((T)BytesUtil.bytesToObject(remotingCommand.getBody(), method.getReturnType()));
+        }
     }
 
     public void setTimeout(long timeout) {

@@ -51,6 +51,7 @@ public class Async<T> {
     public void consume(Consumer<T> consumer) {
         AsyncResponseFuture<T> responseFuture = this.asyncResponseFuture;
         responseFuture.setConsumer(consumer);
+        responseFuture.processConsumerIfReady();
     }
 
     public T get() {

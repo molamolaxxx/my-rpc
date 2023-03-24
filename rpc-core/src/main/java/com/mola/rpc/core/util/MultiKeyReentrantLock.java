@@ -13,19 +13,34 @@ import java.util.concurrent.locks.ReentrantLock;
  **/
 public class MultiKeyReentrantLock {
 
-    private ConcurrentHashMap<String, ReentrantLock> lockMap = new ConcurrentHashMap<>();
+    private ConcurrentHashMap<Integer, ReentrantLock> lockMap = new ConcurrentHashMap<>();
+
+    /**
+     * 桶容量
+     */
+    private int capacity;
+
+    public MultiKeyReentrantLock(int capacity) {
+        Assert.isTrue(capacity > 0, "capacity can not smaller than zero");
+        this.capacity = capacity;
+    }
 
     public void lock(String key) {
-        ReentrantLock reentrantLock = lockMap.putIfAbsent(key, new ReentrantLock());
+        Integer hash = Integer.valueOf(getHash(key));
+        ReentrantLock reentrantLock = lockMap.putIfAbsent(hash, new ReentrantLock());
         if (reentrantLock == null) {
-            reentrantLock = lockMap.get(key);
+            reentrantLock = lockMap.get(hash);
         }
         reentrantLock.lock();
     }
 
     public void unlock(String key) {
-        ReentrantLock reentrantLock = lockMap.get(key);
+        ReentrantLock reentrantLock = lockMap.get(getHash(key));
         Assert.notNull(reentrantLock, "reentrantLock not exist");
         reentrantLock.unlock();
+    }
+
+    private int getHash(String key) {
+        return HashUtil.getHash(key) % capacity;
     }
 }

@@ -64,7 +64,7 @@ public class NettyRemoteClient {
 
     private AtomicBoolean startFlag = new AtomicBoolean(false);
 
-    private final MultiKeyReentrantLock channelCreateLock = new MultiKeyReentrantLock();
+    private final MultiKeyReentrantLock channelCreateLock = new MultiKeyReentrantLock(128);
 
     /**
      * pipeline上的请求处理器，用于provider的反射调用和结果写回(in)
@@ -175,8 +175,7 @@ public class NettyRemoteClient {
 
         ChannelFutureWrapper channelFutureWrapper = nettyConnectPool.getChannelFutureWrapper(address);
         if (null != channelFutureWrapper && !channelFutureWrapper.getChannelFuture().isDone()) {
-            log.info("[connecting]: connect host {} connecting", address);
-            return channelFutureWrapper.getChannel();
+            throw new RuntimeException("[connecting]: connect host " + address + " is connecting, not available");
         }
 
         channelCreateLock.lock(address);
@@ -187,27 +186,24 @@ public class NettyRemoteClient {
             }
             ChannelFuture future = this.clientBootstrap.connect(RemotingHelper.string2SocketAddress(address));
             log.info("createChannel: begin to connect remote host[{" + address + "}] asynchronously");
-            nettyConnectPool.addChannelWrapper(address, ChannelFutureWrapper.of(future));
-            channelFutureWrapper = nettyConnectPool.getChannelFutureWrapper(address);
+            channelFutureWrapper = ChannelFutureWrapper.of(future);
             // 等待连接完成，输出日志
-            if (null != channelFutureWrapper) {
-                ChannelFuture channelFuture = channelFutureWrapper.getChannelFuture();
-                if (channelFuture.awaitUninterruptibly(3000)) {
-                    // 同步等待完成
-                    if (channelFutureWrapper.isOk()) {
-                        log.info("connect host {} success, channel is {}", address, channelFutureWrapper.getChannel());
-                    } else {
-                        log.info("connect host {} failed, channel is {}", address, channelFutureWrapper.getChannel());
-                    }
+            ChannelFuture channelFuture = channelFutureWrapper.getChannelFuture();
+            if (channelFuture.awaitUninterruptibly(3000)) {
+                // 同步等待完成
+                if (channelFutureWrapper.isOk()) {
+                    log.info("connect host {} success, channel is {}", address, channelFutureWrapper.getChannel());
+                    nettyConnectPool.addChannelWrapper(address, channelFutureWrapper);
                 } else {
-                    log.warn("createChannel: connect remote host[{" + address + "}] timeout 3000 ms, {" + channelFuture.toString() + "}");
+                    log.info("connect host {} failed, channel is {}", address, channelFutureWrapper.getChannel());
                 }
-                return channelFutureWrapper.getChannel();
+            } else {
+                log.warn("createChannel: connect remote host[{" + address + "}] timeout 3000 ms, {" + channelFuture.toString() + "}");
             }
+            return channelFutureWrapper.getChannel();
         } finally {
             channelCreateLock.unlock(address);
         }
-        return null;
     }
 
     /**

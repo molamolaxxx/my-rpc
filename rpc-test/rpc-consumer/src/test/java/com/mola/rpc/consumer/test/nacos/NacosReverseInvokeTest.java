@@ -65,4 +65,11 @@ public class NacosReverseInvokeTest extends ReverseInvokeTest {
         String res = unitTestServiceAppointNacos.testReverseLoopBackInSpring(id);
         Assert.isTrue(("reverse-spring-mode-"+id).equals(res), "ReverseInvokeTest case 2 failed");
     }
+
+    @Test
+    public void testAsync() throws InterruptedException {
+        String id = System.currentTimeMillis() + "";
+        String res = unitTestServiceAppointNacos.testReverseLoopBackInAsync(id);
+        Assert.isTrue("ok".equals(res), "ReverseInvokeTest case 3 failed");
+    }
 }

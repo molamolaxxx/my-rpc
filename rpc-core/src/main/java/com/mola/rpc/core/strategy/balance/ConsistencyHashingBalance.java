@@ -4,6 +4,7 @@ import com.alibaba.fastjson.JSONObject;
 import com.mola.rpc.common.constants.LoadBalanceConstants;
 import com.mola.rpc.common.entity.AddressInfo;
 import com.mola.rpc.common.entity.RpcMetaData;
+import com.mola.rpc.core.util.HashUtil;
 import com.mola.rpc.data.config.listener.AddressChangeListener;
 import org.springframework.util.Assert;
 import org.springframework.util.CollectionUtils;
@@ -36,7 +37,7 @@ public class ConsistencyHashingBalance implements LoadBalanceStrategy, AddressCh
         if (virtualAddressNodeMap == null || virtualAddressNodeMap.size() == 0) {
             throw new RuntimeException("virtualAddressNodeMap is empty");
         }
-        int hash = getHash(JSONObject.toJSONString(args));
+        int hash = HashUtil.getHash(JSONObject.toJSONString(args));
         SortedMap<Integer, String> tailMap = virtualAddressNodeMap.tailMap(hash);
         if (tailMap.size() == 0) {
             return getAddressFromVirtualNode(virtualAddressNodeMap.get(virtualAddressNodeMap.firstKey()));
@@ -73,34 +74,11 @@ public class ConsistencyHashingBalance implements LoadBalanceStrategy, AddressCh
             for (String address : addressList) {
                 for (int i = 0; i < totalNodeNum; i++) {
                     String virtualAddress = String.format("%s#%s", address, UUID.randomUUID());
-                    virtualAddressNodeMap.put(getHash(virtualAddress), virtualAddress);
+                    virtualAddressNodeMap.put(HashUtil.getHash(virtualAddress), virtualAddress);
                 }
             }
             consumerMeta.setVirtualAddressNodeMap(virtualAddressNodeMap);
         }
-    }
-
-    /**
-     * FNV1_32_HASH算法
-     * @param str
-     * @return
-     */
-    private static int getHash(String str) {
-        final int p = 16777619;
-        int hash = (int) 2166136261L;
-        for (int i = 0; i < str.length(); i++) {
-            hash = (hash ^ str.charAt(i)) * p;
-        }
-        hash += hash << 13;
-        hash ^= hash >> 7;
-        hash += hash << 3;
-        hash ^= hash >> 17;
-        hash += hash << 5;
-        //如果算出来的值为负数则取其绝对值
-        if (hash < 0) {
-            hash = Math.abs(hash);
-        }
-        return hash;
     }
 
     @Override
