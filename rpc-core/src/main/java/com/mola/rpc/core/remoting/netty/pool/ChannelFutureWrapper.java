@@ -28,7 +28,7 @@ public class ChannelFutureWrapper extends AbstractChannelWrapper {
 
     @Override
     public boolean isOk() {
-        return null != channelFuture && channelFuture.channel().isActive() && channelFuture.channel().isWritable();
+        return channelFuture != null && channelFuture.channel().isActive() && channelFuture.channel().isWritable();
     }
 
     public static final ChannelFutureWrapper of(ChannelFuture channelFuture) {

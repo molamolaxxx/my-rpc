@@ -68,7 +68,7 @@ public class NacosRpcDataManager extends BaseRpcDataManager {
 
     @Override
     public void destroy() {
-        if (null != this.namingService) {
+        if (this.namingService != null) {
             try {
                 this.namingService.shutDown();
             } catch (NacosException e) {

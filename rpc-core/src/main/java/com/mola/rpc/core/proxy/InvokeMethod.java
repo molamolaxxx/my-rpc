@@ -130,7 +130,7 @@ public class InvokeMethod {
 			for (int i = 0; i < this.parameterTypes.length; i++) {
 				// 判断是否是基础类型
 				Class baseTypeClazz = TypeUtil.getBaseTypeClazz(this.parameterTypes[i]);
-				if (null != baseTypeClazz) {
+				if (baseTypeClazz != null) {
 					paramTypes[i] = baseTypeClazz;
 					continue;
 				}

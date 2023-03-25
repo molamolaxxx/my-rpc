@@ -29,7 +29,7 @@ public class NettyEncoder extends MessageToByteEncoder<RemotingCommand> {
             out.writeBytes(header);
             // 获取报文体并发送
             byte[] body = remotingCommand.getBody();
-            if (null != body) {
+            if (body != null) {
                 out.writeBytes(body);
             }
         } catch (Throwable t) {

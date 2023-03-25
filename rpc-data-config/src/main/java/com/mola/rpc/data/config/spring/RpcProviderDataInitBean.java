@@ -248,24 +248,24 @@ public class RpcProviderDataInitBean {
     }
 
     public void refresh(RpcDataManager rpcDataManager) {
-        if (null != this.rpcDataManager) {
+        if (this.rpcDataManager != null) {
             this.rpcDataManager.destroy();
         }
         this.rpcDataManager = rpcDataManager;
-        if (null != this.providerInfoUploadMonitorService) {
+        if (this.providerInfoUploadMonitorService != null) {
             this.providerInfoUploadMonitorService.shutdown();
         }
-        if (null != this.consumerInfoDownloadMonitorService) {
+        if (this.consumerInfoDownloadMonitorService != null) {
             this.consumerInfoDownloadMonitorService.shutdown();
         }
         init(rpcProperties);
     }
 
     public void shutdownMonitor() {
-        if (null != this.providerInfoUploadMonitorService) {
+        if (this.providerInfoUploadMonitorService != null) {
             this.providerInfoUploadMonitorService.shutdown();
         }
-        if (null != this.consumerInfoDownloadMonitorService) {
+        if (this.consumerInfoDownloadMonitorService != null) {
             this.consumerInfoDownloadMonitorService.shutdown();
         }
     }

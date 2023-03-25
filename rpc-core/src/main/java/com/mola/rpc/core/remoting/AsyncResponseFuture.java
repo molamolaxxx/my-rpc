@@ -34,7 +34,7 @@ public class AsyncResponseFuture<T> extends ResponseFuture {
             log.error("async invoke failed, server throw exception, client will not consume result! remark = " + responseCommand.getRemark());
             return;
         }
-        if (null != consumer) {
+        if (consumer != null) {
             // response转换成对象
             consumer.accept((T) BytesUtil.bytesToObject(responseCommand.getBody(), method.getReturnType()));
         }

@@ -100,7 +100,7 @@ public class RpcProxyInvokeHandler implements InvocationHandler {
             Async.addFuture(asyncResponseFuture);
             // 异步返回基础类型返回值存在null装箱失败，需要返回object
             Object fakeResult = TypeUtil.getBaseTypeDefaultObject(method.getReturnType().getName());
-            if (null != fakeResult) {
+            if (fakeResult != null) {
                 return fakeResult;
             }
             return null;
@@ -231,7 +231,7 @@ public class RpcProxyInvokeHandler implements InvocationHandler {
             Async.addFuture(asyncResponseFuture);
             // 异步返回基础类型返回值存在null装箱失败，需要返回object
             Object fakeResult = TypeUtil.getBaseTypeDefaultObject(method.getReturnType().getName());
-            if (null != fakeResult) {
+            if (fakeResult != null) {
                 return fakeResult;
             }
             return null;

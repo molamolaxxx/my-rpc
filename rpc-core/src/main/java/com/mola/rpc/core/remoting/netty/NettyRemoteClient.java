@@ -105,7 +105,6 @@ public class NettyRemoteClient {
             log.info("[NettyRemoteClient]:there are no consumer registered, netty client will not start");
             return;
         }
-        final NettyRemoteClient self = this;
         // 初始化pipeline的执行线程池
         this.defaultEventExecutorGroup = new DefaultEventExecutorGroup(
                 4,
@@ -169,12 +168,12 @@ public class NettyRemoteClient {
     public Channel createChannel(final String address) {
         // 1、从缓存中获取
         Channel channel = nettyConnectPool.getChannel(address);
-        if (null != channel) {
+        if (channel != null) {
             return channel;
         }
 
         ChannelFutureWrapper channelFutureWrapper = nettyConnectPool.getChannelFutureWrapper(address);
-        if (null != channelFutureWrapper && !channelFutureWrapper.getChannelFuture().isDone()) {
+        if (channelFutureWrapper != null && !channelFutureWrapper.getChannelFuture().isDone()) {
             throw new RuntimeException("[connecting]: connect host " + address + " is connecting, not available");
         }
 
@@ -267,7 +266,7 @@ public class NettyRemoteClient {
                     throw new RuntimeException("provider time out, method = "
                             + invokeMethod.getInterfaceClazz() + "@" + invokeMethod.getMethodName() + " channel is " + channel.toString());
                 }
-                if (null != responseFuture.getCause()) {
+                if (responseFuture.getCause() != null) {
                     throw new RuntimeException(responseFuture.getCause());
                 }
                 throw new RuntimeException("unknown exception");
@@ -385,13 +384,13 @@ public class NettyRemoteClient {
     public void putResponse(RemotingCommand responseCommand) {
         // 同步缓存
         ResponseFuture responseFuture = this.responseFutureManager.getSyncResponseFuture(responseCommand.getOpaque());
-        if (null != responseFuture) {
+        if (responseFuture != null) {
             responseFuture.putResponse(responseCommand);
             return;
         }
         // 异步缓存
         AsyncResponseFuture asyncResponseFuture = this.responseFutureManager.getAsyncResponseFuture(responseCommand.getOpaque());
-        if (null != asyncResponseFuture) {
+        if (asyncResponseFuture != null) {
             asyncResponseFuture.putResponse(responseCommand);
             this.responseFutureManager.removeAsyncResponseFuture(responseCommand.getOpaque());
         }

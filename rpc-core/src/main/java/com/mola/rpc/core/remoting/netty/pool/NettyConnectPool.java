@@ -36,7 +36,7 @@ public class NettyConnectPool {
 
     public Channel getChannel(String address) {
         ChannelFutureWrapper channelWrapper = channelWrapperMap.get(address);
-        if (null != channelWrapper && channelWrapper.isOk()) {
+        if (channelWrapper != null && channelWrapper.isOk()) {
             return channelWrapper.getChannel();
         }
         return null;

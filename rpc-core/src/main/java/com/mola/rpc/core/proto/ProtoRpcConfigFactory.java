@@ -115,10 +115,10 @@ public class ProtoRpcConfigFactory {
 
     public void shutdown() {
         // 关闭netty服务器
-        if (null != nettyRemoteServer && nettyRemoteServer.isStart()) {
+        if (nettyRemoteServer != null && nettyRemoteServer.isStart()) {
             nettyRemoteServer.shutdown();
         }
-        if (null != nettyRemoteClient && nettyRemoteClient.isStart()) {
+        if (nettyRemoteClient != null && nettyRemoteClient.isStart()) {
             nettyRemoteClient.shutdown();
         }
         // 关闭监听线程

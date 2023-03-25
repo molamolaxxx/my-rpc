@@ -90,7 +90,7 @@ public class ReverseInvokeHelper {
     }
 
     public void shutdownMonitor() {
-        if (null != reverseProviderConnectMonitorThread) {
+        if (reverseProviderConnectMonitorThread != null) {
             reverseProviderConnectMonitorThread.shutdown();
         }
     }

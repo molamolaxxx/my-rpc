@@ -54,7 +54,7 @@ public class RpcBeanPropertiesConfiguration {
         ProtoRpcConfigFactory protoRpcConfigFactory = ProtoRpcConfigFactory.get();
         protoRpcConfigFactory.init(rpcProperties);
         protoRpcConfigFactory.setProviderObjectFetcher(providerMeta -> {
-            if (null != providerMeta.getProviderObject()) {
+            if (providerMeta.getProviderObject() != null) {
                 return providerMeta.getProviderObject();
             }
             return applicationContext.getBean(providerMeta.getProviderBeanName());
