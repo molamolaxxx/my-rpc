@@ -93,13 +93,15 @@ public class ZkRpcDataManager extends BaseRpcDataManager {
     public List<AddressInfo> getRemoteProviderAddress(String interfaceClazz, String group, String version, String environment) {
         String remoteProviderPath = getRemoteProviderPath(interfaceClazz, group, version, environment);
         try {
-            return zkClient.getChildren(remoteProviderPath).stream()
-                    .map(path -> new AddressInfo(path,
-                            JSONObject.parseObject(zkClient.readData(remoteProviderPath + "/" + path), ProviderConfigData.class))).collect(Collectors.toList());
+            return Lists.newCopyOnWriteArrayList(
+                    zkClient.getChildren(remoteProviderPath).stream().map(path -> new AddressInfo(path,
+                            JSONObject.parseObject(zkClient.readData(remoteProviderPath + "/" + path), ProviderConfigData.class)))
+                            .collect(Collectors.toList())
+            );
         } catch (Exception e) {
             log.error("getRemoteProviderAddress getChildren error, remoteProviderPath = " + remoteProviderPath, e);
         }
-        return Lists.newArrayList();
+        return Lists.newCopyOnWriteArrayList();
     }
 
     @Override

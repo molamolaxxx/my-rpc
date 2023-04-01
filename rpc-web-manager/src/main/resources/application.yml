@@ -26,3 +26,5 @@ rpc:
   server-port: 15234
   app-name: ${spring.application.name}
   environment: pre
+  web:
+    refresh-database: true

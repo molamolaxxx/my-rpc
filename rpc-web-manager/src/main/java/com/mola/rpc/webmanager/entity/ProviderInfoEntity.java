@@ -1,6 +1,7 @@
 package com.mola.rpc.webmanager.entity;
 
 import lombok.Data;
+import org.hibernate.annotations.DynamicUpdate;
 
 import javax.persistence.*;
 
@@ -12,8 +13,9 @@ import javax.persistence.*;
  **/
 @Entity
 @Table(name = "tb_provider_info")
+@DynamicUpdate // 在更新数据时，只生成修改过的非空字段的 SQL 语句
 @Data
-public class ProviderInfoEntity {
+public class ProviderInfoEntity extends BaseEntity{
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

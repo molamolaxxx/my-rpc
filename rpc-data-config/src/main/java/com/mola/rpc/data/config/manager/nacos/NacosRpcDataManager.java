@@ -85,20 +85,22 @@ public class NacosRpcDataManager extends BaseRpcDataManager {
         try {
             List<Instance> allInstances = this.namingService.selectInstances(serviceName, true);
             if (CollectionUtils.isEmpty(allInstances)) {
-                return Lists.newArrayList();
+                return Lists.newCopyOnWriteArrayList();
             }
             // by环境过滤+聚合实例到AddressInfo
-            return allInstances.stream().map(instance -> {
-                ProviderConfigData providerConfigData = ObjectUtils.parseMap(instance.getMetadata(), ProviderConfigData.class);
-                SystemInfo systemInfo = JSONObject.parseObject(instance.getMetadata().get("systemInfoKey"), SystemInfo.class);
-                providerConfigData.setSystemInfo(systemInfo);
-                AddressInfo info = new AddressInfo(instance.getIp()+":" +instance.getPort(), providerConfigData);
-                return info;
-            }).collect(Collectors.toList());
+            return Lists.newCopyOnWriteArrayList(
+                    allInstances.stream().map(instance -> {
+                        ProviderConfigData providerConfigData = ObjectUtils.parseMap(instance.getMetadata(), ProviderConfigData.class);
+                        SystemInfo systemInfo = JSONObject.parseObject(instance.getMetadata().get("systemInfoKey"), SystemInfo.class);
+                        providerConfigData.setSystemInfo(systemInfo);
+                        AddressInfo info = new AddressInfo(instance.getIp()+":" +instance.getPort(), providerConfigData);
+                        return info;
+                    }).collect(Collectors.toList())
+            );
         } catch (Exception e) {
             log.error("getRemoteProviderAddress getAllInstances error, serviceName = " + serviceName, e);
         }
-        return Lists.newArrayList();
+        return Lists.newCopyOnWriteArrayList();
     }
 
     @Override

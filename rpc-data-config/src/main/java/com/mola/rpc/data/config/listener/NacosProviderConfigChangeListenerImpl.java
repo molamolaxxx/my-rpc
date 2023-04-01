@@ -60,7 +60,7 @@ public class NacosProviderConfigChangeListenerImpl implements EventListener {
                 if (!CollectionUtils.isEmpty(addressList)) {
                     addressList.forEach(addressInfo -> addressInfoMap.put(addressInfo.getAddress(), addressInfo));
                 }
-                List<AddressInfo> newAddressInfo = Lists.newArrayList();
+                List<AddressInfo> newAddressInfo = Lists.newCopyOnWriteArrayList();
                 instances.forEach(
                         instance -> {
                             String addressStr = instance.getIp() + ":" + instance.getPort();

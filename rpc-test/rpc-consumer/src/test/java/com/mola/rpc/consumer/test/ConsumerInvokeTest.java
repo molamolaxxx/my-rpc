@@ -241,9 +241,9 @@ public class ConsumerInvokeTest {
 
     @Test
     public void testMultiThreadInvoke() {
-        ExecutorService executorService = Executors.newFixedThreadPool(8);
-        CountDownLatch cdl = new CountDownLatch(800);
-        for (int i = 0; i < 800; i++) {
+        ExecutorService executorService = Executors.newFixedThreadPool(16);
+        CountDownLatch cdl = new CountDownLatch(10000);
+        for (int i = 0; i < 10000; i++) {
             executorService.submit(
                 () -> {
                     String input1 = System.currentTimeMillis() + "";
@@ -262,7 +262,7 @@ public class ConsumerInvokeTest {
         }
 
         try {
-            cdl.await(3000, TimeUnit.MILLISECONDS);
+            cdl.await(5000, TimeUnit.MILLISECONDS);
         } catch (InterruptedException e) {
         }
         Assert.isTrue(cdl.getCount() == 0, "001-case1测试失败, cdl = " + cdl.getCount());

@@ -1,7 +1,9 @@
 package com.mola.rpc.webmanager.service;
 
+import com.alibaba.fastjson.JSONObject;
 import com.mola.rpc.common.entity.ProviderConfigData;
 import com.mola.rpc.common.entity.RpcMetaData;
+import com.mola.rpc.core.properties.RpcProperties;
 import com.mola.rpc.data.config.manager.RpcDataManager;
 import com.mola.rpc.data.config.spring.RpcProviderDataInitBean;
 import com.mola.rpc.webmanager.entity.ProviderInfoEntity;
@@ -11,13 +13,11 @@ import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Example;
 import org.springframework.data.domain.ExampleMatcher;
 import org.springframework.stereotype.Service;
+import org.springframework.util.Assert;
 import org.springframework.util.CollectionUtils;
 
 import javax.annotation.Resource;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -37,6 +37,9 @@ public class ProviderMetaService {
     @Resource
     private ProviderInfoRepository providerInfoRepository;
 
+    @Resource
+    private RpcProperties rpcProperties;
+
     public Map<String, RpcMetaData> queryAllMetaDataFromConfigServer() {
         RpcDataManager<RpcMetaData> rpcDataManager = rpcProviderDataInitBean.getRpcDataManager();
         return rpcDataManager.getAllProviderMetaData();
@@ -47,18 +50,18 @@ public class ProviderMetaService {
         return rpcDataManager.getAllProviderConfigData(interfaceClazz, group, version, environment);
     }
 
-    public void updateProviderInfoStorage(String providerKey, RpcMetaData rpcMetaData) {
+    public ProviderInfoEntity updateProviderInfoStorage(String providerKey, RpcMetaData rpcMetaData) {
         String[] splitRes = providerKey.split(":");
-        if (splitRes== null || splitRes.length != 4) {
+        if (splitRes== null || splitRes.length != 3) {
             log.error("ProviderRefreshAllHandler run failed, provider key illegal! " + providerKey);
-            return;
+            return null;
         }
         // 2、同步更新数据库
         ProviderInfoEntity entity = new ProviderInfoEntity();
         entity.setInterfaceClazzName(splitRes[0]);
         entity.setProviderGroup(splitRes[1]);
         entity.setProviderVersion(splitRes[2]);
-        entity.setProviderEnvironment(splitRes[3]);
+        entity.setProviderEnvironment(rpcProperties.getEnvironment());
         List<ProviderConfigData> allProviderConfigData = getAllProviderConfigData(entity.getInterfaceClazzName(),
                 entity.getProviderGroup(), entity.getProviderVersion(), entity.getProviderEnvironment());
         Set<String> appNameSet = allProviderConfigData.stream().map(e -> e.getAppName()).collect(Collectors.toSet());
@@ -74,7 +77,32 @@ public class ProviderMetaService {
         if (optional.isPresent()) {
             ProviderInfoEntity fromDb = optional.get();
             entity.setId(fromDb.getId());
+            entity.setCreator(fromDb.getCreator());
+            entity.setGmtCreate(fromDb.getGmtCreate());
+        } else {
+            entity.setCreator("sys");
+            entity.setGmtCreate(new Date());
         }
+        entity.setModifier("sys");
+        entity.setGmtModify(new Date());
         providerInfoRepository.save(entity);
+        return entity;
+    }
+
+    public ProviderInfoEntity updateProviderInfoStorage(ProviderInfoEntity entity) {
+        Assert.notNull(entity, "entity is null");
+        Optional<ProviderInfoEntity> optional = providerInfoRepository.findById(entity.getId());
+        Assert.isTrue(optional.isPresent(), "db is null, entity = " + JSONObject.toJSONString(entity));
+        ProviderInfoEntity fromDb = optional.get();
+        entity.setId(fromDb.getId());
+        entity.setModifier("sys");
+        entity.setGmtModify(new Date());
+        List<ProviderConfigData> allProviderConfigData = getAllProviderConfigData(entity.getInterfaceClazzName(),
+                entity.getProviderGroup(), entity.getProviderVersion(), entity.getProviderEnvironment());
+        Set<String> appNameSet = allProviderConfigData.stream().map(e -> e.getAppName()).collect(Collectors.toSet());
+        entity.setProviderAppName(String.join(",", appNameSet));
+        entity.setOnline(!CollectionUtils.isEmpty(allProviderConfigData));
+        providerInfoRepository.save(entity);
+        return entity;
     }
 }

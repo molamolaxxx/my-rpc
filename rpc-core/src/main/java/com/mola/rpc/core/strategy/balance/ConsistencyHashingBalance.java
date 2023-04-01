@@ -64,7 +64,9 @@ public class ConsistencyHashingBalance implements LoadBalanceStrategy, AddressCh
      */
     public void rebuildHash(RpcMetaData consumerMeta) {
         synchronized (consumerMeta) {
-            List<String> addressList = consumerMeta.getAddressList().stream().map(AddressInfo::getAddress).collect(Collectors.toList());
+            List<String> addressList = consumerMeta.getAddressList()
+                    .stream().map(AddressInfo::getAddress)
+                    .collect(Collectors.toList());
             if (CollectionUtils.isEmpty(addressList)) {
                 consumerMeta.setVirtualAddressNodeMap(null);
                 return;

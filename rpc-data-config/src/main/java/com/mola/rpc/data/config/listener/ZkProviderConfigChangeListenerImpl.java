@@ -47,7 +47,7 @@ public class ZkProviderConfigChangeListenerImpl implements IZkChildListener {
 
     @Override
     public void handleChildChange(String parentPath, List<String> childList) throws Exception {
-        log.info("remote address refresh from zk , service is " + this.consumerMetaData.getInterfaceClazz().getName() + ":" + JSONObject.toJSONString(childList));
+        log.info("remote address refresh from zk , service is " + this.consumerMetaData.getInterfaceClazz() + ":" + JSONObject.toJSONString(childList));
         this.addressListChangeLock.lock();
         try {
             List<AddressInfo> addressList = consumerMetaData.getAddressList();
@@ -55,8 +55,7 @@ public class ZkProviderConfigChangeListenerImpl implements IZkChildListener {
             if (!CollectionUtils.isEmpty(addressList)) {
                 addressList.forEach(addressInfo -> addressInfoMap.put(addressInfo.getAddress(), addressInfo));
             }
-            addressList.forEach(addressInfo -> addressInfoMap.put(addressInfo.getAddress(), addressInfo));
-            List<AddressInfo> newAddressInfo = Lists.newArrayList();
+            List<AddressInfo> newAddressInfo = Lists.newCopyOnWriteArrayList();
             childList.forEach(
                     addressStr -> {
                         if (!addressInfoMap.containsKey(addressStr)) {

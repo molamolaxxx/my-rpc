@@ -83,9 +83,7 @@ public class RpcProxyInvokeHandler implements InvocationHandler {
         // 过滤掉无效的地址
         // 1、不可用服务（心跳超时、主动下线、规则下线）
         // 2、路由脚本过滤服务
-//        List<String> addressList = addressInfoList.stream()
-//                .map(AddressInfo::getAddress)
-//                .collect(Collectors.toList());
+        // 3、泳道过滤
 
         // 负载均衡策略
         String targetProviderAddress = loadBalance.getTargetProviderAddress(consumerMeta, args);

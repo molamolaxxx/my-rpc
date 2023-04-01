@@ -110,7 +110,7 @@ public class RpcProviderDataInitBean {
         // 服务名
         String serviceName = consumerMetaData.getInterfaceClazz().getName();
         // 泛化调用
-        if (consumerMetaData.getGenericInvoke()) {
+        if (Boolean.TRUE.equals(consumerMetaData.getGenericInvoke())) {
             Assert.hasText(consumerMetaData.getGenericInterfaceName(), "GenericInterfaceName can not be empty! because of this service is Generic Service");
             serviceName = consumerMetaData.getGenericInterfaceName();
         }
