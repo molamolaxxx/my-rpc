@@ -1,5 +1,6 @@
 package com.mola.rpc.core.remoting.netty;
 
+import com.mola.rpc.core.proto.ProtoRpcConfigFactory;
 import com.mola.rpc.core.remoting.AsyncResponseFuture;
 import com.mola.rpc.core.remoting.ResponseFuture;
 import org.slf4j.Logger;
@@ -39,6 +40,7 @@ public class ResponseFutureManager {
     private ScheduledExecutorService responseFutureMonitorService;
 
     public void initResponseFutureMonitor() {
+        long maxClientTimeout = ProtoRpcConfigFactory.get().getRpcProperties().getMaxClientTimeout();
         this.responseFutureMonitorService = Executors.newScheduledThreadPool(1,
                 new ThreadFactory() {
                     AtomicInteger threadIndex = new AtomicInteger(0);
@@ -48,10 +50,10 @@ public class ResponseFutureManager {
                     }
                 });
         this.responseFutureMonitorService.scheduleAtFixedRate(() -> {
-            // 同步map检查，大于一分钟删除
-            delTimeoutFutures(responseMap, 60 * 1000);
-            // 异步map检查，大于三分钟删除
-            delTimeoutFutures(asyncResponseMap, 180 * 1000);
+            // 同步map检查
+            delTimeoutFutures(responseMap, maxClientTimeout);
+            // 异步map检查
+            delTimeoutFutures(asyncResponseMap, maxClientTimeout);
         },60, 60, TimeUnit.SECONDS);
     }
 
@@ -59,7 +61,7 @@ public class ResponseFutureManager {
      * 删除超时的future
      * @param responseMap
      */
-    private void delTimeoutFutures(Map<Integer, ? extends ResponseFuture> responseMap, Integer timeout) {
+    private void delTimeoutFutures(Map<Integer, ? extends ResponseFuture> responseMap, long timeout) {
         long currentTime = System.currentTimeMillis();
         List<ResponseFuture> needDelFutures = new ArrayList<>();
         for (ResponseFuture future : responseMap.values()) {

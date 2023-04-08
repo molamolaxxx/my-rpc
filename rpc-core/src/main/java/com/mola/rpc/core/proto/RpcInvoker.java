@@ -74,6 +74,11 @@ public class RpcInvoker {
     public static <T> T consumer(Class<T> consumerInterface, RpcMetaData rpcMetaData, String consumerName) {
         ProtoRpcConfigFactory protoRpcConfigFactory = ProtoRpcConfigFactory.get();
         RpcProperties rpcProperties = protoRpcConfigFactory.getRpcProperties();
+        // 客户端超时时间检查
+        if (rpcMetaData.getClientTimeout() > rpcProperties.getMaxClientTimeout()) {
+            throw new RuntimeException(String.format("%s's timeout can not longer than max client timeout, current is %s, max is %s",
+                    consumerInterface.getName(), rpcMetaData.getClientTimeout(), rpcProperties.getMaxClientTimeout()));
+        }
         // 订阅服务
         RpcContext rpcContext = protoRpcConfigFactory.getRpcContext();
         rpcMetaData.setInterfaceClazz(consumerInterface);

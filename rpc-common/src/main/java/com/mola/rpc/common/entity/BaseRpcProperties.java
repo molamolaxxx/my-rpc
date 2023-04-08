@@ -63,6 +63,15 @@ public class BaseRpcProperties {
      */
     private Boolean checkDependencyProviderBeforeStart = Boolean.FALSE;
 
+    /**
+     * 客户端最大超时时间，默认三分钟
+     */
+    private Long maxClientTimeout = 180 * 1000L;
+
+    /**
+     * 是否启动注册中心，默认启动
+     * 如果在无注册中心的环境下，如点对点调用、反向代理，配置为false
+     */
     private Boolean startConfigServer = Boolean.TRUE;
 
 
@@ -152,5 +161,13 @@ public class BaseRpcProperties {
 
     public void setCheckDependencyProviderBeforeStart(Boolean checkDependencyProviderBeforeStart) {
         this.checkDependencyProviderBeforeStart = checkDependencyProviderBeforeStart;
+    }
+
+    public Long getMaxClientTimeout() {
+        return maxClientTimeout;
+    }
+
+    public void setMaxClientTimeout(Long maxClientTimeout) {
+        this.maxClientTimeout = maxClientTimeout;
     }
 }

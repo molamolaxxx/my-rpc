@@ -98,6 +98,8 @@ public class ProtoRpcConfigFactory {
             this.rpcProperties = rpcProperties;
             // 上下文初始化
             this.initContext();
+            // 上下文检查
+            this.checkContext();
             // 负载均衡初始化
             this.initLoadBalance();
             // 网络初始化
@@ -141,6 +143,17 @@ public class ProtoRpcConfigFactory {
 
     protected void initContext() {
         this.rpcContext = RpcContext.fetch();
+    }
+
+    protected void checkContext() {
+        // 检查客户端超时时间
+        for (RpcMetaData clientMeta : rpcContext.getConsumerMetaMap().values()) {
+            // 客户端超时时间检查
+            if (clientMeta.getClientTimeout() > rpcProperties.getMaxClientTimeout()) {
+                throw new RuntimeException(String.format("%s's timeout can not longer than max client timeout, current is %s, max is %s",
+                        clientMeta.getInterfaceClazz().getName(), clientMeta.getClientTimeout(), rpcProperties.getMaxClientTimeout()));
+            }
+        }
     }
 
     protected void initLoadBalance() {
