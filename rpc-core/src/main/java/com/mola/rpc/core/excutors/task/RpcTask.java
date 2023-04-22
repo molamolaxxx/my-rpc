@@ -38,8 +38,9 @@ public abstract class RpcTask implements Runnable {
 
     @Override
     public void run() {
+        log.info("thread:" + Thread.currentThread().getName());
         // todo 拦截器链执行
-        this.runTask();
+        runTask();
         // todo 后置处理器
     }
 

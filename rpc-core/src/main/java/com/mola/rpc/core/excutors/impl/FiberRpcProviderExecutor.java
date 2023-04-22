@@ -25,7 +25,6 @@ public class FiberRpcProviderExecutor implements RpcExecutor {
 
     @Override
     public void process(RpcTask rpcTask) {
-        log.info("thread:" + Thread.currentThread().getName());
         Fiber fiber = new Fiber<>(rpcTask::run);
         fiber.start();
     }

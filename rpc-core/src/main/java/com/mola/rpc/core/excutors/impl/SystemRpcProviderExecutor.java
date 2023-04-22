@@ -30,9 +30,8 @@ public class SystemRpcProviderExecutor implements RpcExecutor {
     private BlockingQueue<Runnable> blockingQueue;
 
     public SystemRpcProviderExecutor(RpcProperties rpcProperties){
-        int maxProcessorNum = Math.min(Runtime.getRuntime().availableProcessors() / 2, 4);
         this.blockingQueue = new LinkedBlockingDeque<>(256);
-        this.tp = new ThreadPoolExecutor(maxProcessorNum,maxProcessorNum
+        this.tp = new ThreadPoolExecutor(rpcProperties.getSystemThreadNum(), rpcProperties.getSystemThreadNum()
                 ,200, TimeUnit.MILLISECONDS, blockingQueue, new ThreadFactory() {
             private AtomicInteger threadIndex = new AtomicInteger(0);
             @Override
@@ -44,7 +43,6 @@ public class SystemRpcProviderExecutor implements RpcExecutor {
 
     @Override
     public void process(RpcTask rpcTask) {
-        log.info("thread:" + Thread.currentThread().getName());
         tp.submit(rpcTask);
     }
 }

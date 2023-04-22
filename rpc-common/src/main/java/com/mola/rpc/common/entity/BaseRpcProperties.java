@@ -47,6 +47,11 @@ public class BaseRpcProperties {
     private Integer maxBizThreadNum = 80;
 
     /**
+     * 系统调用线程数
+     */
+    private Integer systemThreadNum = 4;
+
+    /**
      * 最大任务数量
      */
     private Integer maxBlockingQueueSize = 1024;
@@ -169,5 +174,13 @@ public class BaseRpcProperties {
 
     public void setMaxClientTimeout(Long maxClientTimeout) {
         this.maxClientTimeout = maxClientTimeout;
+    }
+
+    public Integer getSystemThreadNum() {
+        return systemThreadNum;
+    }
+
+    public void setSystemThreadNum(Integer systemThreadNum) {
+        this.systemThreadNum = systemThreadNum;
     }
 }
