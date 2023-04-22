@@ -139,6 +139,8 @@ public class RpcProxyInvokeHandler implements InvocationHandler {
         // 1、构建body
         byte[] requestBody = null;
         try {
+            invokeMethod.setVersion(consumerMeta.getVersion());
+            invokeMethod.setGroup(consumerMeta.getGroup());
             requestBody = BytesUtil.objectToBytes(invokeMethod.toString());
         } catch (Throwable e) {
             log.error("[RpcProxyInvokeHandler]: objectToBytes error"
@@ -156,8 +158,6 @@ public class RpcProxyInvokeHandler implements InvocationHandler {
         }
         request.setCode(RemotingCommandCode.NORMAL);
         request.setBody(requestBody);
-        request.setVersion(consumerMeta.getVersion());
-        request.setGroup(consumerMeta.getGroup());
         return request;
     }
 

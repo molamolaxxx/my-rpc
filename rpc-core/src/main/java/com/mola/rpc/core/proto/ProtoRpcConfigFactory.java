@@ -5,12 +5,14 @@ import com.mola.rpc.common.constants.LoadBalanceConstants;
 import com.mola.rpc.common.context.RpcContext;
 import com.mola.rpc.common.entity.RpcMetaData;
 import com.mola.rpc.common.utils.TestUtil;
+import com.mola.rpc.core.excutors.factory.RpcExecutorFactory;
+import com.mola.rpc.core.excutors.factory.RpcTaskFactory;
 import com.mola.rpc.core.properties.RpcProperties;
 import com.mola.rpc.core.remoting.handler.NettyRpcRequestHandler;
 import com.mola.rpc.core.remoting.handler.NettyRpcResponseHandler;
-import com.mola.rpc.core.remoting.netty.pool.NettyConnectPool;
 import com.mola.rpc.core.remoting.netty.NettyRemoteClient;
 import com.mola.rpc.core.remoting.netty.NettyRemoteServer;
+import com.mola.rpc.core.remoting.netty.pool.NettyConnectPool;
 import com.mola.rpc.core.strategy.balance.*;
 import com.mola.rpc.core.system.ReverseInvokeHelper;
 import com.mola.rpc.core.util.NetUtils;
@@ -73,6 +75,16 @@ public class ProtoRpcConfigFactory {
      */
     private RpcProperties rpcProperties;
 
+    /**
+     * 执行器工厂
+     */
+    private RpcExecutorFactory rpcExecutorFactory;
+
+    /**
+     * 执行器任务工厂
+     */
+    private RpcTaskFactory rpcTaskFactory;
+
     private NettyRpcRequestHandler requestHandler;
     private NettyRpcResponseHandler responseHandler;
 
@@ -97,17 +109,19 @@ public class ProtoRpcConfigFactory {
             }
             this.rpcProperties = rpcProperties;
             // 上下文初始化
-            this.initContext();
+            initContext();
             // 上下文检查
-            this.checkContext();
+            checkContext();
             // 负载均衡初始化
-            this.initLoadBalance();
+            initLoadBalance();
+            // 执行器初始化
+            initExecutors();
             // 网络初始化
-            this.initNettyConfiguration();
+            initNettyConfiguration();
             // config server配置
-            this.initConfigServer();
+            initConfigServer();
             // 反向provider注册
-            this.registerReverseProvider();
+            registerReverseProvider();
             INIT_FLAG.compareAndSet(false, true);
         } catch (Exception e) {
             INIT_FLAG.compareAndSet(true, false);
@@ -164,13 +178,18 @@ public class ProtoRpcConfigFactory {
         this.loadBalance = loadBalance;
     }
 
+    protected void initExecutors() {
+        this.rpcTaskFactory = new RpcTaskFactory();
+        this.rpcExecutorFactory = new RpcExecutorFactory(rpcProperties, rpcContext);
+    }
+
     protected void initNettyConfiguration() {
         // 响应处理器
         this.responseHandler = new NettyRpcResponseHandler();
         // rpc连接池
         this.nettyConnectPool = new NettyConnectPool();
         // 请求处理器
-        this.requestHandler = new NettyRpcRequestHandler(rpcContext, providerObjectFetcher, rpcProperties, nettyConnectPool);
+        this.requestHandler = new NettyRpcRequestHandler(rpcContext, providerObjectFetcher);
         NettyRemoteClient nettyRemoteClient = new NettyRemoteClient(requestHandler, responseHandler);
         nettyRemoteClient.setNettyConnectPool(nettyConnectPool);
         nettyRemoteClient.setRpcContext(rpcContext);
@@ -276,8 +295,25 @@ public class ProtoRpcConfigFactory {
         return rpcProperties;
     }
 
+    public RpcExecutorFactory getRpcExecutorFactory() {
+        return rpcExecutorFactory;
+    }
+
+    public void setRpcExecutorFactory(RpcExecutorFactory rpcExecutorFactory) {
+        this.rpcExecutorFactory = rpcExecutorFactory;
+    }
+
+    public RpcTaskFactory getRpcTaskFactory() {
+        return rpcTaskFactory;
+    }
+
+    public void setRpcTaskFactory(RpcTaskFactory rpcTaskFactory) {
+        this.rpcTaskFactory = rpcTaskFactory;
+    }
+
     public void setProviderObjectFetcher(ObjectFetcher providerObjectFetcher) {
         this.providerObjectFetcher = providerObjectFetcher;
+        // 覆盖老的provider获取器
         this.requestHandler.setProviderFetcher(providerObjectFetcher);
     }
 }

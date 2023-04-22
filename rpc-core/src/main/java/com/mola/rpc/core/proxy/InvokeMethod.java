@@ -28,6 +28,17 @@ public class InvokeMethod {
 	 */
 	private String interfaceClazz;
 
+	/**
+	 * 版本
+	 */
+	private String version;
+
+	/**
+	 * 分组
+	 */
+	private String group;
+
+
 	public InvokeMethod() {
 	}
 
@@ -101,6 +112,23 @@ public class InvokeMethod {
 
 	public void setSerializedArguments(byte[][] serializedArguments) {
 		this.serializedArguments = serializedArguments;
+	}
+
+
+	public String getVersion() {
+		return version;
+	}
+
+	public void setVersion(String version) {
+		this.version = version;
+	}
+
+	public String getGroup() {
+		return group;
+	}
+
+	public void setGroup(String group) {
+		this.group = group;
 	}
 
 	public Object invoke(Object providerBean) {

@@ -32,16 +32,6 @@ public class RemotingCommand {
     private int code;
 
     /**
-     * 版本
-     */
-    private String version;
-
-    /**
-     * 分组
-     */
-    private String group;
-
-    /**
      * request内部标示，保证每一个r都有唯一编号对应
      * AtomicInteger加到max_value会重置为-max_value
      */
@@ -207,14 +197,6 @@ public class RemotingCommand {
         return RemotingCommandType.REQUEST_COMMAND;
     }
 
-    public String getVersion() {
-        return version;
-    }
-
-    public void setVersion(String version) {
-        this.version = version;
-    }
-
     public int getOpaque() {
         return opaque;
     }
@@ -275,17 +257,9 @@ public class RemotingCommand {
         extFields.put(key, value);
     }
 
-    public String getGroup() {
-        return group;
-    }
-
-    public void setGroup(String group) {
-        this.group = group;
-    }
-
     @Override
     public String toString() {
-        return "RemotingCommand [code=" + code + ", version=" + version
+        return "RemotingCommand [code=" + code
                 + ", opaque=" + opaque + ", flag(B)=" + Integer.toBinaryString(flag) + ", remark=" + remark
                 + ", extFields=" + extFields + "]";
     }

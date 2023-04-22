@@ -1,26 +1,24 @@
 package com.mola.rpc.core.remoting.handler;
 
+import com.alibaba.fastjson.JSONObject;
 import com.mola.rpc.common.context.RpcContext;
 import com.mola.rpc.common.entity.RpcMetaData;
-import com.mola.rpc.core.properties.RpcProperties;
-import com.mola.rpc.core.biz.BizProcessAsyncExecutor;
+import com.mola.rpc.core.excutors.RpcExecutor;
+import com.mola.rpc.core.excutors.factory.RpcExecutorFactory;
+import com.mola.rpc.core.excutors.factory.RpcTaskFactory;
 import com.mola.rpc.core.proto.ObjectFetcher;
+import com.mola.rpc.core.proto.ProtoRpcConfigFactory;
 import com.mola.rpc.core.proxy.InvokeMethod;
-import com.mola.rpc.core.remoting.netty.pool.ChannelWrapper;
-import com.mola.rpc.core.remoting.netty.pool.NettyConnectPool;
 import com.mola.rpc.core.remoting.protocol.RemotingCommand;
-import com.mola.rpc.core.remoting.protocol.RemotingCommandCode;
 import com.mola.rpc.core.util.BytesUtil;
 import com.mola.rpc.core.util.RemotingSerializableUtil;
-import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandler;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.util.Assert;
 
-import java.net.SocketAddress;
+import java.util.Objects;
 
 /**
  * @author : molamola
@@ -33,90 +31,42 @@ public class NettyRpcRequestHandler extends SimpleChannelInboundHandler<Remoting
 
     private static final Logger log = LoggerFactory.getLogger(NettyRpcRequestHandler.class);
 
-    private static final String REVERSE_INVOKER_CLAZZ_NAME = "com.mola.rpc.core.system.SystemConsumer$ReverseInvokerCaller";
-
     private RpcContext rpcContext;
 
     private ObjectFetcher providerFetcher;
 
-    private BizProcessAsyncExecutor bizProcessAsyncExecutor;
+    private RpcExecutorFactory rpcExecutorFactory;
 
-    private NettyConnectPool nettyConnectPool;
+    private RpcTaskFactory rpcTaskFactory;
 
-    public NettyRpcRequestHandler(RpcContext rpcContext, ObjectFetcher providerFetcher,
-                                  RpcProperties rpcProperties, NettyConnectPool nettyConnectPool) {
+    public NettyRpcRequestHandler(RpcContext rpcContext, ObjectFetcher providerFetcher) {
         this.rpcContext = rpcContext;
         this.providerFetcher = providerFetcher;
-        this.bizProcessAsyncExecutor = new BizProcessAsyncExecutor(rpcProperties);
-        this.nettyConnectPool = nettyConnectPool;
+        this.rpcExecutorFactory = ProtoRpcConfigFactory.get().getRpcExecutorFactory();
+        this.rpcTaskFactory = ProtoRpcConfigFactory.get().getRpcTaskFactory();
     }
 
     @Override
-    protected void channelRead0(ChannelHandlerContext ctx, RemotingCommand request) throws Exception {
+    protected void channelRead0(ChannelHandlerContext ctx, RemotingCommand request) {
         if (request.isResponseType()) {
             ctx.fireChannelRead(request);
             return;
         }
         InvokeMethod invokeMethod = InvokeMethod.newInstance((String) BytesUtil.bytesToObject(request.getBody()));
-        // 判断是否是系统内部调用
-        if (REVERSE_INVOKER_CLAZZ_NAME.equals(invokeMethod.getInterfaceClazz())) {
-            handleReverseInvokeCommand(invokeMethod, ctx.channel(),request);
-            return;
+        RpcMetaData providerMeta = rpcContext.getProviderMeta(invokeMethod.getInterfaceClazz(), invokeMethod.getGroup(), invokeMethod.getVersion());
+        // 获取执行器
+        RpcExecutor executor = rpcExecutorFactory.getProviderExecutor(invokeMethod, providerMeta);
+        if (Objects.isNull(executor)) {
+            throw new RuntimeException("executor not found, invokeMethod is " + JSONObject.toJSONString(invokeMethod));
         }
-        RpcMetaData providerMeta = rpcContext.getProviderMeta(invokeMethod.getInterfaceClazz(), request.getGroup(), request.getVersion());
-        Assert.notNull(providerMeta, "providerMeta not found");
         // 反射调用服务
-        this.bizProcessAsyncExecutor.process(
-                () -> {
-                    // 前置过滤器
-                    log.info("biz-process-thread:" + Thread.currentThread().getName());
-                    RemotingCommand response = null;
-                    // 反射调用
-                    try {
-                        Object providerBean = this.providerFetcher.getObject(providerMeta);
-                        Object result = invokeMethod.invoke(providerBean);
-                        response = buildRemotingCommand(request, result, RemotingCommandCode.SUCCESS, null);
-                    } catch (Exception e) {
-                        response = buildRemotingCommand(request, null, RemotingCommandCode.SYSTEM_ERROR, e.getMessage());
-                        log.error("server system error!, message = " + request.toString(), e);
-                    }
-                    Assert.notNull(response, "response is null" + request.toString());
-                    Channel channel = ctx.channel();
-                    final String responseStr = response.toString();
-                    final SocketAddress remoteAddress = channel.remoteAddress();
-                    // 写入channel,发送返回到客户端
-                    channel.writeAndFlush(response).addListener(future -> {
-                        // 返回结果成功
-                        if (future.isSuccess()) {
-                            return;
-                        }
-                        Throwable cause = future.cause();
-                        // 返回结果失败
-                        log.error("send a request command to channel <" + remoteAddress + "> failed. response = " + responseStr);
-                    });
-                }, providerMeta.getInFiber()
-        );
-    }
-
-    private void handleReverseInvokeCommand(InvokeMethod invokeMethod, Channel channel, RemotingCommand request) {
-        // 解析出reverseKey
-        Object[] args = invokeMethod.fetchArgs();
-        Assert.isTrue(args[0] instanceof String,"handleReverseInvokeCommand args[0] require String Type, " + invokeMethod.toString());
-        String reverseKey = (String) args[0];
-        // 写入连接池
-        nettyConnectPool.registerReverseInvokeChannel(reverseKey, ChannelWrapper.of(channel));
-        RemotingCommand response = buildRemotingCommand(request, null, RemotingCommandCode.SUCCESS, null);
-        final String responseStr = response.toString();
-        final SocketAddress remoteAddress = channel.remoteAddress();
-        // 写入channel,发送返回到客户端
-        channel.writeAndFlush(response).addListener(future -> {
-            // 返回结果成功
-            if (future.isSuccess()) {
-                return;
-            }
-            // 返回结果失败
-            log.warn("send a request command to channel <" + remoteAddress + "> failed. response = " + responseStr);
-        });
+        executor.process(rpcTaskFactory.getTask(
+                providerFetcher,
+                invokeMethod,
+                request,
+                providerMeta,
+                ctx.channel()
+        ));
     }
 
 
