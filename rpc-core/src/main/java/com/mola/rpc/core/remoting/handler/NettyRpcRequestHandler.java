@@ -11,7 +11,6 @@ import com.mola.rpc.core.proto.ProtoRpcConfigFactory;
 import com.mola.rpc.core.proxy.InvokeMethod;
 import com.mola.rpc.core.remoting.protocol.RemotingCommand;
 import com.mola.rpc.core.util.BytesUtil;
-import com.mola.rpc.core.util.RemotingSerializableUtil;
 import io.netty.channel.ChannelHandler;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
@@ -48,6 +47,7 @@ public class NettyRpcRequestHandler extends SimpleChannelInboundHandler<Remoting
 
     @Override
     protected void channelRead0(ChannelHandlerContext ctx, RemotingCommand request) {
+        // 此处是request处理器，如果是response类型则不处理
         if (request.isResponseType()) {
             ctx.fireChannelRead(request);
             return;
@@ -67,35 +67,6 @@ public class NettyRpcRequestHandler extends SimpleChannelInboundHandler<Remoting
                 providerMeta,
                 ctx.channel()
         ));
-    }
-
-
-    /**
-     * 构建协议包
-     * @param result 返回的结果
-     * @return
-     */
-    private RemotingCommand buildRemotingCommand(RemotingCommand request, Object result, int commandCode, String remark) {
-        RemotingCommand response = RemotingCommand.createResponseCommand(commandCode, remark);
-        response.setOpaque(request.getOpaque());
-        // 1、构建body
-        byte[] responseBody = null;
-        try {
-            responseBody = BytesUtil.objectToBytes(result);
-        } catch (Throwable e) {
-            log.error("[NettyServerHandler]: objectToBytes error"
-                    + ", result:" + RemotingSerializableUtil.toJson(result, false), e);
-            return null;
-        }
-        if(responseBody == null) {
-            log.error("[NettyServerHandler]: responseBody is null"
-                    + ", result:" + RemotingSerializableUtil.toJson(result, false));
-            return null;
-        }
-        response.setCode(commandCode);
-        response.setBody(responseBody);
-
-        return response;
     }
 
     public void setProviderFetcher(ObjectFetcher providerFetcher) {

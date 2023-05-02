@@ -24,7 +24,7 @@ public class NettyRpcResponseHandler extends SimpleChannelInboundHandler<Remotin
 
     @Override
     protected void channelRead0(ChannelHandlerContext ctx, RemotingCommand msg) throws Exception {
-        // 客户端处理返回
+        // 此处是response处理器，如果是request类型则不处理
         if (!msg.isResponseType()) {
             ctx.fireChannelRead(msg);
             return;
