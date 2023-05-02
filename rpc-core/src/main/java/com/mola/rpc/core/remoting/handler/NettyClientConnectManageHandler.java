@@ -12,7 +12,7 @@ import org.slf4j.LoggerFactory;
 
 /**
  * @author : molamola
- * @Project: InvincibleSchedulerEngine
+ * @Project: my-rpc
  * @Description: 连接管理器
  * @date : 2020-09-04 10:50
  **/

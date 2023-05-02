@@ -2,7 +2,7 @@ package com.mola.rpc.core.proxy;
 
 /**
  * @author : molamola
- * @Project: InvincibleSchedulerEngine
+ * @Project: my-rpc
  * @Description:
  * @date : 2020-08-30 20:42
  **/

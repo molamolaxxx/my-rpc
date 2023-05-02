@@ -13,7 +13,7 @@ import java.nio.ByteBuffer;
 
 /**
  * @author : molamola
- * @Project: InvincibleSchedulerEngine
+ * @Project: my-rpc
  * @Description: 解码器,输入时将字节流转化成RemotingCommand对象
  * @date : 2020-09-04 09:42
  **/
