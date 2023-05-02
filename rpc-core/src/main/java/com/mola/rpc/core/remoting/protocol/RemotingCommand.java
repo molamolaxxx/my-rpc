@@ -10,7 +10,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 
 /**
- * ise客户端与服务端通信协议
+ * 客户端与服务端通信协议
  * Remoting模块中，服务器与客户端通过传递RemotingCommand来交互
  */
 public class RemotingCommand {
