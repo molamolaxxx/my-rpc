@@ -7,7 +7,6 @@ import com.mola.rpc.common.context.RpcContext;
 import com.mola.rpc.common.entity.AddressInfo;
 import com.mola.rpc.common.entity.ProviderConfigData;
 import com.mola.rpc.common.entity.RpcMetaData;
-import com.mola.rpc.data.config.listener.AddressChangeListener;
 import sun.reflect.generics.reflectiveObjects.NotImplementedException;
 
 import java.util.List;
@@ -135,6 +134,4 @@ public interface RpcDataManager<T extends RpcMetaData> {
     default String getRemoteProviderPath(String interfaceClazz, String group, String version, String environment) {
         return String.format("/myRpc/provider/%s/%s:%s:%s", environment, interfaceClazz, group, version);
     }
-
-    void setAddressChangeListener(List<AddressChangeListener> addressChangeListeners);
 }

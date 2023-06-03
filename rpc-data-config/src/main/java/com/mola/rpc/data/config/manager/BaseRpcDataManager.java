@@ -4,7 +4,6 @@ import com.google.common.collect.Lists;
 import com.mola.rpc.common.context.RpcContext;
 import com.mola.rpc.common.entity.AddressInfo;
 import com.mola.rpc.common.entity.RpcMetaData;
-import com.mola.rpc.data.config.listener.AddressChangeListener;
 
 import java.util.List;
 
@@ -15,12 +14,6 @@ import java.util.List;
  * @date : 2022-10-16 20:01
  **/
 public class BaseRpcDataManager implements RpcDataManager<RpcMetaData> {
-
-
-    /**
-     * 地址变更监听器
-     */
-    protected List<AddressChangeListener> addressChangeListeners;
 
     @Override
     public void init(RpcContext rpcContext) {
@@ -58,10 +51,5 @@ public class BaseRpcDataManager implements RpcDataManager<RpcMetaData> {
     @Override
     public void uploadConsumerData(RpcMetaData consumerMetaData) {
 
-    }
-
-    @Override
-    public void setAddressChangeListener(List<AddressChangeListener> addressChangeListeners) {
-        this.addressChangeListeners = addressChangeListeners;
     }
 }

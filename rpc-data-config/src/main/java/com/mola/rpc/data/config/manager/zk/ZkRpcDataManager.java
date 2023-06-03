@@ -108,7 +108,7 @@ public class ZkRpcDataManager extends BaseRpcDataManager {
     public void registerProviderDataListener(String interfaceClazz, String group, String version, String environment, RpcMetaData consumerMetaData) {
         String remoteProviderPath = getRemoteProviderPath(interfaceClazz, group, version, environment);
         zkClient.subscribeChildChanges(remoteProviderPath, new ZkProviderConfigChangeListenerImpl(
-                consumerMetaData, zkClient, addressChangeListeners
+                consumerMetaData, zkClient
         ));
     }
 

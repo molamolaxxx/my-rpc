@@ -11,12 +11,12 @@ public class LoadBalanceConstants {
     /**
      * 随机负载均衡策略
      */
-    public static final String LOAD_BALANCE_RANDOM_STRATEGY = "RANDOM";
+    public static final String RANDOM_STRATEGY = "RANDOM";
 
     /**
      * 轮询负载均衡策略
      */
-    public static final String LOAD_BALANCE_ROUND_ROBIN_STRATEGY = "ROUND_ROBIN";
+    public static final String ROUND_ROBIN_STRATEGY = "ROUND_ROBIN";
 
     /**
      * 一致性哈希负载均衡策略

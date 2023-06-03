@@ -16,6 +16,7 @@
         <module>rpc-provider</module>
         <module>rpc-client</module>
         <module>rpc-generic</module>
+        <module>rpc-test-tool</module>
     </modules>
 
     <properties>

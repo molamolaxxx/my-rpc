@@ -2,6 +2,7 @@ package com.mola.rpc.core.proto;
 
 import com.mola.rpc.common.context.RpcContext;
 import com.mola.rpc.common.entity.RpcMetaData;
+import com.mola.rpc.common.lifecycle.ConsumerLifeCycle;
 import com.mola.rpc.core.properties.RpcProperties;
 import com.mola.rpc.core.proxy.GenericRpcServiceProxyFactory;
 import com.mola.rpc.core.proxy.RpcProxyInvokeHandler;
@@ -40,7 +41,7 @@ public class RpcInvoker {
      * @param <T>
      */
     public static <T> T consumer(Class<T> consumerInterface, List<String> addressList) {
-        ProtoRpcConfigFactory protoRpcConfigFactory = ProtoRpcConfigFactory.get();
+        ProtoRpcConfigFactory protoRpcConfigFactory = ProtoRpcConfigFactory.fetch();
         RpcProperties rpcProperties = protoRpcConfigFactory.getRpcProperties();
         RpcMetaData rpcMetaData = new RpcMetaData();
         // 指定provider的服务提供者
@@ -72,7 +73,7 @@ public class RpcInvoker {
     }
 
     public static <T> T consumer(Class<T> consumerInterface, RpcMetaData rpcMetaData, String consumerName) {
-        ProtoRpcConfigFactory protoRpcConfigFactory = ProtoRpcConfigFactory.get();
+        ProtoRpcConfigFactory protoRpcConfigFactory = ProtoRpcConfigFactory.fetch();
         RpcProperties rpcProperties = protoRpcConfigFactory.getRpcProperties();
         // 客户端超时时间检查
         if (rpcMetaData.getClientTimeout() > rpcProperties.getMaxClientTimeout()) {
@@ -106,10 +107,13 @@ public class RpcInvoker {
         rpcProxyInvokeHandler.setNettyConnectPool(protoRpcConfigFactory.getNettyConnectPool());
         rpcProxyInvokeHandler.setNettyRemoteClient(protoRpcConfigFactory.getNettyRemoteClient());
         rpcProxyInvokeHandler.setBeanName(consumerName);
-        return (T) Proxy.newProxyInstance(
+        Object proxy = Proxy.newProxyInstance(
                 RpcInvoker.class.getClassLoader(),
                 new Class[]{consumerInterface},
                 rpcProxyInvokeHandler);
+        // 生命周期回调
+        ConsumerLifeCycle.fetch().afterInitialize(rpcMetaData);
+        return (T) proxy;
     }
 
     /**
@@ -123,7 +127,7 @@ public class RpcInvoker {
     }
 
     public static <T> void provider(Class<T> consumerInterface, T providerObject, RpcMetaData rpcMetaData) {
-        ProtoRpcConfigFactory protoRpcConfigFactory = ProtoRpcConfigFactory.get();
+        ProtoRpcConfigFactory protoRpcConfigFactory = ProtoRpcConfigFactory.fetch();
         // 提供服务
         RpcContext rpcContext = protoRpcConfigFactory.getRpcContext();
         RpcProperties rpcProperties = protoRpcConfigFactory.getRpcProperties();

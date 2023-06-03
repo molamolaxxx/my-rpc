@@ -1,4 +1,4 @@
-package com.mola.rpc.spring;
+package com.mola.rpc.spring.autoconfig;
 
 import com.mola.rpc.core.properties.RpcProperties;
 import org.springframework.boot.context.properties.ConfigurationProperties;

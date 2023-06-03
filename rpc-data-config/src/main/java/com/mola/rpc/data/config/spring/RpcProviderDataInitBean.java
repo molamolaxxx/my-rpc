@@ -1,12 +1,11 @@
 package com.mola.rpc.data.config.spring;
 
 import com.alibaba.fastjson.JSONObject;
-import com.google.common.collect.Lists;
 import com.mola.rpc.common.context.RpcContext;
 import com.mola.rpc.common.entity.AddressInfo;
 import com.mola.rpc.common.entity.BaseRpcProperties;
 import com.mola.rpc.common.entity.RpcMetaData;
-import com.mola.rpc.data.config.listener.AddressChangeListener;
+import com.mola.rpc.common.lifecycle.ConsumerLifeCycle;
 import com.mola.rpc.data.config.manager.RpcDataManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -50,11 +49,6 @@ public class RpcProviderDataInitBean {
      */
     private RpcDataManager<RpcMetaData> rpcDataManager;
 
-    /**
-     * 地址变更监听器
-     */
-    private List<AddressChangeListener> addressChangeListeners = Lists.newArrayList();
-
 
     /**
      * 定时上报服务端配置
@@ -71,7 +65,6 @@ public class RpcProviderDataInitBean {
     public void init(BaseRpcProperties rpcProperties) {
         Assert.notNull(rpcContext, "拉取数据失败，上下文为空");
         this.rpcProperties = rpcProperties;
-        rpcDataManager.setAddressChangeListener(addressChangeListeners);
         // 上报provider信息
         Collection<RpcMetaData> providerMetaDataCollection = rpcContext.getProviderMetaMap().values();
         for (RpcMetaData providerMetaData : providerMetaDataCollection) {
@@ -161,7 +154,8 @@ public class RpcProviderDataInitBean {
             return;
         }
         consumerMetaData.setAddressList(addressInfoList);
-        addressChangeListeners.forEach(addressChangeListener -> addressChangeListener.afterAddressChange(consumerMetaData));
+        // 主动拉取地址回调
+        ConsumerLifeCycle.fetch().afterAddressChange(consumerMetaData);
     }
 
     private void startProviderInfoUploadMonitor() {
@@ -241,10 +235,6 @@ public class RpcProviderDataInitBean {
 
     public void setRpcDataManager(RpcDataManager<RpcMetaData> rpcDataManager) {
         this.rpcDataManager = rpcDataManager;
-    }
-
-    public void addAddressChangeListener(AddressChangeListener addressChangeListener) {
-        this.addressChangeListeners.add(addressChangeListener);
     }
 
     public void refresh(RpcDataManager rpcDataManager) {

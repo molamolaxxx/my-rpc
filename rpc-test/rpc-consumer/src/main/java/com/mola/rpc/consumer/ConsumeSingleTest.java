@@ -22,8 +22,8 @@ public class ConsumeSingleTest {
         RpcProperties rpcProperties = new RpcProperties();
         rpcProperties.setEnvironment("pre");
         rpcProperties.setStartConfigServer(false);
-        ProtoRpcConfigFactory.get().init(rpcProperties);
-        ProtoRpcConfigFactory protoRpcConfigFactory = ProtoRpcConfigFactory.get();
+        ProtoRpcConfigFactory.fetch().init(rpcProperties);
+        ProtoRpcConfigFactory protoRpcConfigFactory = ProtoRpcConfigFactory.fetch();
 
         OrderService orderService = RpcInvoker.consumer(OrderService.class, Lists.newArrayList("127.0.0.1:9003"));
 

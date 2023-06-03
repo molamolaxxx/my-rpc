@@ -7,7 +7,6 @@ import com.mola.rpc.common.entity.RpcMetaData;
 import com.mola.rpc.data.config.manager.RpcDataManager;
 import com.mola.rpc.data.config.manager.zk.ZkRpcDataManager;
 import com.mola.rpc.data.config.spring.RpcProviderDataInitBean;
-import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -37,21 +36,12 @@ public class ConsumerConfigServerTest {
     @Resource
     private RpcContext rpcContext;
 
-    @Before
-    public void before() {
-        RpcDataManager<RpcMetaData> rpcDataManager = rpcProviderDataInitBean.getRpcDataManager();
-        Assert.isTrue(rpcDataManager instanceof ZkRpcDataManager, "rpcDataManager 类型错误");
-        Assert.isTrue(rpcDataManager.isProviderAvailable("com.mola.rpc.client.UnitTestService", "default", "1.0.0", "pre"), "UnitTestService的provider不存在，请检查是否启动");
-        List<AddressInfo> remoteProviderAddress = rpcDataManager.getRemoteProviderAddress("com.mola.rpc.client.UnitTestService", "default", "1.0.0", "pre");
-        Assert.notEmpty(remoteProviderAddress, "UnitTestService的provider不存在可用地址，请检查是否启动");
-        rpcProviderDataInitBean.pullProviderDataList();
-    }
-
     /**
      * 服务发现地址和configserver地址相同
      */
     @Test
     public void configServerAddressEqualsConsumerFind() {
+        validateRpcDataManager();
         RpcDataManager<RpcMetaData> rpcDataManager = rpcProviderDataInitBean.getRpcDataManager();
         List<AddressInfo> remoteProviderAddress = rpcDataManager.getRemoteProviderAddress("com.mola.rpc.client.UnitTestService", "default", "1.0.0", "pre");
         Assert.notEmpty(remoteProviderAddress, "remoteProviderAddress为空，请检查cs启动情况和provider注册情况");
@@ -68,5 +58,14 @@ public class ConsumerConfigServerTest {
                 }
             }
         });
+    }
+
+    protected void validateRpcDataManager() {
+        RpcDataManager<RpcMetaData> rpcDataManager = rpcProviderDataInitBean.getRpcDataManager();
+        Assert.isTrue(rpcDataManager instanceof ZkRpcDataManager, "rpcDataManager 类型错误");
+        Assert.isTrue(rpcDataManager.isProviderAvailable("com.mola.rpc.client.UnitTestService", "default", "1.0.0", "pre"), "UnitTestService的provider不存在，请检查是否启动");
+        List<AddressInfo> remoteProviderAddress = rpcDataManager.getRemoteProviderAddress("com.mola.rpc.client.UnitTestService", "default", "1.0.0", "pre");
+        Assert.notEmpty(remoteProviderAddress, "UnitTestService的provider不存在可用地址，请检查是否启动");
+        rpcProviderDataInitBean.pullProviderDataList();
     }
 }

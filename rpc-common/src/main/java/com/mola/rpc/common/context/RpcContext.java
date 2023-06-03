@@ -23,6 +23,11 @@ public class RpcContext {
     }
 
     /**
+     * 是否是spring环境
+     */
+    private boolean inSpringEnvironment = false;
+
+    /**
      * 消费者元数据
      * @key consumer beanName
      */
@@ -80,6 +85,14 @@ public class RpcContext {
 
     public void setProviderAddress(String providerAddress) {
         this.providerAddress = providerAddress;
+    }
+
+    public void setInSpringEnvironment(boolean inSpringEnvironment) {
+        this.inSpringEnvironment = inSpringEnvironment;
+    }
+
+    public boolean isInSpringEnvironment() {
+        return inSpringEnvironment;
     }
 
     public static RpcContext fetch() {

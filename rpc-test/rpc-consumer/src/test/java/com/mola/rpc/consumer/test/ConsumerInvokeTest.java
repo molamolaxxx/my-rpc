@@ -80,7 +80,6 @@ public class ConsumerInvokeTest {
         response = unitTestService.test001(input1, input2, input3);
         Assert.isTrue(response != null && response.isSuccess(), "001-case3测试失败,调用失败");
         Assert.isTrue((input1 + input2 + String.join("", input3)).equals(response.getData()), "001-case3测试失败");
-
     }
 
     @Test

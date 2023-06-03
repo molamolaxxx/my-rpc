@@ -1,5 +1,8 @@
 package com.mola.rpc.webmanager.config;
 
+import com.mola.rpc.common.entity.RpcMetaData;
+import com.mola.rpc.common.lifecycle.ConsumerLifeCycleHandler;
+import com.mola.rpc.core.proto.ProtoRpcConfigFactory;
 import com.mola.rpc.data.config.spring.RpcProviderDataInitBean;
 import com.mola.rpc.webmanager.entity.RpcWatcher;
 import com.mola.rpc.webmanager.service.ProviderMetaService;
@@ -25,12 +28,15 @@ public class AddressChangeListenerConfig implements InitializingBean {
 
     @Override
     public void afterPropertiesSet() throws Exception {
-        rpcProviderDataInitBean.addAddressChangeListener(rpcMetaData -> {
-            if (!(rpcMetaData instanceof RpcWatcher)) {
-                return;
+        ProtoRpcConfigFactory.fetch().getConsumerLifeCycle().addListener(new ConsumerLifeCycleHandler() {
+            @Override
+            public void afterAddressChange(RpcMetaData consumerMetaData) {
+                if (!(consumerMetaData instanceof RpcWatcher)) {
+                    return;
+                }
+                RpcWatcher rpcWatcher = (RpcWatcher) consumerMetaData;
+                providerMetaService.updateProviderInfoStorage(rpcWatcher.getProviderInfoEntity());
             }
-            RpcWatcher rpcWatcher = (RpcWatcher) rpcMetaData;
-            providerMetaService.updateProviderInfoStorage(rpcWatcher.getProviderInfoEntity());
         });
     }
 }

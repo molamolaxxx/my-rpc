@@ -1,6 +1,6 @@
 package com.mola.rpc.webmanager.service;
 
-import com.mola.rpc.spring.RpcSpringConfigurationProperties;
+import com.mola.rpc.spring.autoconfig.RpcSpringConfigurationProperties;
 import com.mola.rpc.webmanager.entity.GatewayMappingEntity;
 import com.mola.rpc.webmanager.repo.GatewayMappingRepository;
 import com.mola.rpc.webmanager.test.CsTestContext;

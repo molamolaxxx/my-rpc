@@ -23,7 +23,7 @@ public class NacosGenericRpcServiceTest extends ZookeeperGenericRpcServiceTest{
         rpcProperties.setRpcDataManager(new NacosRpcDataManager(rpcProperties));
         rpcProperties.setConfigServerType(CommonConstants.NACOS);
         rpcProperties.setConfigServerAddress("127.0.0.1:8848");
-        ProtoRpcConfigFactory protoRpcConfigFactory = ProtoRpcConfigFactory.get();
+        ProtoRpcConfigFactory protoRpcConfigFactory = ProtoRpcConfigFactory.fetch();
         protoRpcConfigFactory.init(rpcProperties);
     }
 }

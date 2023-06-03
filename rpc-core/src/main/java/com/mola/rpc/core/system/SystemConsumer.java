@@ -24,6 +24,7 @@ public class SystemConsumer<T> {
         this.rpcMetaData = new RpcMetaData();
         this.consumerInner = RpcInvoker.consumer(consumerInterface, rpcMetaData, consumerName);
     }
+
     public static class Multipart {
         public static SystemConsumer<ReverseInvokerCaller> reverseInvokerCaller = new SystemConsumer(ReverseInvokerCaller.class);
     }

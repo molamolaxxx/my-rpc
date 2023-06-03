@@ -1,6 +1,7 @@
 package com.mola.rpc.core.proxy;
 
 import com.alibaba.fastjson.JSONObject;
+import com.mola.rpc.common.context.InvokeContext;
 import com.mola.rpc.common.context.RpcContext;
 import com.mola.rpc.common.entity.AddressInfo;
 import com.mola.rpc.common.entity.RpcMetaData;
@@ -10,7 +11,7 @@ import com.mola.rpc.core.remoting.netty.NettyRemoteClient;
 import com.mola.rpc.core.remoting.netty.pool.NettyConnectPool;
 import com.mola.rpc.core.remoting.protocol.RemotingCommand;
 import com.mola.rpc.core.remoting.protocol.RemotingCommandCode;
-import com.mola.rpc.core.strategy.balance.LoadBalance;
+import com.mola.rpc.core.loadbalance.LoadBalance;
 import com.mola.rpc.core.system.ReverseInvokeHelper;
 import com.mola.rpc.core.util.BytesUtil;
 import com.mola.rpc.core.util.RemotingHelper;
@@ -64,58 +65,63 @@ public class RpcProxyInvokeHandler implements InvocationHandler {
 
     @Override
     public Object invoke(Object obj, Method method, Object[] args) throws Throwable {
-        if (Object.class.equals(method.getDeclaringClass())) {
-            return method.invoke(this, args);
-        }
-        // 获取服务对应的元数据唯一key
-        RpcMetaData consumerMeta = rpcContext.getConsumerMeta(getConsumerClazzName(method, args), beanName);
-        if (consumerMeta == null) {
-            throw new RuntimeException("consumer invoke failed, consumerMeta is null, clazz = " + method.getDeclaringClass().getName());
-        }
-        // 客户端如果是反向调用，则不走服务发现，直接在应用内部寻找channel
-        if (Boolean.TRUE.equals(consumerMeta.getReverseMode())) {
-            return handlerReverseInvoke(consumerMeta, obj, method, args);
-        }
-        List<AddressInfo> addressInfoList = consumerMeta.getAddressList();
-        if (CollectionUtils.isEmpty(addressInfoList) && CollectionUtils.isEmpty(consumerMeta.getAppointedAddress())) {
-            throw new RuntimeException("consumer invoke failed, provider's addressList is empty, meta = " + JSONObject.toJSONString(consumerMeta));
-        }
-        // 过滤掉无效的地址
-        // 1、不可用服务（心跳超时、主动下线、规则下线）
-        // 2、路由脚本过滤服务
-        // 3、泳道过滤
-
-        // 负载均衡策略
-        String targetProviderAddress = loadBalance.getTargetProviderAddress(consumerMeta, args);
-        Assert.notNull(targetProviderAddress, "no available targetProviderAddress! meta = " + JSONObject.toJSONString(consumerMeta));
-        // 构建request
-        InvokeMethod invokeMethod = assemblyInvokeMethod(method, args);
-        RemotingCommand request = buildRemotingCommand(method, invokeMethod, consumerMeta.getClientTimeout(), targetProviderAddress, consumerMeta);
-        // 执行远程调用
-        if (isAsyncExecute(consumerMeta, method)) {
-            AsyncResponseFuture asyncResponseFuture = nettyRemoteClient.asyncInvoke(targetProviderAddress, request,
-                    invokeMethod, method, consumerMeta.getClientTimeout());
-            Async.addFuture(asyncResponseFuture);
-            // 异步返回基础类型返回值存在null装箱失败，需要返回object
-            Object fakeResult = TypeUtil.getBaseTypeDefaultObject(method.getReturnType().getName());
-            if (fakeResult != null) {
-                return fakeResult;
+        try {
+            if (Object.class.equals(method.getDeclaringClass())) {
+                return method.invoke(this, args);
             }
-            return null;
+            // 获取服务对应的元数据唯一key
+            RpcMetaData consumerMeta = rpcContext.getConsumerMeta(getConsumerClazzName(method, args), beanName);
+            if (consumerMeta == null) {
+                throw new RuntimeException("consumer invoke failed, consumerMeta is null, clazz = " + method.getDeclaringClass().getName());
+            }
+            // 客户端如果是反向调用，则不走服务发现，直接在应用内部寻找channel
+            if (Boolean.TRUE.equals(consumerMeta.getReverseMode())) {
+                return handlerReverseInvoke(consumerMeta, obj, method, args);
+            }
+            List<AddressInfo> addressInfoList = consumerMeta.getAddressList();
+            if (CollectionUtils.isEmpty(addressInfoList) && CollectionUtils.isEmpty(consumerMeta.getAppointedAddress())) {
+                throw new RuntimeException("consumer invoke failed, provider's addressList is empty, meta = " + JSONObject.toJSONString(consumerMeta));
+            }
+            // 过滤掉无效的地址
+            // 1、不可用服务（心跳超时、主动下线、规则下线）
+            // 2、路由脚本过滤服务
+            // 3、泳道过滤
+
+            // 负载均衡策略
+            String targetProviderAddress = loadBalance.getTargetProviderAddress(consumerMeta, args);
+            Assert.notNull(targetProviderAddress, "no available targetProviderAddress! meta = " + JSONObject.toJSONString(consumerMeta));
+            // 构建request
+            InvokeMethod invokeMethod = assemblyInvokeMethod(method, args);
+            RemotingCommand request = buildRemotingCommand(method, invokeMethod, consumerMeta.getClientTimeout(), targetProviderAddress, consumerMeta);
+            // 执行远程调用
+            if (isAsyncExecute(consumerMeta, method)) {
+                AsyncResponseFuture asyncResponseFuture = nettyRemoteClient.asyncInvoke(
+                        targetProviderAddress, request, invokeMethod,
+                        method, consumerMeta.getClientTimeout());
+                Async.addFuture(asyncResponseFuture);
+                // 异步返回基础类型返回值存在null装箱失败，需要返回装箱后的type
+                Object fakeResult = TypeUtil.getBaseTypeDefaultObject(method.getReturnType().getName());
+                if (fakeResult != null) {
+                    return fakeResult;
+                }
+                return null;
+            }
+            RemotingCommand response = nettyRemoteClient.syncInvoke(targetProviderAddress, request,
+                    invokeMethod,method, consumerMeta.getClientTimeout());
+            // 服务端执行异常
+            if (response.getCode() == RemotingCommandCode.SYSTEM_ERROR) {
+                throw new RuntimeException(response.getRemark());
+            }
+            // 读取服务端返回结果
+            if (response == null) {
+                return null;
+            }
+            // response转换成对象
+            Object invokeResult = BytesUtil.bytesToObject(response.getBody(), method.getReturnType());
+            return invokeResult;
+        } finally {
+            InvokeContext.clear();
         }
-        RemotingCommand response = nettyRemoteClient.syncInvoke(targetProviderAddress, request,
-                invokeMethod,method, consumerMeta.getClientTimeout());
-        // 服务端执行异常
-        if (response.getCode() == RemotingCommandCode.SYSTEM_ERROR) {
-            throw new RuntimeException(response.getRemark());
-        }
-        // 读取服务端返回结果
-        if (response == null) {
-            return null;
-        }
-        // response转换成对象
-        Object invokeResult = BytesUtil.bytesToObject(response.getBody(), method.getReturnType());
-        return invokeResult;
     }
 
     /**

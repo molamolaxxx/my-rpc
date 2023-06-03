@@ -39,4 +39,8 @@ public class ChannelWrapper extends AbstractChannelWrapper {
     public void setLastAliveTime(long lastAliveTime) {
         this.lastAliveTime = lastAliveTime;
     }
+
+    public long getLastAliveTime() {
+        return lastAliveTime;
+    }
 }

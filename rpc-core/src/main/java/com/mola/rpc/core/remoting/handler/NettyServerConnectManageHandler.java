@@ -38,7 +38,7 @@ public class NettyServerConnectManageHandler extends ChannelDuplexHandler {
         super.channelInactive(ctx);
         // 连接关闭
         log.warn("[ServerChannelEventListener]: onChannelClose {" + remoteAddress + "}");
-        NettyConnectPool nettyConnectPool = ProtoRpcConfigFactory.get().getNettyConnectPool();
+        NettyConnectPool nettyConnectPool = ProtoRpcConfigFactory.fetch().getNettyConnectPool();
         nettyConnectPool.removeClosedReverseChannel(remoteAddress);
     }
 

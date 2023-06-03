@@ -1,10 +1,12 @@
 package com.mola.rpc.spring;
 
 import com.mola.rpc.common.context.RpcContext;
+import com.mola.rpc.common.entity.RpcMetaData;
+import com.mola.rpc.common.lifecycle.ConsumerLifeCycle;
 import com.mola.rpc.core.proxy.RpcProxyInvokeHandler;
-import com.mola.rpc.core.remoting.netty.pool.NettyConnectPool;
 import com.mola.rpc.core.remoting.netty.NettyRemoteClient;
-import com.mola.rpc.core.strategy.balance.LoadBalance;
+import com.mola.rpc.core.remoting.netty.pool.NettyConnectPool;
+import com.mola.rpc.core.loadbalance.LoadBalance;
 import org.springframework.beans.factory.FactoryBean;
 
 import javax.annotation.Resource;
@@ -51,6 +53,9 @@ public class RpcConsumerFactoryBean implements FactoryBean {
                 RpcConsumerFactoryBean.class.getClassLoader(),
                 new Class[]{consumerInterface},
                 rpcProxyInvokeHandler);
+        // 生命周期回调
+        RpcMetaData consumerMeta = rpcContext.getConsumerMeta(consumerInterface.getName(), beanName);
+        ConsumerLifeCycle.fetch().afterInitialize(consumerMeta);
         return proxyInstance;
     }
 

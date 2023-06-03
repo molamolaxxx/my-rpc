@@ -41,8 +41,8 @@ public class NettyRpcRequestHandler extends SimpleChannelInboundHandler<Remoting
     public NettyRpcRequestHandler(RpcContext rpcContext, ObjectFetcher providerFetcher) {
         this.rpcContext = rpcContext;
         this.providerFetcher = providerFetcher;
-        this.rpcExecutorFactory = ProtoRpcConfigFactory.get().getRpcExecutorFactory();
-        this.rpcTaskFactory = ProtoRpcConfigFactory.get().getRpcTaskFactory();
+        this.rpcExecutorFactory = ProtoRpcConfigFactory.fetch().getRpcExecutorFactory();
+        this.rpcTaskFactory = ProtoRpcConfigFactory.fetch().getRpcTaskFactory();
     }
 
     @Override

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.mola.rpc.spring;
+package com.mola.rpc.spring.postprocessor;
 
 import com.mola.rpc.common.annotation.RpcConsumer;
 import org.springframework.aop.TargetSource;

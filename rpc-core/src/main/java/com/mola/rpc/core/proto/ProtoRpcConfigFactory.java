@@ -4,19 +4,21 @@ import com.mola.rpc.common.constants.CommonConstants;
 import com.mola.rpc.common.constants.LoadBalanceConstants;
 import com.mola.rpc.common.context.RpcContext;
 import com.mola.rpc.common.entity.RpcMetaData;
+import com.mola.rpc.common.ext.ExtensionRegistryManager;
+import com.mola.rpc.common.lifecycle.ConsumerLifeCycle;
+import com.mola.rpc.common.lifecycle.ConsumerLifeCycleHandler;
 import com.mola.rpc.common.utils.TestUtil;
 import com.mola.rpc.core.excutors.factory.RpcExecutorFactory;
 import com.mola.rpc.core.excutors.factory.RpcTaskFactory;
+import com.mola.rpc.core.loadbalance.*;
 import com.mola.rpc.core.properties.RpcProperties;
 import com.mola.rpc.core.remoting.handler.NettyRpcRequestHandler;
 import com.mola.rpc.core.remoting.handler.NettyRpcResponseHandler;
 import com.mola.rpc.core.remoting.netty.NettyRemoteClient;
 import com.mola.rpc.core.remoting.netty.NettyRemoteServer;
 import com.mola.rpc.core.remoting.netty.pool.NettyConnectPool;
-import com.mola.rpc.core.strategy.balance.*;
 import com.mola.rpc.core.system.ReverseInvokeHelper;
 import com.mola.rpc.core.util.NetUtils;
-import com.mola.rpc.data.config.listener.AddressChangeListener;
 import com.mola.rpc.data.config.manager.RpcDataManager;
 import com.mola.rpc.data.config.manager.nacos.NacosRpcDataManager;
 import com.mola.rpc.data.config.manager.zk.ZkRpcDataManager;
@@ -85,16 +87,20 @@ public class ProtoRpcConfigFactory {
      */
     private RpcTaskFactory rpcTaskFactory;
 
+    private ConsumerLifeCycle consumerLifeCycle;
+
     private NettyRpcRequestHandler requestHandler;
     private NettyRpcResponseHandler responseHandler;
 
     private ObjectFetcher providerObjectFetcher = providerMeta -> providerMeta.getProviderObject();
+
+    private ExtensionRegistryManager extensionRegistryManager;
     protected ProtoRpcConfigFactory(){}
     static class Singleton{
         private static ProtoRpcConfigFactory protoRpcConfigFactory = new ProtoRpcConfigFactory();
     }
 
-    public static ProtoRpcConfigFactory get(){
+    public static ProtoRpcConfigFactory fetch(){
         return Singleton.protoRpcConfigFactory;
     }
     /**
@@ -107,6 +113,7 @@ public class ProtoRpcConfigFactory {
                 log.warn("ProtoRpcConfigFactory has been init!");
                 return;
             }
+            this.consumerLifeCycle = ConsumerLifeCycle.fetch();
             this.rpcProperties = rpcProperties;
             // 上下文初始化
             initContext();
@@ -118,10 +125,20 @@ public class ProtoRpcConfigFactory {
             initExecutors();
             // 网络初始化
             initNettyConfiguration();
-            // config server配置
-            initConfigServer();
-            // 反向provider注册
-            registerReverseProvider();
+            // 创建cs客户端
+            createConfigServerClient();
+            // 扩展点管理初始化
+            initExtensionManager();
+            /*
+            如果是spring环境，服务上报需要在spring启动完成后进行
+             */
+            if (!rpcContext.isInSpringEnvironment()) {
+                // config server配置，上报服务
+                rpcProviderDataInitBean.init(rpcProperties);
+                // 反向provider注册，上报反向代理服务
+                registerReverseProvider();
+            }
+
             INIT_FLAG.compareAndSet(false, true);
         } catch (Exception e) {
             INIT_FLAG.compareAndSet(true, false);
@@ -172,8 +189,8 @@ public class ProtoRpcConfigFactory {
 
     protected void initLoadBalance() {
         LoadBalance loadBalance = new LoadBalance();
-        loadBalance.setStrategy(LoadBalanceConstants.LOAD_BALANCE_RANDOM_STRATEGY, new RandomLoadBalance());
-        loadBalance.setStrategy(LoadBalanceConstants.LOAD_BALANCE_ROUND_ROBIN_STRATEGY, new RoundRobinBalance());
+        loadBalance.setStrategy(LoadBalanceConstants.RANDOM_STRATEGY, new RandomLoadBalance());
+        loadBalance.setStrategy(LoadBalanceConstants.ROUND_ROBIN_STRATEGY, new RoundRobinBalance());
         loadBalance.setStrategy(LoadBalanceConstants.CONSISTENCY_HASHING_STRATEGY, new ConsistencyHashingBalance());
         this.loadBalance = loadBalance;
     }
@@ -181,6 +198,10 @@ public class ProtoRpcConfigFactory {
     protected void initExecutors() {
         this.rpcTaskFactory = new RpcTaskFactory();
         this.rpcExecutorFactory = new RpcExecutorFactory(rpcProperties, rpcContext);
+    }
+
+    protected void initExtensionManager() {
+        this.extensionRegistryManager = new ExtensionRegistryManager();
     }
 
     protected void initNettyConfiguration() {
@@ -200,33 +221,9 @@ public class ProtoRpcConfigFactory {
         nettyRemoteServer.setRpcContext(rpcContext);
         nettyRemoteServer.start();
         this.nettyRemoteServer = nettyRemoteServer;
-        ReverseInvokeHelper.instance().startMonitor();
     }
 
-    /**
-     * 切换configServer
-     * @param rpcProperties
-     */
-    public void changeConfigServer(RpcProperties rpcProperties) {
-        RpcProperties currentProperties = this.rpcProperties;
-        currentProperties.setConfigServerType(rpcProperties.getConfigServerType());
-        currentProperties.setConfigServerAddress(rpcProperties.getConfigServerAddress());
-        currentProperties.setEnvironment(rpcProperties.getEnvironment());
-        currentProperties.setStartConfigServer(rpcProperties.getStartConfigServer());
-        RpcDataManager<RpcMetaData> rpcDataManager = null;
-        if (CommonConstants.ZOOKEEPER.equals(rpcProperties.getConfigServerType())) {
-            rpcDataManager = new ZkRpcDataManager(rpcProperties);
-        } else if (CommonConstants.NACOS.equals(rpcProperties.getConfigServerType())){
-            rpcDataManager = new NacosRpcDataManager(rpcProperties);
-        } else {
-            rpcDataManager = rpcProperties.getRpcDataManager();
-        }
-        Assert.notNull(rpcDataManager, "rpcDataManager is null");
-        rpcDataManager.init(rpcContext);
-        this.rpcProviderDataInitBean.refresh(rpcDataManager);
-    }
-
-    protected void initConfigServer() {
+    public void createConfigServerClient() {
         RpcProviderDataInitBean rpcProviderDataInitBean = new RpcProviderDataInitBean();
         if (!rpcProperties.getStartConfigServer()) {
             log.error("will not start config server! startConfigServer = false");
@@ -250,23 +247,36 @@ public class ProtoRpcConfigFactory {
         rpcProviderDataInitBean.setRpcDataManager(rpcDataManager);
         // 负载均衡监听变化
         for (LoadBalanceStrategy loadBalanceStrategy : loadBalance.getStrategyCollection()) {
-            if (loadBalanceStrategy instanceof AddressChangeListener) {
-                rpcProviderDataInitBean.addAddressChangeListener((AddressChangeListener) loadBalanceStrategy);
+            if (loadBalanceStrategy instanceof ConsumerLifeCycleHandler) {
+                consumerLifeCycle.addListener((ConsumerLifeCycleHandler) loadBalanceStrategy);
             }
         }
-        rpcProviderDataInitBean.init(rpcProperties);
         this.rpcProviderDataInitBean = rpcProviderDataInitBean;
     }
 
-    private void registerReverseProvider() {
-        Collection<RpcMetaData> rpcMetaDataCollection = this.rpcContext.getProviderMetaMap().values();
+    public void registerReverseProvider() {
+        Collection<RpcMetaData> rpcMetaDataCollection = rpcContext.getProviderMetaMap().values();
+        boolean requireStartMonitor = false;
         for (RpcMetaData providerMeta : rpcMetaDataCollection) {
             if (Boolean.TRUE.equals(providerMeta.getReverseMode())) {
                 ReverseInvokeHelper.instance().registerProviderToServer(providerMeta);
+                requireStartMonitor = true;
             }
+        }
+        if (requireStartMonitor) {
+            ReverseInvokeHelper.instance().startMonitor();
         }
     }
 
+    public void changeProviderObjectFetcher(ObjectFetcher providerObjectFetcher) {
+        this.providerObjectFetcher = providerObjectFetcher;
+        // 覆盖老的provider获取器
+        this.requestHandler.setProviderFetcher(providerObjectFetcher);
+    }
+
+    /*
+    getset
+     */
     public RpcContext getRpcContext() {
         return rpcContext;
     }
@@ -311,9 +321,11 @@ public class ProtoRpcConfigFactory {
         this.rpcTaskFactory = rpcTaskFactory;
     }
 
-    public void setProviderObjectFetcher(ObjectFetcher providerObjectFetcher) {
-        this.providerObjectFetcher = providerObjectFetcher;
-        // 覆盖老的provider获取器
-        this.requestHandler.setProviderFetcher(providerObjectFetcher);
+    public ConsumerLifeCycle getConsumerLifeCycle() {
+        return consumerLifeCycle;
+    }
+
+    public ExtensionRegistryManager getExtensionRegistryManager() {
+        return extensionRegistryManager;
     }
 }

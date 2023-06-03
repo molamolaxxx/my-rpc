@@ -40,7 +40,7 @@ public class ResponseFutureManager {
     private ScheduledExecutorService responseFutureMonitorService;
 
     public void initResponseFutureMonitor() {
-        long maxClientTimeout = ProtoRpcConfigFactory.get().getRpcProperties().getMaxClientTimeout();
+        long maxClientTimeout = ProtoRpcConfigFactory.fetch().getRpcProperties().getMaxClientTimeout();
         this.responseFutureMonitorService = Executors.newScheduledThreadPool(1,
                 new ThreadFactory() {
                     AtomicInteger threadIndex = new AtomicInteger(0);

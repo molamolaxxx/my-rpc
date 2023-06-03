@@ -1,10 +1,8 @@
-package com.mola.rpc.spring;
+package com.mola.rpc.spring.listeners;
 
 import com.mola.rpc.core.proto.ProtoRpcConfigFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Configuration;
 
 import javax.annotation.PreDestroy;
 
@@ -14,15 +12,13 @@ import javax.annotation.PreDestroy;
  * @Description:
  * @date : 2022-07-30 18:21
  **/
-@Configuration
-public class ApplicationDestroyHookConfiguration {
+public class ApplicationDestroyListener {
 
-    private static final Logger log = LoggerFactory.getLogger(ApplicationDestroyHookConfiguration.class);
+    private static final Logger log = LoggerFactory.getLogger(ApplicationDestroyListener.class);
 
     private ProtoRpcConfigFactory protoRpcConfigFactory;
 
-
-    public ApplicationDestroyHookConfiguration(@Autowired ProtoRpcConfigFactory protoRpcConfigFactory) {
+    public ApplicationDestroyListener(ProtoRpcConfigFactory protoRpcConfigFactory) {
         this.protoRpcConfigFactory = protoRpcConfigFactory;
     }
 

@@ -3,6 +3,7 @@ package com.mola.rpc.core.proxy;
 import com.google.common.collect.Maps;
 import com.mola.rpc.common.context.RpcContext;
 import com.mola.rpc.common.entity.RpcMetaData;
+import com.mola.rpc.common.lifecycle.ConsumerLifeCycle;
 import com.mola.rpc.core.properties.RpcProperties;
 import com.mola.rpc.core.proto.GenericRpcService;
 import com.mola.rpc.core.proto.ProtoRpcConfigFactory;
@@ -39,7 +40,7 @@ public class GenericRpcServiceProxyFactory {
         if (genericRpcServiceMap.containsKey(interfaceClazzName)) {
             return genericRpcServiceMap.get(interfaceClazzName);
         }
-        ProtoRpcConfigFactory protoRpcConfigFactory = ProtoRpcConfigFactory.get();
+        ProtoRpcConfigFactory protoRpcConfigFactory = ProtoRpcConfigFactory.fetch();
         RpcProperties rpcProperties = protoRpcConfigFactory.getRpcProperties();
         // 订阅服务
         RpcContext rpcContext = protoRpcConfigFactory.getRpcContext();
@@ -69,6 +70,8 @@ public class GenericRpcServiceProxyFactory {
                 new Class[]{GenericRpcService.class},
                 rpcProxyInvokeHandler);
         genericRpcServiceMap.put(interfaceClazzName, genericRpcService);
+        // 生命周期回调
+        ConsumerLifeCycle.fetch().afterInitialize(rpcMetaData);
         return genericRpcService;
     }
 }

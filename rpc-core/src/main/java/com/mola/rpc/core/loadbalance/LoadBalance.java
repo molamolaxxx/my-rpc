@@ -1,4 +1,4 @@
-package com.mola.rpc.core.strategy.balance;
+package com.mola.rpc.core.loadbalance;
 
 import com.google.common.collect.Maps;
 import com.mola.rpc.common.entity.RpcMetaData;

@@ -1,4 +1,4 @@
-package com.mola.rpc.spring;
+package com.mola.rpc.spring.autoconfig;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
@@ -6,6 +6,7 @@ import com.mola.rpc.common.annotation.RpcConsumer;
 import com.mola.rpc.common.annotation.RpcProvider;
 import com.mola.rpc.common.constants.CommonConstants;
 import com.mola.rpc.common.entity.RpcMetaData;
+import com.mola.rpc.spring.RpcConsumerFactoryBean;
 import org.springframework.beans.BeanMetadataAttribute;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.support.AbstractBeanDefinition;

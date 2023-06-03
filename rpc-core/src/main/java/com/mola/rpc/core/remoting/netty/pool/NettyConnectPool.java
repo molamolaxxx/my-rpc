@@ -119,10 +119,12 @@ public class NettyConnectPool {
     }
 
     public Channel getReverseInvokeChannel(String serviceKey) {
-        Assert.isTrue(reverseChannelsKeyMap.containsKey(serviceKey), "in consumer , reverseChannelsKeyMap not contains key : "
-                + serviceKey + ", perhaps provider not register it ");
         Map<String, ChannelWrapper> addressChannelMap = reverseChannelsKeyMap.get(serviceKey);
-        Assert.isTrue(addressChannelMap.size() > 0, "there are no available channel to be use, key = " + serviceKey);
+        if (addressChannelMap == null || addressChannelMap.size() == 0) {
+            log.warn("there are no available channel to be use, key = " + serviceKey);
+            return null;
+        }
+        // 优先使用指定地址
         // 随机取一个
         Random random = new Random();
         ArrayList<ChannelWrapper> channels = Lists.newArrayList(addressChannelMap.values());

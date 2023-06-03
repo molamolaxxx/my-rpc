@@ -108,7 +108,7 @@ public class NacosRpcDataManager extends BaseRpcDataManager {
         String serviceName = String.format("%s:%s:%s", interfaceClazz, group, version);
         try {
             this.namingService.subscribe(serviceName, new NacosProviderConfigChangeListenerImpl(
-                    consumerMetaData, addressChangeListeners
+                    consumerMetaData
             ));
         } catch (Exception e) {
             log.error("registerProviderDataListener subscribe error, serviceName = " + serviceName, e);

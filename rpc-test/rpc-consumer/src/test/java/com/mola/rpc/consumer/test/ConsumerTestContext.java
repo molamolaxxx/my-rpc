@@ -8,6 +8,6 @@ import org.springframework.context.annotation.ComponentScan;
  * @Description:
  * @date : 2023-01-22 21:13
  **/
-@ComponentScan(basePackages = {"com.mola.rpc.spring","com.mola.rpc.consumer.test"})
+@ComponentScan(basePackages = {"com.mola.rpc.spring","com.mola.rpc.consumer.test","com.mola.rpc.test.tool"})
 public class ConsumerTestContext {
 }

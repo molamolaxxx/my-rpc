@@ -31,7 +31,7 @@ public class ZookeeperGenericRpcServiceTest {
         RpcProperties rpcProperties = new RpcProperties();
         // 环境标
         rpcProperties.setEnvironment("pre");
-        ProtoRpcConfigFactory protoRpcConfigFactory = ProtoRpcConfigFactory.get();
+        ProtoRpcConfigFactory protoRpcConfigFactory = ProtoRpcConfigFactory.fetch();
         protoRpcConfigFactory.init(rpcProperties);
     }
 

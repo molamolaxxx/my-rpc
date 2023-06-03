@@ -19,7 +19,7 @@ public @interface RpcConsumer {
 
     long timeout() default 10000L;
 
-    String loadBalanceStrategy() default LoadBalanceConstants.LOAD_BALANCE_RANDOM_STRATEGY;
+    String loadBalanceStrategy() default LoadBalanceConstants.RANDOM_STRATEGY;
 
     String[] asyncMethods() default {};
 

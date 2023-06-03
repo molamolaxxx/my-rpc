@@ -11,6 +11,7 @@ import com.mola.rpc.common.entity.AddressInfo;
 import com.mola.rpc.common.entity.ProviderConfigData;
 import com.mola.rpc.common.entity.RpcMetaData;
 import com.mola.rpc.common.entity.SystemInfo;
+import com.mola.rpc.common.lifecycle.ConsumerLifeCycle;
 import com.mola.rpc.common.utils.ObjectUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -35,15 +36,12 @@ public class NacosProviderConfigChangeListenerImpl implements EventListener {
 
     private Lock addressListChangeLock;
 
-    /**
-     * 地址变更监听器
-     */
-    private List<AddressChangeListener> addressChangeListeners;
+    private ConsumerLifeCycle consumerLifeCycle;
 
-    public NacosProviderConfigChangeListenerImpl(RpcMetaData consumerMetaData, List<AddressChangeListener> addressChangeListeners) {
+    public NacosProviderConfigChangeListenerImpl(RpcMetaData consumerMetaData) {
         this.consumerMetaData = consumerMetaData;
-        this.addressChangeListeners = addressChangeListeners;
         this.addressListChangeLock = new ReentrantLock();
+        this.consumerLifeCycle = ConsumerLifeCycle.fetch();
     }
 
     @Override
@@ -78,10 +76,8 @@ public class NacosProviderConfigChangeListenerImpl implements EventListener {
             } finally {
                 this.addressListChangeLock.unlock();
             }
-            // 监听器回调
-            if (!CollectionUtils.isEmpty(addressChangeListeners)) {
-                addressChangeListeners.forEach(listener -> listener.afterAddressChange(consumerMetaData));
-            }
+            // 生命周期回调
+            consumerLifeCycle.afterAddressChange(consumerMetaData);
         }
     }
 }

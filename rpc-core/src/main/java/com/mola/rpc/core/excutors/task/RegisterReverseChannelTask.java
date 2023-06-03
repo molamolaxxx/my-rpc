@@ -30,7 +30,7 @@ public class RegisterReverseChannelTask extends RpcTask {
         Object[] args = invokeMethod.fetchArgs();
         Assert.isTrue(args[0] instanceof String,"handleReverseInvokeCommand args[0] require String Type, " + invokeMethod.toString());
         String reverseKey = (String) args[0];
-        NettyConnectPool nettyConnectPool = ProtoRpcConfigFactory.get().getNettyConnectPool();
+        NettyConnectPool nettyConnectPool = ProtoRpcConfigFactory.fetch().getNettyConnectPool();
         // 写入连接池
         nettyConnectPool.registerReverseInvokeChannel(reverseKey, ChannelWrapper.of(channel));
         // 构建响应

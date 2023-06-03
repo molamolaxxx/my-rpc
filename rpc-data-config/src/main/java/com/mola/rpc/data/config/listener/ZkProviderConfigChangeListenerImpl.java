@@ -6,6 +6,7 @@ import com.google.common.collect.Maps;
 import com.mola.rpc.common.entity.AddressInfo;
 import com.mola.rpc.common.entity.ProviderConfigData;
 import com.mola.rpc.common.entity.RpcMetaData;
+import com.mola.rpc.common.lifecycle.ConsumerLifeCycle;
 import org.I0Itec.zkclient.IZkChildListener;
 import org.I0Itec.zkclient.ZkClient;
 import org.slf4j.Logger;
@@ -36,13 +37,13 @@ public class ZkProviderConfigChangeListenerImpl implements IZkChildListener {
     /**
      * 地址变更监听器
      */
-    private List<AddressChangeListener> addressChangeListeners;
+    private ConsumerLifeCycle consumerLifeCycle;
 
-    public ZkProviderConfigChangeListenerImpl(RpcMetaData consumerMetaData, ZkClient zkClient, List<AddressChangeListener> addressChangeListeners) {
+    public ZkProviderConfigChangeListenerImpl(RpcMetaData consumerMetaData, ZkClient zkClient) {
         this.consumerMetaData = consumerMetaData;
         this.zkClient = zkClient;
-        this.addressChangeListeners = addressChangeListeners;
         this.addressListChangeLock  = new ReentrantLock();
+        this.consumerLifeCycle = ConsumerLifeCycle.fetch();
     }
 
     @Override
@@ -70,9 +71,7 @@ public class ZkProviderConfigChangeListenerImpl implements IZkChildListener {
         } finally {
             this.addressListChangeLock.unlock();
         }
-        // 监听器回调
-        if (!CollectionUtils.isEmpty(addressChangeListeners)) {
-            addressChangeListeners.forEach(listener -> listener.afterAddressChange(consumerMetaData));
-        }
+        // 生命周期回调
+        consumerLifeCycle.afterAddressChange(consumerMetaData);
     }
 }

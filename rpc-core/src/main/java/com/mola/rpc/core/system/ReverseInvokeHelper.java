@@ -4,7 +4,10 @@ import com.alibaba.fastjson.JSONObject;
 import com.google.common.collect.Lists;
 import com.mola.rpc.common.context.RpcContext;
 import com.mola.rpc.common.entity.RpcMetaData;
+import com.mola.rpc.common.ext.ExtensionRegistryManager;
+import com.mola.rpc.common.interceptor.ReverseProxyRegisterInterceptor;
 import com.mola.rpc.core.proto.ProtoRpcConfigFactory;
+import com.mola.rpc.core.remoting.netty.pool.ChannelWrapper;
 import com.mola.rpc.core.remoting.netty.pool.NettyConnectPool;
 import io.netty.channel.Channel;
 import org.slf4j.Logger;
@@ -12,11 +15,14 @@ import org.slf4j.LoggerFactory;
 import org.springframework.util.Assert;
 
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.Consumer;
 
 /**
  * @author : molamola
@@ -41,6 +47,8 @@ public class ReverseInvokeHelper {
      */
     private ScheduledExecutorService reverseProviderConnectMonitorThread;
 
+    private AtomicBoolean startFlag = new AtomicBoolean(false);
+
     private ReverseInvokeHelper(){}
     private static class Singleton{
         private static ReverseInvokeHelper reverseInvokeHelper = new ReverseInvokeHelper();
@@ -51,9 +59,14 @@ public class ReverseInvokeHelper {
     }
 
     public void startMonitor() {
-        ProtoRpcConfigFactory protoRpcConfigFactory = ProtoRpcConfigFactory.get();
+        if (startFlag.get()) {
+            return;
+        }
+        ProtoRpcConfigFactory protoRpcConfigFactory = ProtoRpcConfigFactory.fetch();
         RpcContext rpcContext = protoRpcConfigFactory.getRpcContext();
         NettyConnectPool nettyConnectPool = protoRpcConfigFactory.getNettyConnectPool();
+        ExtensionRegistryManager extensionRegistryManager = protoRpcConfigFactory.getExtensionRegistryManager();
+
         this.reverseProviderConnectMonitorThread = Executors.newScheduledThreadPool(1,
                 new ThreadFactory() {
                     AtomicInteger threadIndex = new AtomicInteger(0);
@@ -64,12 +77,21 @@ public class ReverseInvokeHelper {
                         return thread;
                     }
                 });
+
         this.reverseProviderConnectMonitorThread.scheduleAtFixedRate(() -> {
             try {
-                // 获取所有提供服务信息
-                for (RpcMetaData rpcMetaData : rpcContext.getProviderMetaMap().values()) {
+                List<ReverseProxyRegisterInterceptor> interceptors = extensionRegistryManager
+                        .getInterceptors(ReverseProxyRegisterInterceptor.class);
+
+                // 单个代理注册方法句柄
+                Consumer<RpcMetaData> singleRegisterMethodHandle = (rpcMetaData) -> {
                     if (!rpcMetaData.getReverseMode()) {
-                        continue;
+                        return;
+                    }
+                    for (ReverseProxyRegisterInterceptor interceptor : interceptors) {
+                        if (interceptor.intercept(rpcMetaData)) {
+                            return;
+                        }
                     }
                     List<String> reverseModeConsumerAddress = rpcMetaData.getReverseModeConsumerAddress();
                     for (String consumerAddress : reverseModeConsumerAddress) {
@@ -80,13 +102,19 @@ public class ReverseInvokeHelper {
                             log.error("remote address " + (channel == null ? consumerAddress : channel.toString()) +" 's channel heart beat exception! ", e);
                         }
                     }
-                }
+                };
+
+                // 获取所有提供服务信息
+                rpcContext.getProviderMetaMap().values().forEach(singleRegisterMethodHandle);
+
+                // 清除坏连接
                 nettyConnectPool.clearBadReverseChannels();
             } catch (Exception e) {
                 log.error("reverseProviderConnectMonitorThread schedule failed!", e);
             }
 
-        },30, 45, TimeUnit.SECONDS);
+        },0, 45, TimeUnit.SECONDS);
+        startFlag.compareAndSet(false, true);
     }
 
     public void shutdownMonitor() {
@@ -98,6 +126,21 @@ public class ReverseInvokeHelper {
     public String getServiceKey(RpcMetaData rpcMetaData, boolean isConsumer) {
         return String.format("%s:%s:%s", rpcMetaData.getInterfaceClazz().getName(),
                 rpcMetaData.getGroup(), rpcMetaData.getVersion());
+    }
+
+    /**
+     * 获取代理服务
+     * @param serviceKey
+     * @return
+     */
+    public Map<String, ChannelWrapper> fetchAvailableProxyService(String serviceKey) {
+        ProtoRpcConfigFactory protoRpcConfigFactory = ProtoRpcConfigFactory.fetch();
+        NettyConnectPool nettyConnectPool = protoRpcConfigFactory.getNettyConnectPool();
+        Map<String, Map<String, ChannelWrapper>> reverseChannelsKeyMap = nettyConnectPool.getReverseChannelsKeyMap();
+        if (reverseChannelsKeyMap == null) {
+            return null;
+        }
+        return reverseChannelsKeyMap.get(serviceKey);
     }
 
     public void registerProviderToServer(RpcMetaData providerMeta) {

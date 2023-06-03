@@ -37,6 +37,6 @@ public class NacosProtoConsumerInvokeTest extends ProtoConsumerInvokeTest {
         asyncMetaData.setAsyncExecuteMethods(Sets.newHashSet("*"));
         this.unitTestServiceAsync = RpcInvoker.consumer(UnitTestService.class, asyncMetaData, "unitTestServiceAsync");
         this.unitTestService = RpcInvoker.consumer(UnitTestService.class);
-        this.rpcProviderDataInitBean = ProtoRpcConfigFactory.get().getRpcProviderDataInitBean();
+        this.rpcProviderDataInitBean = ProtoRpcConfigFactory.fetch().getRpcProviderDataInitBean();
     }
 }

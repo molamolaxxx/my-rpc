@@ -2,13 +2,18 @@ package com.mola.rpc.common.entity;
 
 import com.alibaba.fastjson.JSONObject;
 import com.mola.rpc.common.annotation.ConsumerSide;
+import com.mola.rpc.common.annotation.DomainMethod;
 import com.mola.rpc.common.annotation.ProviderSide;
 import com.mola.rpc.common.constants.LoadBalanceConstants;
+import com.mola.rpc.common.context.InvokeContext;
+import org.springframework.util.Assert;
+import org.springframework.util.CollectionUtils;
 
 import java.util.List;
 import java.util.Set;
 import java.util.SortedMap;
 import java.util.TreeMap;
+import java.util.stream.Collectors;
 
 /**
  * @author : molamola
@@ -61,7 +66,7 @@ public class RpcMetaData {
      * 负载均衡策略
      */
     @ConsumerSide
-    private String loadBalanceStrategy = LoadBalanceConstants.LOAD_BALANCE_RANDOM_STRATEGY;
+    private String loadBalanceStrategy = LoadBalanceConstants.RANDOM_STRATEGY;
 
     /**
      * 服务提供者bean名称
@@ -107,7 +112,7 @@ public class RpcMetaData {
      * 用于负载均衡
      */
     @ConsumerSide
-    private SortedMap<Integer, String> virtualAddressNodeMap = new TreeMap<>();
+    private transient SortedMap<Integer, String> virtualAddressNodeMap = new TreeMap<>();
 
     /**
      * provider反向代理到consumer的服务器地址
@@ -234,7 +239,7 @@ public class RpcMetaData {
 
     @Override
     public String toString() {
-        return JSONObject.toJSONString(this);
+        return JSONObject.toJSONString(this, true);
     }
 
     public SortedMap<Integer, String> getVirtualAddressNodeMap() {
@@ -299,5 +304,29 @@ public class RpcMetaData {
 
     public List<String> getReverseModeConsumerAddress() {
         return reverseModeConsumerAddress;
+    }
+
+    /**
+     * 客户端取服务端地址，优先级如下
+     * 1、执行上下文
+     * 2、consumer配置
+     * 3、配置中心
+     * @return
+     */
+    @DomainMethod
+    public List<String> fetchProviderAddressList() {
+        RpcMetaData consumerMeta = this;
+        InvokeContext context = InvokeContext.fetch();
+        if (context != null && !CollectionUtils.isEmpty(context.getAddressList())) {
+            return context.getAddressList();
+        }
+        List<String> addressList = consumerMeta.getAppointedAddress();
+        if (CollectionUtils.isEmpty(addressList)) {
+            addressList = consumerMeta.getAddressList().stream()
+                    .filter(e -> e.getAddress() != null).map(AddressInfo::getAddress)
+                    .collect(Collectors.toList());
+        }
+        Assert.notNull(addressList, "addressList is null");
+        return addressList;
     }
 }
