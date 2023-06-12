@@ -6,6 +6,7 @@ import com.mola.rpc.common.annotation.RpcConsumer;
 import com.mola.rpc.common.annotation.RpcProvider;
 import com.mola.rpc.common.constants.CommonConstants;
 import com.mola.rpc.common.entity.RpcMetaData;
+import com.mola.rpc.common.utils.ClazzUtil;
 import com.mola.rpc.spring.RpcConsumerFactoryBean;
 import org.springframework.beans.BeanMetadataAttribute;
 import org.springframework.beans.factory.config.BeanDefinition;
@@ -67,20 +68,26 @@ public class RpcConsumerImportBeanDefinitionRegistrar implements ImportBeanDefin
                     if (annotation == null) {
                         continue;
                     }
-                    Class<?> type = field.getType();
-                    String clazzTypeNameKey = type.getName() + ":" + field.getName();
+                    Class<?> consumerClazzType = field.getType();
+                    String clazzTypeNameKey = consumerClazzType.getName() + ":" + field.getName();
                     if (consumerAlreadyAddedSet.contains(clazzTypeNameKey)) {
                         throw new RuntimeException("duplicate consumer can not been register, key is " + clazzTypeNameKey);
                     }
                     BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition();
                     AbstractBeanDefinition consumerBeanDefinition = builder.getBeanDefinition();
                     consumerBeanDefinition.setBeanClass(RpcConsumerFactoryBean.class);
-                    consumerBeanDefinition.getConstructorArgumentValues().addGenericArgumentValue(type);
+                    consumerBeanDefinition.getConstructorArgumentValues().addGenericArgumentValue(consumerClazzType);
                     consumerBeanDefinition.getConstructorArgumentValues().addGenericArgumentValue(field.getName());
-                    RpcMetaData clientMeta = RpcMetaData.of(annotation.group(), annotation.version(), type);
+                    RpcMetaData clientMeta = RpcMetaData.of(annotation.group(), annotation.version(), consumerClazzType);
                     clientMeta.setClientTimeout(annotation.timeout());
                     clientMeta.setLoadBalanceStrategy(annotation.loadBalanceStrategy());
-                    clientMeta.setAsyncExecuteMethods(Sets.newHashSet(annotation.asyncMethods()));
+
+                    // 消费者bean级别异步方法
+                    Set<String> consumerBeanAsyncMethod = Sets.newHashSet(annotation.asyncMethods());
+                    // 消费者类级别异步方法，优先级最高
+                    consumerBeanAsyncMethod.addAll(ClazzUtil.getAllAsyncInvokeMethodName(consumerClazzType));
+                    clientMeta.setAsyncExecuteMethods(consumerBeanAsyncMethod);
+
                     clientMeta.setReverseMode(Boolean.valueOf(annotation.reverseMode()));
                     clientMeta.setAppointedAddress(Lists.newArrayList(annotation.appointedAddress()));
                     BeanMetadataAttribute attribute = new BeanMetadataAttribute(CommonConstants.BEAN_DEF_CONSUMER_META,

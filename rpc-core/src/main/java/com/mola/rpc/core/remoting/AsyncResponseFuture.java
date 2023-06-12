@@ -32,7 +32,7 @@ public class AsyncResponseFuture<T> extends ResponseFuture {
         // 服务端执行异常
         if (responseCommand.getCode() == RemotingCommandCode.SYSTEM_ERROR) {
             log.error("async invoke failed, server throw exception, client will not consume result! remark = " + responseCommand.getRemark());
-            return;
+            throw new RuntimeException(responseCommand.getRemark());
         }
         if (consumer != null) {
             // response转换成对象

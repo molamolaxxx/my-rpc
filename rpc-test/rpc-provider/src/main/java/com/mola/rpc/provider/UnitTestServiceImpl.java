@@ -158,4 +158,13 @@ public class UnitTestServiceImpl implements UnitTestService {
         }
         return "ok";
     }
+
+    @Override
+    public String asyncInvokeInAnnotation() {
+        try {
+            Thread.sleep(1000);
+        } catch (InterruptedException e) {
+        }
+        return "ok";
+    }
 }

@@ -1,5 +1,7 @@
 package com.mola.rpc.client;
 
+import com.mola.rpc.common.annotation.AsyncInvoke;
+
 import java.util.List;
 
 /**
@@ -157,4 +159,7 @@ public interface UnitTestService {
      * @return
      */
     String processDelayLongTime(int second);
+
+    @AsyncInvoke
+    String asyncInvokeInAnnotation();
 }

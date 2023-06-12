@@ -205,8 +205,18 @@ public class ConsumerInvokeTest {
         } catch (Exception e) {
             Assert.isTrue(e.getMessage().contains("please check if this method is an async method"), "asyncInvokeTest-case6测试失败");
         }
-
     }
+
+    @Test
+    public void asyncInvokeTestInAnnotation() throws InterruptedException {
+        CountDownLatch countDownLatch3 = new CountDownLatch(1);
+        Async.from(unitTestServiceAsync.asyncInvokeInAnnotation()).consume(res -> {
+            Assert.isTrue(res.equals("ok"), "asyncInvokeTest-case7测试失败");
+            countDownLatch3.countDown();
+        });
+        countDownLatch3.await(3000, TimeUnit.MILLISECONDS);
+    }
+
 
     @Test
     public void testAsyncException() {
