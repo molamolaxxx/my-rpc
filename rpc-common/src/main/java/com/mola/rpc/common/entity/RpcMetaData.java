@@ -2,7 +2,6 @@ package com.mola.rpc.common.entity;
 
 import com.alibaba.fastjson.JSONObject;
 import com.mola.rpc.common.annotation.ConsumerSide;
-import com.mola.rpc.common.annotation.DomainMethod;
 import com.mola.rpc.common.annotation.ProviderSide;
 import com.mola.rpc.common.constants.LoadBalanceConstants;
 import com.mola.rpc.common.context.InvokeContext;
@@ -327,7 +326,6 @@ public class RpcMetaData {
      * 3、配置中心
      * @return
      */
-    @DomainMethod
     public List<String> fetchProviderAddressList() {
         RpcMetaData consumerMeta = this;
         InvokeContext context = InvokeContext.fetch();
