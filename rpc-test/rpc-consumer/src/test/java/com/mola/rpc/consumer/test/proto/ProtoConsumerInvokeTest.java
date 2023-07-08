@@ -34,7 +34,9 @@ public class ProtoConsumerInvokeTest extends ConsumerInvokeTest {
         RpcMetaData asyncMetaData = new RpcMetaData();
         asyncMetaData.setAsyncExecuteMethods(Sets.newHashSet("*"));
         this.unitTestServiceAsync = RpcInvoker.consumer(UnitTestService.class, asyncMetaData, "unitTestServiceAsync");
-        this.unitTestService = RpcInvoker.consumer(UnitTestService.class);
+        RpcMetaData onewayMeta = new RpcMetaData();
+        onewayMeta.setOnewayExecuteMethods(Sets.newHashSet("onewayTest"));
+        this.unitTestService = RpcInvoker.consumer(UnitTestService.class, onewayMeta, "unitTestService");
         this.rpcProviderDataInitBean = ProtoRpcConfigFactory.fetch().getRpcProviderDataInitBean();
     }
 }

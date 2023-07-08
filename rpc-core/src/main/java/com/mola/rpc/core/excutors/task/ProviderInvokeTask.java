@@ -30,6 +30,9 @@ public class ProviderInvokeTask extends RpcTask {
         try {
             Object providerBean = providerObjFetcher.getObject(providerMeta);
             result = invokeMethod.invoke(providerBean);
+            if (request.isOnewayInvoke()) {
+                return null;
+            }
             response = buildRemotingCommand(request, result, RemotingCommandCode.SUCCESS, null);
         } catch (Exception e) {
             response = buildRemotingCommand(request, null, RemotingCommandCode.SYSTEM_ERROR, e.getMessage());

@@ -150,7 +150,7 @@ public class ReverseInvokeHelper {
         SystemConsumer<SystemConsumer.ReverseInvokerCaller> systemConsumer = SystemConsumer.Multipart.reverseInvokerCaller;
         for (String reverseModeConsumerAddress : providerMeta.getReverseModeConsumerAddress()) {
             systemConsumer.setAppointedAddress(Lists.newArrayList(reverseModeConsumerAddress));
-            systemConsumer.fetch().register(this.getServiceKey(providerMeta, false));
+            systemConsumer.fetch().register(getServiceKey(providerMeta, false));
         }
     }
 }

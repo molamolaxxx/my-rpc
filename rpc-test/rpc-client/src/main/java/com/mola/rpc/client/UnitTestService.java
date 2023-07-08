@@ -1,6 +1,7 @@
 package com.mola.rpc.client;
 
 import com.mola.rpc.common.annotation.AsyncInvoke;
+import com.mola.rpc.common.annotation.OnewayInvoke;
 
 import java.util.List;
 
@@ -162,4 +163,7 @@ public interface UnitTestService {
 
     @AsyncInvoke
     String asyncInvokeInAnnotation();
+
+    @OnewayInvoke
+    String onewayTest();
 }

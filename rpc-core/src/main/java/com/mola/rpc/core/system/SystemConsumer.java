@@ -1,9 +1,9 @@
 package com.mola.rpc.core.system;
 
-import com.alibaba.fastjson.JSONObject;
+import com.mola.rpc.common.annotation.OnewayInvoke;
 import com.mola.rpc.common.entity.RpcMetaData;
+import com.mola.rpc.common.utils.ClazzUtil;
 import com.mola.rpc.core.proto.RpcInvoker;
-import org.springframework.util.Assert;
 
 import java.util.List;
 
@@ -22,11 +22,14 @@ public class SystemConsumer<T> {
     private SystemConsumer(Class<T> consumerInterface) {
         String consumerName = "systemConsumer";
         this.rpcMetaData = new RpcMetaData();
+        rpcMetaData.setOnewayExecuteMethods(
+                ClazzUtil.getMethodNameFilterByAnnotation(consumerInterface, OnewayInvoke.class));
         this.consumerInner = RpcInvoker.consumer(consumerInterface, rpcMetaData, consumerName);
     }
 
     public static class Multipart {
-        public static SystemConsumer<ReverseInvokerCaller> reverseInvokerCaller = new SystemConsumer(ReverseInvokerCaller.class);
+        public static SystemConsumer<ReverseInvokerCaller> reverseInvokerCaller =
+                new SystemConsumer(ReverseInvokerCaller.class);
     }
 
     public T fetch() {
@@ -34,12 +37,12 @@ public class SystemConsumer<T> {
     }
 
     public void setAppointedAddress(List<String> address) {
-        Assert.notEmpty(address, "changeAppointedAddress failed, address is empty, meta = " + JSONObject.toJSONString(rpcMetaData));
         this.rpcMetaData.setAppointedAddress(address);
     }
 
     public interface ReverseInvokerCaller {
+
+        @OnewayInvoke
         void register(String channelKey);
     }
-
 }

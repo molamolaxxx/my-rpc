@@ -33,6 +33,9 @@ public class RegisterReverseChannelTask extends RpcTask {
         NettyConnectPool nettyConnectPool = ProtoRpcConfigFactory.fetch().getNettyConnectPool();
         // 写入连接池
         nettyConnectPool.registerReverseInvokeChannel(reverseKey, ChannelWrapper.of(channel));
+        if (request.isOnewayInvoke()) {
+            return null;
+        }
         // 构建响应
         RemotingCommand response = buildRemotingCommand(request, null, RemotingCommandCode.SUCCESS, null);
         // 发送响应

@@ -217,6 +217,14 @@ public class ConsumerInvokeTest {
         countDownLatch3.await(3000, TimeUnit.MILLISECONDS);
     }
 
+    @Test
+    public void onewayInvokeTestInAnnotation() {
+        long start = System.currentTimeMillis();
+        String s = unitTestService.onewayTest();
+        Assert.isTrue(s == null, "onewayInvokeTestInAnnotation-case1测试失败");
+        Assert.isTrue(System.currentTimeMillis() - start < 500, "onewayInvokeTestInAnnotation-case2测试失败");
+    }
+
 
     @Test
     public void testAsyncException() {

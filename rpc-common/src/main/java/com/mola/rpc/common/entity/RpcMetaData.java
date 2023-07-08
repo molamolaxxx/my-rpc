@@ -92,6 +92,12 @@ public class RpcMetaData {
     @ConsumerSide
     private Set<String> asyncExecuteMethods;
 
+    /**
+     * 单向调用方法
+     */
+    @ConsumerSide
+    private Set<String> onewayExecuteMethods;
+
     @ProviderSide
     private String host;
 
@@ -227,6 +233,14 @@ public class RpcMetaData {
 
     public void setAsyncExecuteMethods(Set<String> asyncExecuteMethods) {
         this.asyncExecuteMethods = asyncExecuteMethods;
+    }
+
+    public void setOnewayExecuteMethods(Set<String> onewayExecuteMethods) {
+        this.onewayExecuteMethods = onewayExecuteMethods;
+    }
+
+    public Set<String> getOnewayExecuteMethods() {
+        return onewayExecuteMethods;
     }
 
     public void setHost(String host) {

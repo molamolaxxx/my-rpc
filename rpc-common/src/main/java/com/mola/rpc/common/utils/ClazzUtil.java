@@ -1,9 +1,9 @@
 package com.mola.rpc.common.utils;
 
 import com.google.common.collect.Sets;
-import com.mola.rpc.common.annotation.AsyncInvoke;
 import org.springframework.util.Assert;
 
+import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
 import java.util.Set;
 
@@ -15,7 +15,7 @@ import java.util.Set;
  **/
 public class ClazzUtil {
 
-    public static Set<String> getAllAsyncInvokeMethodName(Class<?> clazz) {
+    public static Set<String> getMethodNameFilterByAnnotation(Class<?> clazz, Class<? extends Annotation> annotation) {
         Assert.notNull(clazz, "clazz is null");
         Method[] methods = clazz.getMethods();
         if (methods == null || methods.length == 0) {
@@ -23,7 +23,7 @@ public class ClazzUtil {
         }
         Set<String> result = Sets.newHashSet();
         for (Method method : methods) {
-            if (method.getAnnotation(AsyncInvoke.class) != null) {
+            if (method.getAnnotation(annotation) != null) {
                 result.add(method.getName());
             }
         }

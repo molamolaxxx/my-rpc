@@ -93,6 +93,14 @@ public class RpcProxyInvokeHandler implements InvocationHandler {
             // 构建request
             InvokeMethod invokeMethod = assemblyInvokeMethod(method, args);
             RemotingCommand request = buildRemotingCommand(method, invokeMethod, consumerMeta.getClientTimeout(), targetProviderAddress, consumerMeta);
+            // 执行单向调用
+            if (isOnewayExecute(consumerMeta, method)) {
+                request.markOnewayInvoke();
+                nettyRemoteClient.onewayInvoke(targetProviderAddress, request, invokeMethod,
+                        method, consumerMeta.getClientTimeout());
+                return null;
+            }
+
             // 执行远程调用
             if (isAsyncExecute(consumerMeta, method)) {
                 AsyncResponseFuture asyncResponseFuture = nettyRemoteClient.asyncInvoke(
@@ -172,15 +180,31 @@ public class RpcProxyInvokeHandler implements InvocationHandler {
      * @param consumerMeta
      * @return
      */
-    private Boolean isAsyncExecute(RpcMetaData consumerMeta, Method method) {
+    private boolean isAsyncExecute(RpcMetaData consumerMeta, Method method) {
         Set<String> asyncExecuteMethods = consumerMeta.getAsyncExecuteMethods();
         if (CollectionUtils.isEmpty(asyncExecuteMethods)) {
-            return Boolean.FALSE;
+            return false;
         }
         if (asyncExecuteMethods.contains("*") || asyncExecuteMethods.contains(method.getName())) {
-            return Boolean.TRUE;
+            return true;
         }
-        return Boolean.FALSE;
+        return false;
+    }
+
+    /**
+     * 是否单向执行
+     * @param consumerMeta
+     * @return
+     */
+    private boolean isOnewayExecute(RpcMetaData consumerMeta, Method method) {
+        Set<String> onewayExecuteMethods = consumerMeta.getOnewayExecuteMethods();
+        if (CollectionUtils.isEmpty(onewayExecuteMethods)) {
+            return false;
+        }
+        if (onewayExecuteMethods.contains(method.getName())) {
+            return true;
+        }
+        return false;
     }
 
     /**

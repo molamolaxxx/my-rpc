@@ -43,7 +43,6 @@ public class CommonRpcProviderExecutor implements RpcExecutor {
 
     @Override
     public void process(RpcTask rpcTask) {
-        log.info("thread:" + Thread.currentThread().getName());
         tp.submit(rpcTask);
     }
 }

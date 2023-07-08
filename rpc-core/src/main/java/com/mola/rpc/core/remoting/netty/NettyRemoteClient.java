@@ -280,6 +280,22 @@ public class NettyRemoteClient {
         }
     }
 
+    /**
+     * 异步调用远程服务
+     * @param address
+     * @param request
+     * @return
+     */
+    public AsyncResponseFuture asyncInvoke(String address, RemotingCommand request, InvokeMethod invokeMethod, Method method, long timeout) {
+        try {
+            Channel channel = this.getAvailableChannel(address);
+            return asyncInvokeWithChannel(channel, request, invokeMethod, method, timeout);
+        } catch (Exception e) {
+            log.warn("asyncInvoke failed to remote host[{" + address + "}], request" + request , e);
+            throw new RuntimeException(e);
+        }
+    }
+
     public AsyncResponseFuture asyncInvokeWithChannel(Channel channel, RemotingCommand request, InvokeMethod invokeMethod, Method method, long timeout) {
         try {
             AsyncResponseFuture responseFuture = new AsyncResponseFuture(request.getOpaque(), timeout);
@@ -312,20 +328,43 @@ public class NettyRemoteClient {
     }
 
     /**
-     * 异步调用远程服务
+     * 单向调用远程服务
      * @param address
      * @param request
      * @return
      */
-    public AsyncResponseFuture asyncInvoke(String address, RemotingCommand request, InvokeMethod invokeMethod, Method method, long timeout) {
+    public void onewayInvoke(String address, RemotingCommand request, InvokeMethod invokeMethod, Method method, long timeout) {
         try {
             Channel channel = this.getAvailableChannel(address);
-            return asyncInvokeWithChannel(channel, request, invokeMethod, method, timeout);
+            onewayInvokeWithChannel(channel, request, invokeMethod, method, timeout);
         } catch (Exception e) {
-            log.warn("asyncInvoke failed to remote host[{" + address + "}], request" + request , e);
+            log.warn("onewayInvoke failed to remote host[{" + address + "}], request" + request , e);
             throw new RuntimeException(e);
         }
     }
+
+
+    public void onewayInvokeWithChannel(Channel channel, RemotingCommand request, InvokeMethod invokeMethod, Method method, long timeout) {
+        try {
+            // 写入channel
+            final SocketAddress remoteAddress = channel.remoteAddress();
+            channel.writeAndFlush(request).addListener(future -> {
+                // 调用成功
+                if (future.isSuccess()) {
+                    return;
+                }
+                // 调用失败
+                if (!RemotingUtil.channelIsAvailable(channel)) {
+                    RemotingUtil.closeChannel(channel);
+                }
+                log.warn("send a request command to channel <" + remoteAddress + "> failed. request = " + request);
+            });
+        } catch (Exception e) {
+            log.error("onewayInvoke failed in channel[" + channel + "], request" + request , e);
+            throw new RuntimeException(e);
+        }
+    }
+
 
     /**
      * 获取一个可用的通道

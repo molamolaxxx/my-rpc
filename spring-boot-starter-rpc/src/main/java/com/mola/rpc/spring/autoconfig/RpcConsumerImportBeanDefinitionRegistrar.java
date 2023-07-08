@@ -2,6 +2,8 @@ package com.mola.rpc.spring.autoconfig;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
+import com.mola.rpc.common.annotation.AsyncInvoke;
+import com.mola.rpc.common.annotation.OnewayInvoke;
 import com.mola.rpc.common.annotation.RpcConsumer;
 import com.mola.rpc.common.annotation.RpcProvider;
 import com.mola.rpc.common.constants.CommonConstants;
@@ -85,8 +87,10 @@ public class RpcConsumerImportBeanDefinitionRegistrar implements ImportBeanDefin
                     // 消费者bean级别异步方法
                     Set<String> consumerBeanAsyncMethod = Sets.newHashSet(annotation.asyncMethods());
                     // 消费者类级别异步方法，优先级最高
-                    consumerBeanAsyncMethod.addAll(ClazzUtil.getAllAsyncInvokeMethodName(consumerClazzType));
+                    consumerBeanAsyncMethod.addAll(ClazzUtil.getMethodNameFilterByAnnotation(consumerClazzType, AsyncInvoke.class));
                     clientMeta.setAsyncExecuteMethods(consumerBeanAsyncMethod);
+
+                    clientMeta.setOnewayExecuteMethods(ClazzUtil.getMethodNameFilterByAnnotation(consumerClazzType, OnewayInvoke.class));
 
                     clientMeta.setReverseMode(Boolean.valueOf(annotation.reverseMode()));
                     clientMeta.setAppointedAddress(Lists.newArrayList(annotation.appointedAddress()));

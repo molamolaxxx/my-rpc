@@ -17,14 +17,14 @@ public class RemotingCommand {
 
     private static AtomicInteger RequestId = new AtomicInteger(0);
 
+
+    private int flag = 0;
+
     /**
      * 0000:request
      * 0010:oneway request
-     * 0001:response
      * */
-    private static final int RPC_TYPE = 0; // 0, REQUEST_COMMAND  1, RESPONSE_COMMAND
-
-    private static final int RPC_ONEWAY = 1; // 0, RPC   1, Oneway
+    private static final int RPC_ONEWAY_FLAG = 2;
 
     /**
      * Header 部分
@@ -36,7 +36,6 @@ public class RemotingCommand {
      * AtomicInteger加到max_value会重置为-max_value
      */
     private int opaque = RequestId.getAndIncrement();
-    private int flag = 0;
     private String remark;
     private HashMap<String, String> extFields;
 
@@ -51,7 +50,6 @@ public class RemotingCommand {
 
     public static RemotingCommand createResponseCommand(int code, String remark) {
         RemotingCommand cmd = new RemotingCommand();
-        cmd.markResponseType();
         cmd.setCode(code);
         cmd.setRemark(remark);
 
@@ -61,7 +59,6 @@ public class RemotingCommand {
     private byte[] buildHeader() {
         return RemotingSerializableUtil.encode(this);
     }
-
 
     public ByteBuffer encode() {
         // 头部长度占用4字节
@@ -161,23 +158,8 @@ public class RemotingCommand {
         return cmd;
     }
 
-    public void markResponseType() {
-        int bits = 1 << RPC_TYPE;
-        this.flag |= bits;
-    }
-
     public boolean isResponseType() {
         return this.code != RemotingCommandCode.NORMAL;
-    }
-
-    public void markOnewayRPC() {
-        int bits = 1 << RPC_ONEWAY;
-        this.flag |= bits;
-    }
-
-    public boolean isOnewayRPC() {
-        int bits = 1 << RPC_ONEWAY;
-        return (this.flag & bits) == bits;
     }
 
     public int getCode() {
@@ -187,6 +169,14 @@ public class RemotingCommand {
 
     public void setCode(int code) {
         this.code = code;
+    }
+
+    public void markOnewayInvoke() {
+        this.flag |= RPC_ONEWAY_FLAG;
+    }
+
+    public boolean isOnewayInvoke() {
+        return (this.flag & RPC_ONEWAY_FLAG) != 0;
     }
 
     public RemotingCommandType getType() {
@@ -263,5 +253,4 @@ public class RemotingCommand {
                 + ", opaque=" + opaque + ", flag(B)=" + Integer.toBinaryString(flag) + ", remark=" + remark
                 + ", extFields=" + extFields + "]";
     }
-
 }
