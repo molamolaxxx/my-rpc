@@ -134,7 +134,7 @@ public class NettyRemoteClient {
                                 defaultEventExecutorGroup, // 执行pipe的线程池
                                 new NettyEncoder(), //out
                                 new NettyDecoder(), //in
-                                new IdleStateHandler(300, 0, 0),//闲置时间
+                                new IdleStateHandler(300, 300, 300),//闲置时间
                                 new NettyClientConnectManageHandler(nettyConnectPool), //Duplex
                                 requestHandler, // in
                                 responseHandler // in
