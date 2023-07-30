@@ -5,18 +5,19 @@ import com.mola.rpc.common.context.InvokeContext;
 import com.mola.rpc.common.context.RpcContext;
 import com.mola.rpc.common.entity.AddressInfo;
 import com.mola.rpc.common.entity.RpcMetaData;
+import com.mola.rpc.core.loadbalance.LoadBalance;
 import com.mola.rpc.core.remoting.Async;
 import com.mola.rpc.core.remoting.AsyncResponseFuture;
 import com.mola.rpc.core.remoting.netty.NettyRemoteClient;
 import com.mola.rpc.core.remoting.netty.pool.NettyConnectPool;
 import com.mola.rpc.core.remoting.protocol.RemotingCommand;
 import com.mola.rpc.core.remoting.protocol.RemotingCommandCode;
-import com.mola.rpc.core.loadbalance.LoadBalance;
 import com.mola.rpc.core.system.ReverseInvokeHelper;
 import com.mola.rpc.core.util.BytesUtil;
 import com.mola.rpc.core.util.RemotingHelper;
 import com.mola.rpc.core.util.RemotingUtil;
 import com.mola.rpc.core.util.TypeUtil;
+import com.sun.istack.internal.NotNull;
 import io.netty.channel.Channel;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -108,25 +109,23 @@ public class RpcProxyInvokeHandler implements InvocationHandler {
                         method, consumerMeta.getClientTimeout());
                 Async.addFuture(asyncResponseFuture);
                 // 异步返回基础类型返回值存在null装箱失败，需要返回装箱后的type
-                Object fakeResult = TypeUtil.getBaseTypeDefaultObject(method.getReturnType().getName());
-                if (fakeResult != null) {
-                    return fakeResult;
-                }
-                return null;
+                return TypeUtil.getBaseTypeDefaultObject(method.getReturnType().getName());
             }
+
             RemotingCommand response = nettyRemoteClient.syncInvoke(targetProviderAddress, request,
                     invokeMethod,method, consumerMeta.getClientTimeout());
+            // 读取服务端返回结果，空处理
+            if (response == null) {
+                return null;
+            }
+
             // 服务端执行异常
             if (response.getCode() == RemotingCommandCode.SYSTEM_ERROR) {
                 throw new RuntimeException(response.getRemark());
             }
-            // 读取服务端返回结果
-            if (response == null) {
-                return null;
-            }
+
             // response转换成对象
-            Object invokeResult = BytesUtil.bytesToObject(response.getBody(), method.getReturnType());
-            return invokeResult;
+            return BytesUtil.bytesToObject(response.getBody(), method.getReturnType());
         } finally {
             InvokeContext.clear();
         }
@@ -147,6 +146,7 @@ public class RpcProxyInvokeHandler implements InvocationHandler {
      * @param invokeMethod 执行的方法
      * @return
      */
+    @NotNull
     private RemotingCommand buildRemotingCommand(Method method, InvokeMethod invokeMethod,
                                                  long timeout, String address, RpcMetaData consumerMeta) {
         RemotingCommand request = new RemotingCommand();
@@ -161,14 +161,7 @@ public class RpcProxyInvokeHandler implements InvocationHandler {
                     + ", server:" + address
                     + ", timeout:" + timeout
                     + ", methodName:" + method.getName(), e);
-            return null;
-        }
-        if(requestBody == null) {
-            log.error("[RpcProxyInvokeHandler]: requestBody is null"
-                    + ", server:" + address
-                    + ", timeout:" + timeout
-                    + ", methodName:" + method.getName());
-            return null;
+            throw new RuntimeException(e);
         }
         request.setCode(RemotingCommandCode.NORMAL);
         request.setBody(requestBody);
@@ -219,12 +212,11 @@ public class RpcProxyInvokeHandler implements InvocationHandler {
             parameterTypesString[i] = method.getParameterTypes()[i].getName();
         }
         // 构建invokeMethod
-        InvokeMethod invokeMethod = new InvokeMethod(method.getName(),
+        return new InvokeMethod(method.getName(),
                 parameterTypesString,
                 args == null ? new Object[]{} : args,
                 method.getReturnType().getName(),
                 method.getDeclaringClass().getName());
-        return invokeMethod;
     }
 
     /**
@@ -246,7 +238,7 @@ public class RpcProxyInvokeHandler implements InvocationHandler {
                 // 关闭channel
                 RemotingUtil.closeChannel(reverseInvokeChannel);
                 nettyConnectPool.removeReverseChannel(ReverseInvokeHelper.instance().getServiceKey(consumerMeta, true),
-                        RemotingHelper.parseChannelRemoteAddr(reverseInvokeChannel));
+                        RemotingHelper.parseChannelRemoteAddress(reverseInvokeChannel));
             }
         }
         // 构建request
@@ -266,14 +258,17 @@ public class RpcProxyInvokeHandler implements InvocationHandler {
         }
         // handle这个请求的是服务端的pipeline
         RemotingCommand response = nettyRemoteClient.syncInvokeWithChannel(reverseInvokeChannel, request, invokeMethod, method, consumerMeta.getClientTimeout());
-        // 服务端执行异常
-        if (response.getCode() == RemotingCommandCode.SYSTEM_ERROR) {
-            throw new RuntimeException(response.getRemark());
-        }
+
         // 读取服务端返回结果
         if (response == null) {
             return null;
         }
+
+        // 服务端执行异常
+        if (response.getCode() == RemotingCommandCode.SYSTEM_ERROR) {
+            throw new RuntimeException(response.getRemark());
+        }
+
         // response转换成对象
         return BytesUtil.bytesToObject(response.getBody(), method.getReturnType());
     }

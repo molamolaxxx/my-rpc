@@ -13,12 +13,12 @@ import java.util.concurrent.locks.ReentrantLock;
  **/
 public class MultiKeyReentrantLock {
 
-    private ConcurrentHashMap<Integer, ReentrantLock> lockMap = new ConcurrentHashMap<>();
+    private final ConcurrentHashMap<Integer, ReentrantLock> lockMap = new ConcurrentHashMap<>();
 
     /**
      * 桶容量
      */
-    private int capacity;
+    private final int capacity;
 
     public MultiKeyReentrantLock(int capacity) {
         Assert.isTrue(capacity > 0, "capacity can not smaller than zero");
@@ -26,7 +26,7 @@ public class MultiKeyReentrantLock {
     }
 
     public void lock(String key) {
-        Integer hash = Integer.valueOf(getHash(key));
+        Integer hash = getHash(key);
         ReentrantLock reentrantLock = lockMap.putIfAbsent(hash, new ReentrantLock());
         if (reentrantLock == null) {
             reentrantLock = lockMap.get(hash);

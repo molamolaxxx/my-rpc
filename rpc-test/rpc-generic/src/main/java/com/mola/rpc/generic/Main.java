@@ -22,7 +22,7 @@ public class Main {
         // 配置
         RpcProperties rpcProperties = new RpcProperties();
         // 环境标
-        rpcProperties.setEnvironment("pre");
+        rpcProperties.setEnvironment("public");
         // 如果只有只有单点调用，则可以开启，不启动configserver
 //        rpcProperties.setStartConfigServer(false);
         ProtoRpcConfigFactory.fetch().init(rpcProperties);

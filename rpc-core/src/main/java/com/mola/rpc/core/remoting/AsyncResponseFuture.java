@@ -29,6 +29,9 @@ public class AsyncResponseFuture<T> extends ResponseFuture {
     @Override
     public void putResponse(RemotingCommand responseCommand) {
         super.putResponse(responseCommand);
+        if (responseCommand == null) {
+            return;
+        }
         // 服务端执行异常
         if (responseCommand.getCode() == RemotingCommandCode.SYSTEM_ERROR) {
             log.error("async invoke failed, server throw exception, client will not consume result! remark = " + responseCommand.getRemark());

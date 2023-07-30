@@ -38,12 +38,12 @@ public class ZkRpcDataManager extends BaseRpcDataManager {
     /**
      * 注册中心地址
      */
-    private String configServerAddress;
+    private final String configServerAddress;
 
     /**
      * 超时时间
      */
-    private Integer connectTimeout;
+    private final Integer connectTimeout;
 
     private BaseRpcProperties rpcProperties;
 

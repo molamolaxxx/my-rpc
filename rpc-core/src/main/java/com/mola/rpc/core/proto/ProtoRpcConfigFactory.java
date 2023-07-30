@@ -40,7 +40,7 @@ public class ProtoRpcConfigFactory {
 
     private static final Logger log = LoggerFactory.getLogger(ProtoRpcConfigFactory.class);
 
-    private static AtomicBoolean INIT_FLAG = new AtomicBoolean(false);
+    private static final AtomicBoolean INIT_FLAG = new AtomicBoolean(false);
 
     /**
      * 全局rpc上下文

@@ -87,7 +87,7 @@ public class RemotingUtil {
     }
 
     public static void closeChannel(Channel channel) {
-        final String addrRemote = RemotingHelper.parseChannelRemoteAddr(channel);
+        final String addrRemote = RemotingHelper.parseChannelRemoteAddress(channel);
         channel.close().addListener((ChannelFutureListener) future ->
                 logger.info("closeChannel: close the connection to channel[" + channel.toString() + "] result: {" + future.isSuccess() + "}"));
     }

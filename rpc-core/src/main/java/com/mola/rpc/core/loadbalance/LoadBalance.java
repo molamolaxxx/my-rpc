@@ -15,7 +15,7 @@ import java.util.Map;
  **/
 public class LoadBalance implements LoadBalanceStrategy {
 
-    private Map<String, LoadBalanceStrategy> loadBalanceStrategyMap = Maps.newConcurrentMap();
+    private final Map<String, LoadBalanceStrategy> loadBalanceStrategyMap = Maps.newConcurrentMap();
 
     @Override
     public String getTargetProviderAddress(RpcMetaData consumerMeta, Object[] args) {

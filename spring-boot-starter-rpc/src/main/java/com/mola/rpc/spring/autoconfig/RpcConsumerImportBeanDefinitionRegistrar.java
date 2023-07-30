@@ -31,8 +31,8 @@ import java.util.Set;
  **/
 public class RpcConsumerImportBeanDefinitionRegistrar implements ImportBeanDefinitionRegistrar {
 
-    private Set<String> consumerAlreadyAddedSet = Sets.newHashSet();
-    private Set<String> providerAlreadyAddedSet = Sets.newHashSet();
+    private final Set<String> consumerAlreadyAddedSet = Sets.newHashSet();
+    private final Set<String> providerAlreadyAddedSet = Sets.newHashSet();
 
     @Override
     public void registerBeanDefinitions(AnnotationMetadata annotationMetadata, BeanDefinitionRegistry beanDefinitionRegistry) {

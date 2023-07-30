@@ -23,7 +23,7 @@ public class GenericRpcProxyInvokeHandler extends RpcProxyInvokeHandler {
     private String actualInterfaceClazzName;
 
     /**
-     * 组装InvokeMethodreturn beanName;
+     * 组装InvokeMethod
      * @return
      */
     @Override
@@ -42,12 +42,11 @@ public class GenericRpcProxyInvokeHandler extends RpcProxyInvokeHandler {
             params[i] = genericParam.getObj();
         }
         // 构建invokeMethod
-        InvokeMethod invokeMethod = new InvokeMethod(methodName,
+        return new InvokeMethod(methodName,
                 parameterTypesString,
                 params,
                 method.getReturnType().getName(),
                 actualInterfaceClazzName);
-        return invokeMethod;
     }
 
     @Override

@@ -16,12 +16,11 @@ public class RoundRobinBalance implements LoadBalanceStrategy {
     /**
      * 下标计数器
      */
-    private AtomicInteger idxCounter = new AtomicInteger();
+    private final AtomicInteger idxCounter = new AtomicInteger();
 
     @Override
     public String getTargetProviderAddress(RpcMetaData consumerMeta, Object[] args) {
         List<String> addressList = consumerMeta.fetchProviderAddressList();
-        Integer idx = idxCounter.getAndIncrement() % addressList.size();
-        return addressList.get(idx);
+        return addressList.get(idxCounter.getAndIncrement() % addressList.size());
     }
 }

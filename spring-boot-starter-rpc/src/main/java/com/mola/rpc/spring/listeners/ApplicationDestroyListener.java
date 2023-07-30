@@ -16,7 +16,7 @@ public class ApplicationDestroyListener {
 
     private static final Logger log = LoggerFactory.getLogger(ApplicationDestroyListener.class);
 
-    private ProtoRpcConfigFactory protoRpcConfigFactory;
+    private final ProtoRpcConfigFactory protoRpcConfigFactory;
 
     public ApplicationDestroyListener(ProtoRpcConfigFactory protoRpcConfigFactory) {
         this.protoRpcConfigFactory = protoRpcConfigFactory;

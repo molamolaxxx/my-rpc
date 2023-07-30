@@ -5,7 +5,7 @@
     <parent>
         <artifactId>rpc-test</artifactId>
         <groupId>com.mola</groupId>
-        <version>0.0.1-SNAPSHOT</version>
+        <version>${my-rpc.version}</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
@@ -36,7 +36,7 @@
         <dependency>
             <groupId>com.mola</groupId>
             <artifactId>rpc-test-tool</artifactId>
-            <version>0.0.1-SNAPSHOT</version>
+            <version>${my-rpc.version}</version>
         </dependency>
         <dependency>
             <groupId>org.springframework.boot</groupId>

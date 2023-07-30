@@ -28,7 +28,7 @@ public class NettyClientConnectManageHandler extends ChannelDuplexHandler {
 
     @Override
     public void channelActive(ChannelHandlerContext ctx) throws Exception {
-        final String remoteAddress = RemotingHelper.parseChannelRemoteAddr(ctx.channel());
+        final String remoteAddress = RemotingHelper.parseChannelRemoteAddress(ctx.channel());
         log.info("NETTY SERVER PIPELINE: channelActive, the channel[{" + remoteAddress + "}]");
         super.channelActive(ctx);
         // 连接成功
@@ -37,7 +37,7 @@ public class NettyClientConnectManageHandler extends ChannelDuplexHandler {
 
     @Override
     public void channelInactive(ChannelHandlerContext ctx) throws Exception {
-        final String remoteAddress = RemotingHelper.parseChannelRemoteAddr(ctx.channel());
+        final String remoteAddress = RemotingHelper.parseChannelRemoteAddress(ctx.channel());
         log.info("NETTY SERVER PIPELINE: channelInactive, the channel[{" + remoteAddress + "}]");
         super.channelInactive(ctx);
         // 连接关闭
@@ -51,7 +51,7 @@ public class NettyClientConnectManageHandler extends ChannelDuplexHandler {
         if (evt instanceof IdleStateEvent) {
             IdleStateEvent event = (IdleStateEvent) evt;
             if (event.state().equals(IdleState.ALL_IDLE)) {
-                final String remoteAddress = RemotingHelper.parseChannelRemoteAddr(ctx.channel());
+                final String remoteAddress = RemotingHelper.parseChannelRemoteAddress(ctx.channel());
                 // 连接300s未读取到数据，关闭
                 log.warn("[NettyClientConnectManageHandler]: onChannelIdle ,processing close {" + remoteAddress + "}");
                 RemotingUtil.closeChannel(ctx.channel());
@@ -62,7 +62,7 @@ public class NettyClientConnectManageHandler extends ChannelDuplexHandler {
 
     @Override
     public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
-        final String remoteAddress = RemotingHelper.parseChannelRemoteAddr(ctx.channel());
+        final String remoteAddress = RemotingHelper.parseChannelRemoteAddress(ctx.channel());
         // 连接异常
         RemotingUtil.closeChannel(ctx.channel());
         log.warn("[NettyClientConnectManageHandler]: onChannelException {" + remoteAddress + "}");

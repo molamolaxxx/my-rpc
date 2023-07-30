@@ -71,7 +71,7 @@ public class BytesUtil {
 		return object;
 	}
 
-	public static Object bytesToObject(byte[] bytes, Class clazz) {
+	public static <T> T bytesToObject(byte[] bytes, Class<T> clazz) {
 		if(bytes == null) {
 			throw new RuntimeException("bytes is null");
 		}
@@ -84,7 +84,7 @@ public class BytesUtil {
 		} catch (Exception e) {
 			throw new RuntimeException("read object error", e);
 		}
-		return object;
+		return (T) object;
 	}
 
 	/**

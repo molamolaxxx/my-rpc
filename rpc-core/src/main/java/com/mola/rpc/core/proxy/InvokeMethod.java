@@ -61,8 +61,7 @@ public class InvokeMethod {
 	 * @return
 	 */
 	public static InvokeMethod newInstance(String json) {
-		InvokeMethod invokeMethod = RemotingSerializableUtil.fromJson(json, InvokeMethod.class);
-		return invokeMethod;
+		return RemotingSerializableUtil.fromJson(json, InvokeMethod.class);
 	}
 
 	/**

@@ -42,8 +42,8 @@ public class NacosConsumerConfigServerTest {
     protected void validateRpcDataManager() {
         RpcDataManager<RpcMetaData> rpcDataManager = rpcProviderDataInitBean.getRpcDataManager();
         Assert.isTrue(rpcDataManager instanceof NacosRpcDataManager, "rpcDataManager 类型错误");
-        Assert.isTrue(rpcDataManager.isProviderAvailable("com.mola.rpc.client.UnitTestService", "default", "1.0.0", "pre"), "UnitTestService的provider不存在，请检查是否启动");
-        List<AddressInfo> remoteProviderAddress = rpcDataManager.getRemoteProviderAddress("com.mola.rpc.client.UnitTestService", "default", "1.0.0", "pre");
+        Assert.isTrue(rpcDataManager.isProviderAvailable("com.mola.rpc.client.UnitTestService", "default", "1.0.0", "public"), "UnitTestService的provider不存在，请检查是否启动");
+        List<AddressInfo> remoteProviderAddress = rpcDataManager.getRemoteProviderAddress("com.mola.rpc.client.UnitTestService", "default", "1.0.0", "public");
         Assert.notEmpty(remoteProviderAddress, "UnitTestService的provider不存在可用地址，请检查是否启动");
         rpcProviderDataInitBean.pullProviderDataList();
     }
@@ -52,7 +52,7 @@ public class NacosConsumerConfigServerTest {
     public void configServerAddressEqualsConsumerFind() {
         validateRpcDataManager();
         RpcDataManager<RpcMetaData> rpcDataManager = rpcProviderDataInitBean.getRpcDataManager();
-        List<AddressInfo> remoteProviderAddress = rpcDataManager.getRemoteProviderAddress("com.mola.rpc.client.UnitTestService", "default", "1.0.0", "pre");
+        List<AddressInfo> remoteProviderAddress = rpcDataManager.getRemoteProviderAddress("com.mola.rpc.client.UnitTestService", "default", "1.0.0", "public");
         Assert.notEmpty(remoteProviderAddress, "remoteProviderAddress为空，请检查cs启动情况和provider注册情况");
         // 判断和rpcContext的地址是否相同
         Map<String, RpcMetaData> consumerMetaMap = rpcContext.getConsumerMetaMap();

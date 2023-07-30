@@ -56,25 +56,25 @@ public class NettyRemoteClient {
     /**
      * 响应回调管理
      */
-    private ResponseFutureManager responseFutureManager;
+    private final ResponseFutureManager responseFutureManager;
 
     private NettyConnectPool nettyConnectPool;
 
     private RpcContext rpcContext;
 
-    private AtomicBoolean startFlag = new AtomicBoolean(false);
+    private final AtomicBoolean startFlag = new AtomicBoolean(false);
 
     private final MultiKeyReentrantLock channelCreateLock = new MultiKeyReentrantLock(128);
 
     /**
      * pipeline上的请求处理器，用于provider的反射调用和结果写回(in)
      */
-    private NettyRpcRequestHandler requestHandler;
+    private final NettyRpcRequestHandler requestHandler;
 
     /**
      * pipeline上的响应处理器，用于consumer的结果同步(in)
      */
-    private NettyRpcResponseHandler responseHandler;
+    private final NettyRpcResponseHandler responseHandler;
 
 
     public NettyRemoteClient(NettyRpcRequestHandler requestHandler, NettyRpcResponseHandler responseHandler) {
@@ -86,7 +86,7 @@ public class NettyRemoteClient {
         this.clientBootstrap = new Bootstrap();
         // worker 线程池
         this.eventLoopGroupWorker = new NioEventLoopGroup(10, new ThreadFactory() {
-            private AtomicInteger threadIndex = new AtomicInteger(0);
+            private final AtomicInteger threadIndex = new AtomicInteger(0);
             @Override
             public Thread newThread(Runnable r) {
                 return new Thread(r, String.format("netty-client-selector-%d", this.threadIndex.incrementAndGet()));
@@ -109,7 +109,7 @@ public class NettyRemoteClient {
         this.defaultEventExecutorGroup = new DefaultEventExecutorGroup(
                 4,
                 new ThreadFactory() {
-                    AtomicInteger threadIndex = new AtomicInteger(0);
+                    final AtomicInteger threadIndex = new AtomicInteger(0);
                     @Override
                     public Thread newThread(Runnable r) {
                         return new Thread(r, "netty-client-worker-thread-" + this.threadIndex.incrementAndGet());
@@ -401,7 +401,7 @@ public class NettyRemoteClient {
             if (channel == null) {
                 return;
             }
-            final String addressRemote = address == null ? RemotingHelper.parseChannelRemoteAddr(channel) : address;
+            final String addressRemote = address == null ? RemotingHelper.parseChannelRemoteAddress(channel) : address;
             // 关闭channel
             RemotingUtil.closeChannel(channel);
             // 移除channel

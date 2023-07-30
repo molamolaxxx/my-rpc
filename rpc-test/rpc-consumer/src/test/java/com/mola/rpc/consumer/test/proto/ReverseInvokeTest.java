@@ -53,6 +53,7 @@ public class ReverseInvokeTest {
                 },
                 rpcMetaData
         );
+        Thread.sleep(100);
         String id = System.currentTimeMillis() + "";
         String res = unitTestServiceAppointZk.testReverseLoopBack(id);
         Assert.isTrue(("reverse-proto-mode-"+id).equals(res), "ReverseInvokeTest case 1 failed");

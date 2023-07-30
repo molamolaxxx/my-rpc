@@ -20,13 +20,11 @@ import org.springframework.util.Assert;
  **/
 public class RpcExecutorFactory {
 
-    private RpcExecutor commonRpcProviderExecutor;
+    private final RpcExecutor commonRpcProviderExecutor;
 
-    private RpcExecutor fiberRpcProviderExecutor;
+    private final RpcExecutor fiberRpcProviderExecutor;
 
-    private RpcExecutor systemRpcProviderExecutor;
-
-    private RpcContext rpcContext;
+    private final RpcExecutor systemRpcProviderExecutor;
 
     private ObjectFetcher providerObjFetcher;
 
@@ -34,7 +32,6 @@ public class RpcExecutorFactory {
         this.commonRpcProviderExecutor = new CommonRpcProviderExecutor(rpcProperties);
         this.systemRpcProviderExecutor = new SystemRpcProviderExecutor(rpcProperties);
         this.fiberRpcProviderExecutor = new FiberRpcProviderExecutor(rpcProperties);
-        this.rpcContext = rpcContext;
     }
 
     /**

@@ -33,7 +33,7 @@ public class NettyEncoder extends MessageToByteEncoder<RemotingCommand> {
                 out.writeBytes(body);
             }
         } catch (Throwable t) {
-            log.error("encode exception, " + RemotingHelper.parseChannelRemoteAddr(ctx.channel()), t);
+            log.error("encode exception, " + RemotingHelper.parseChannelRemoteAddress(ctx.channel()), t);
             if (remotingCommand != null) {
                 log.error(remotingCommand.toString());
             }

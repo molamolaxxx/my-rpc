@@ -7,7 +7,7 @@
     <groupId>com.mola</groupId>
     <artifactId>my-rpc</artifactId>
     <packaging>pom</packaging>
-    <version>0.0.1-SNAPSHOT</version>
+    <version>${my-rpc.version}</version>
     <modules>
         <module>rpc-core</module>
         <module>rpc-web-manager</module>
@@ -26,7 +26,7 @@
     <properties>
         <maven.compiler.source>8</maven.compiler.source>
         <maven.compiler.target>8</maven.compiler.target>
-        <project.version>${project.version}</project.version>
+        <my-rpc.version>0.0.2-SNAPSHOT</my-rpc.version>
     </properties>
 
     <dependencyManagement>
@@ -34,37 +34,37 @@
             <dependency>
                 <groupId>com.mola</groupId>
                 <artifactId>rpc-client</artifactId>
-                <version>${project.version}</version>
+                <version>${my-rpc.version}</version>
             </dependency>
             <dependency>
                 <groupId>com.mola</groupId>
                 <artifactId>rpc-core</artifactId>
-                <version>${project.version}</version>
+                <version>${my-rpc.version}</version>
             </dependency>
             <dependency>
                 <groupId>com.mola</groupId>
                 <artifactId>rpc-consumer</artifactId>
-                <version>${project.version}</version>
+                <version>${my-rpc.version}</version>
             </dependency>
             <dependency>
                 <groupId>com.mola</groupId>
                 <artifactId>rpc-provider</artifactId>
-                <version>${project.version}</version>
+                <version>${my-rpc.version}</version>
             </dependency>
             <dependency>
                 <groupId>com.mola</groupId>
                 <artifactId>spring-boot-starter-rpc</artifactId>
-                <version>${project.version}</version>
+                <version>${my-rpc.version}</version>
             </dependency>
             <dependency>
                 <groupId>com.mola</groupId>
                 <artifactId>rpc-common</artifactId>
-                <version>${project.version}</version>
+                <version>${my-rpc.version}</version>
             </dependency>
             <dependency>
                 <groupId>com.mola</groupId>
                 <artifactId>rpc-data-config</artifactId>
-                <version>${project.version}</version>
+                <version>${my-rpc.version}</version>
             </dependency>
             <dependency>
                 <groupId>org.springframework.boot</groupId>

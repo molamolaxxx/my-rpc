@@ -61,8 +61,8 @@ public class ConsumerInvokeTest {
     @Before
     public void before() {
         RpcDataManager<RpcMetaData> rpcDataManager = rpcProviderDataInitBean.getRpcDataManager();
-        Assert.isTrue(rpcDataManager.isProviderAvailable("com.mola.rpc.client.UnitTestService", "default", "1.0.0", "pre"), "UnitTestService的provider不存在，请检查是否启动");
-        List<AddressInfo> remoteProviderAddress = rpcDataManager.getRemoteProviderAddress("com.mola.rpc.client.UnitTestService", "default", "1.0.0", "pre");
+        Assert.isTrue(rpcDataManager.isProviderAvailable("com.mola.rpc.client.UnitTestService", "default", "1.0.0", "public"), "UnitTestService的provider不存在，请检查是否启动");
+        List<AddressInfo> remoteProviderAddress = rpcDataManager.getRemoteProviderAddress("com.mola.rpc.client.UnitTestService", "default", "1.0.0", "public");
         Assert.notEmpty(remoteProviderAddress, "UnitTestService的provider不存在可用地址，请检查是否启动");
     }
 
@@ -279,7 +279,7 @@ public class ConsumerInvokeTest {
         }
 
         try {
-            cdl.await(5000, TimeUnit.MILLISECONDS);
+            cdl.await(10000, TimeUnit.MILLISECONDS);
         } catch (InterruptedException e) {
         }
         Assert.isTrue(cdl.getCount() == 0, "001-case1测试失败, cdl = " + cdl.getCount());

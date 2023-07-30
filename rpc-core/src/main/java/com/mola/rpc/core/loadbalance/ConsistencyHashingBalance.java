@@ -67,7 +67,7 @@ public class ConsistencyHashingBalance implements LoadBalanceStrategy, ConsumerL
      */
     private String getAddressFromVirtualNode(String virtualAddressNode) {
         String[] split = StringUtils.split(virtualAddressNode, "#");
-        if (split.length == 2) {
+        if (split != null && split.length == 2) {
             return split[0];
         }
         throw new RuntimeException("getAddressFromVirtualNode failed");

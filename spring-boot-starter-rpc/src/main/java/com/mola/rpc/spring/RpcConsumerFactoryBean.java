@@ -32,9 +32,9 @@ public class RpcConsumerFactoryBean implements FactoryBean {
     @Resource
     private NettyRemoteClient nettyRemoteClient;
 
-    private Class<?> consumerInterface;
+    private final Class<?> consumerInterface;
 
-    private String beanName;
+    private final String beanName;
 
     public RpcConsumerFactoryBean(Class<?> consumerInterface, String beanName) {
         this.consumerInterface = consumerInterface;

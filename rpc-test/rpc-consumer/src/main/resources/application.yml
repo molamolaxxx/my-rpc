@@ -10,5 +10,5 @@ logging:
 
 rpc:
   server-port: 10248
-  environment: pre
+  environment: public
   app-name: ${spring.application.name}

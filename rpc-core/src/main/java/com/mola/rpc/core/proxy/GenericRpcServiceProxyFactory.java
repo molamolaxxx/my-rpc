@@ -28,7 +28,7 @@ public class GenericRpcServiceProxyFactory {
     /**
      * 所有代理由工厂维护一份缓存
      */
-    private static Map<String, GenericRpcService> genericRpcServiceMap = Maps.newConcurrentMap();
+    private static final Map<String, GenericRpcService> genericRpcServiceMap = Maps.newConcurrentMap();
 
     /**
      * 获取代理

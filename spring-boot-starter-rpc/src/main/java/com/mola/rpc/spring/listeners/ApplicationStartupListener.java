@@ -34,7 +34,6 @@ public class ApplicationStartupListener implements ApplicationListener<Applicati
         // 反向provider注册，上报反向代理服务
         protoRpcConfigFactory.registerReverseProvider();
         log.info("after application start, init config server and register reverse providers.");
-
     }
 }
 

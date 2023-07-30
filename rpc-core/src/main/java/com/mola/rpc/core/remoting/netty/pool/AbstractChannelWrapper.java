@@ -34,6 +34,6 @@ public abstract class AbstractChannelWrapper {
     }
 
     public String getRemoteAddress() {
-        return RemotingHelper.parseChannelRemoteAddr(this.getChannel());
+        return RemotingHelper.parseChannelRemoteAddress(this.getChannel());
     }
 }

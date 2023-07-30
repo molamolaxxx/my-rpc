@@ -41,7 +41,7 @@ public class NacosRpcDataManager extends BaseRpcDataManager {
     /**
      * nacos注册中心地址
      */
-    private String configServerAddress;
+    private final String configServerAddress;
 
     private BaseRpcProperties rpcProperties;
 

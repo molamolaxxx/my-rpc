@@ -28,16 +28,16 @@ public class ZkProviderConfigChangeListenerImpl implements IZkChildListener {
 
     private static final Logger log = LoggerFactory.getLogger(ZkProviderConfigChangeListenerImpl.class);
 
-    private RpcMetaData consumerMetaData;
+    private final RpcMetaData consumerMetaData;
 
-    private ZkClient zkClient;
+    private final ZkClient zkClient;
 
-    private Lock addressListChangeLock;
+    private final Lock addressListChangeLock;
 
     /**
      * 地址变更监听器
      */
-    private ConsumerLifeCycle consumerLifeCycle;
+    private final ConsumerLifeCycle consumerLifeCycle;
 
     public ZkProviderConfigChangeListenerImpl(RpcMetaData consumerMetaData, ZkClient zkClient) {
         this.consumerMetaData = consumerMetaData;

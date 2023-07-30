@@ -23,7 +23,7 @@ public class NettyServerConnectManageHandler extends ChannelDuplexHandler {
 
     @Override
     public void channelActive(ChannelHandlerContext ctx) throws Exception {
-        final String remoteAddress = RemotingHelper.parseChannelRemoteAddr(ctx.channel());
+        final String remoteAddress = RemotingHelper.parseChannelRemoteAddress(ctx.channel());
         log.info("NETTY SERVER PIPELINE: channelActive, the channel[{" + remoteAddress + "}]");
         super.channelActive(ctx);
         // 连接成功
@@ -33,7 +33,7 @@ public class NettyServerConnectManageHandler extends ChannelDuplexHandler {
 
     @Override
     public void channelInactive(ChannelHandlerContext ctx) throws Exception {
-        final String remoteAddress = RemotingHelper.parseChannelRemoteAddr(ctx.channel());
+        final String remoteAddress = RemotingHelper.parseChannelRemoteAddress(ctx.channel());
         log.info("NETTY SERVER PIPELINE: channelInactive, the channel[{" + remoteAddress + "}]");
         super.channelInactive(ctx);
         // 连接关闭
@@ -48,7 +48,7 @@ public class NettyServerConnectManageHandler extends ChannelDuplexHandler {
         if (evt instanceof IdleStateEvent) {
             IdleStateEvent event = (IdleStateEvent) evt;
             if (event.state().equals(IdleState.ALL_IDLE)) {
-                final String remoteAddress = RemotingHelper.parseChannelRemoteAddr(ctx.channel());
+                final String remoteAddress = RemotingHelper.parseChannelRemoteAddress(ctx.channel());
                 // 连接空闲
                 log.warn("[ServerChannelEventListener]: onChannelIdle {" + remoteAddress + "}");
             }
@@ -59,7 +59,7 @@ public class NettyServerConnectManageHandler extends ChannelDuplexHandler {
 
     @Override
     public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
-        final String remoteAddress = RemotingHelper.parseChannelRemoteAddr(ctx.channel());
+        final String remoteAddress = RemotingHelper.parseChannelRemoteAddress(ctx.channel());
         // 连接异常
         RemotingUtil.closeChannel(ctx.channel());
         log.warn("[ServerChannelEventListener]: onChannelException {" + remoteAddress + "}");

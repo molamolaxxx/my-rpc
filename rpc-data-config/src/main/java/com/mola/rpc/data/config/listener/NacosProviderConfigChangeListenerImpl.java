@@ -32,11 +32,11 @@ public class NacosProviderConfigChangeListenerImpl implements EventListener {
 
     private static final Logger log = LoggerFactory.getLogger(NacosProviderConfigChangeListenerImpl.class);
 
-    private RpcMetaData consumerMetaData;
+    private final RpcMetaData consumerMetaData;
 
-    private Lock addressListChangeLock;
+    private final Lock addressListChangeLock;
 
-    private ConsumerLifeCycle consumerLifeCycle;
+    private final ConsumerLifeCycle consumerLifeCycle;
 
     public NacosProviderConfigChangeListenerImpl(RpcMetaData consumerMetaData) {
         this.consumerMetaData = consumerMetaData;

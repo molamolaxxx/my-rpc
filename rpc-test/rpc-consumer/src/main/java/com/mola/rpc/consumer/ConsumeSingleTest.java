@@ -20,7 +20,7 @@ import java.util.List;
 public class ConsumeSingleTest {
     public static void main(String[] args) {
         RpcProperties rpcProperties = new RpcProperties();
-        rpcProperties.setEnvironment("pre");
+        rpcProperties.setEnvironment("public");
         rpcProperties.setStartConfigServer(false);
         ProtoRpcConfigFactory.fetch().init(rpcProperties);
         ProtoRpcConfigFactory protoRpcConfigFactory = ProtoRpcConfigFactory.fetch();
