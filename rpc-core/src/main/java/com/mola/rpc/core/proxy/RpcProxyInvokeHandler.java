@@ -17,7 +17,6 @@ import com.mola.rpc.core.util.BytesUtil;
 import com.mola.rpc.core.util.RemotingHelper;
 import com.mola.rpc.core.util.RemotingUtil;
 import com.mola.rpc.core.util.TypeUtil;
-import com.sun.istack.internal.NotNull;
 import io.netty.channel.Channel;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -146,7 +145,6 @@ public class RpcProxyInvokeHandler implements InvocationHandler {
      * @param invokeMethod 执行的方法
      * @return
      */
-    @NotNull
     private RemotingCommand buildRemotingCommand(Method method, InvokeMethod invokeMethod,
                                                  long timeout, String address, RpcMetaData consumerMeta) {
         RemotingCommand request = new RemotingCommand();

@@ -7,7 +7,7 @@
     <groupId>com.mola</groupId>
     <artifactId>my-rpc</artifactId>
     <packaging>pom</packaging>
-    <version>${my-rpc.version}</version>
+    <version>1.0.1</version>
     <modules>
         <module>rpc-core</module>
         <module>rpc-web-manager</module>
@@ -26,7 +26,7 @@
     <properties>
         <maven.compiler.source>8</maven.compiler.source>
         <maven.compiler.target>8</maven.compiler.target>
-        <my-rpc.version>1.0.0</my-rpc.version>
+        <my-rpc.version>1.0.1</my-rpc.version>
     </properties>
 
     <dependencyManagement>
