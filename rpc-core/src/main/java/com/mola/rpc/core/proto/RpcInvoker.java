@@ -151,6 +151,7 @@ public class RpcInvoker {
         }
         if (Boolean.TRUE.equals(rpcMetaData.getReverseMode())) {
             ReverseInvokeHelper.instance().registerProviderToServer(rpcMetaData);
+            ReverseInvokeHelper.instance().startMonitor();
         }
     }
 }
