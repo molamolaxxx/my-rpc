@@ -133,8 +133,10 @@ public class ProtoRpcConfigFactory {
             如果是spring环境，服务上报需要在spring启动完成后进行
              */
             if (!rpcContext.isInSpringEnvironment()) {
-                // config server配置，上报服务
-                rpcProviderDataInitBean.init(rpcProperties);
+                if (Boolean.TRUE.equals(rpcProperties.getStartConfigServer())) {
+                    // config server配置，上报服务
+                    rpcProviderDataInitBean.init(rpcProperties);
+                }
                 // 反向provider注册，上报反向代理服务
                 registerReverseProvider();
             }

@@ -25,7 +25,7 @@ public class ApplicationStartupListener implements ApplicationListener<Applicati
     @Override
     public void onApplicationEvent(ApplicationReadyEvent event) {
         ProtoRpcConfigFactory protoRpcConfigFactory = ProtoRpcConfigFactory.fetch();
-        if (rpcProperties.getStartConfigServer()) {
+        if (Boolean.TRUE.equals(rpcProperties.getStartConfigServer())) {
             // config server配置，上报服务
             protoRpcConfigFactory.getRpcProviderDataInitBean().init(
                     protoRpcConfigFactory.getRpcProperties()
