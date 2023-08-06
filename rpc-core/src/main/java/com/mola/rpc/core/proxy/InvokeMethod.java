@@ -4,7 +4,7 @@ package com.mola.rpc.core.proxy;
 import com.mola.rpc.core.util.BytesUtil;
 import com.mola.rpc.core.util.RemotingSerializableUtil;
 import com.mola.rpc.core.util.TypeUtil;
-import org.springframework.util.Assert;
+import com.mola.rpc.common.utils.AssertUtil;
 
 /**
  * RPC调用方法抽象
@@ -132,7 +132,7 @@ public class InvokeMethod {
 
 	public Object invoke(Object providerBean) {
 		try {
-			Assert.notNull(providerBean, "providerBean not exist, name = " + providerBean);
+			AssertUtil.notNull(providerBean, "providerBean not exist, name = " + providerBean);
 			// 1、反序列化类型
 			Class<?>[] paramTypes = this.fetchParamTypes();
 			// 2、反序列化参数

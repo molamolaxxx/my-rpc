@@ -11,7 +11,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.junit4.SpringRunner;
-import org.springframework.util.Assert;
+import com.mola.rpc.common.utils.AssertUtil;
 
 import javax.annotation.Resource;
 import java.util.List;
@@ -41,13 +41,13 @@ public class ExtensionRegistryManagerTest {
         List<PitchInvokeContext> getInterceptorsCtx = PitchingContext.fetchInvokeContext(
                 "com.mola.rpc.common.ext.ExtensionRegistryManager", "getInterceptors");
         List<TestInterceptor> interceptors = extensionRegistryManager.getInterceptors(TestInterceptor.class);
-        Assert.isTrue(interceptors.size() == 1, "size is error");
+        AssertUtil.isTrue(interceptors.size() == 1, "size is error");
 
         List<ReverseProxyRegisterInterceptor> testReverseInterceptor = extensionRegistryManager.getInterceptors(ReverseProxyRegisterInterceptor.class);
-        Assert.isTrue(testReverseInterceptor.size() == 3, "size is error");
-        Assert.isTrue(testReverseInterceptor.get(0).priority() < testReverseInterceptor.get(1).priority()
+        AssertUtil.isTrue(testReverseInterceptor.size() == 3, "size is error");
+        AssertUtil.isTrue(testReverseInterceptor.get(0).priority() < testReverseInterceptor.get(1).priority()
                 , "priority is error");
-        Assert.isTrue(testReverseInterceptor.get(1).priority() < testReverseInterceptor.get(2).priority()
+        AssertUtil.isTrue(testReverseInterceptor.get(1).priority() < testReverseInterceptor.get(2).priority()
                 , "priority is error");
     }
 

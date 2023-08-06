@@ -3,7 +3,7 @@ package com.mola.rpc.core.proxy;
 import com.mola.rpc.common.entity.GenericParam;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.util.Assert;
+import com.mola.rpc.common.utils.AssertUtil;
 
 import java.lang.reflect.Method;
 
@@ -28,8 +28,8 @@ public class GenericRpcProxyInvokeHandler extends RpcProxyInvokeHandler {
      */
     @Override
     protected InvokeMethod assemblyInvokeMethod(Method method, Object[] args) {
-        Assert.isTrue(args[0] instanceof String, "generic call params[0] must be String!");
-        Assert.hasText(actualInterfaceClazzName, "actualInterfaceClazzName can not be empty!");
+        AssertUtil.isTrue(args[0] instanceof String, "generic call params[0] must be String!");
+        AssertUtil.hasText(actualInterfaceClazzName, "actualInterfaceClazzName can not be empty!");
         // 方法名称
         String methodName = (String) args[0];
         // 变量对象（基础类型和map）

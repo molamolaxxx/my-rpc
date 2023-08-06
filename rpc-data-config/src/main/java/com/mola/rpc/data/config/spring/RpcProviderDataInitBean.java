@@ -9,7 +9,7 @@ import com.mola.rpc.common.lifecycle.ConsumerLifeCycle;
 import com.mola.rpc.data.config.manager.RpcDataManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.util.Assert;
+import com.mola.rpc.common.utils.AssertUtil;
 
 import java.util.Collection;
 import java.util.List;
@@ -63,7 +63,7 @@ public class RpcProviderDataInitBean {
     private BaseRpcProperties rpcProperties;
 
     public void init(BaseRpcProperties rpcProperties) {
-        Assert.notNull(rpcContext, "拉取数据失败，上下文为空");
+        AssertUtil.notNull(rpcContext, "拉取数据失败，上下文为空");
         this.rpcProperties = rpcProperties;
         // 上报provider信息
         Collection<RpcMetaData> providerMetaDataCollection = rpcContext.getProviderMetaMap().values();
@@ -104,7 +104,7 @@ public class RpcProviderDataInitBean {
         String serviceName = consumerMetaData.getInterfaceClazz().getName();
         // 泛化调用
         if (Boolean.TRUE.equals(consumerMetaData.getGenericInvoke())) {
-            Assert.hasText(consumerMetaData.getGenericInterfaceName(), "GenericInterfaceName can not be empty! because of this service is Generic Service");
+            AssertUtil.hasText(consumerMetaData.getGenericInterfaceName(), "GenericInterfaceName can not be empty! because of this service is Generic Service");
             serviceName = consumerMetaData.getGenericInterfaceName();
         }
         // group
@@ -135,7 +135,7 @@ public class RpcProviderDataInitBean {
         String serviceName = consumerMetaData.getInterfaceClazz().getName();
         // 泛化调用
         if (consumerMetaData.getGenericInvoke()) {
-            Assert.hasText(consumerMetaData.getGenericInterfaceName(), "GenericInterfaceName can not be empty! because of this service is Generic Service");
+            AssertUtil.hasText(consumerMetaData.getGenericInterfaceName(), "GenericInterfaceName can not be empty! because of this service is Generic Service");
             serviceName = consumerMetaData.getGenericInterfaceName();
         }
         // group

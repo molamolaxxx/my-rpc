@@ -20,7 +20,7 @@ import com.mola.rpc.core.util.TypeUtil;
 import io.netty.channel.Channel;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.util.Assert;
+import com.mola.rpc.common.utils.AssertUtil;
 import org.springframework.util.CollectionUtils;
 
 import java.lang.reflect.InvocationHandler;
@@ -89,7 +89,7 @@ public class RpcProxyInvokeHandler implements InvocationHandler {
 
             // 负载均衡策略
             String targetProviderAddress = loadBalance.getTargetProviderAddress(consumerMeta, args);
-            Assert.notNull(targetProviderAddress, "no available targetProviderAddress! meta = " + JSONUtil.toJSONString(consumerMeta));
+            AssertUtil.notNull(targetProviderAddress, "no available targetProviderAddress! meta = " + JSONUtil.toJSONString(consumerMeta));
             // 构建request
             InvokeMethod invokeMethod = assemblyInvokeMethod(method, args);
             RemotingCommand request = buildRemotingCommand(method, invokeMethod, consumerMeta.getClientTimeout(), targetProviderAddress, consumerMeta);
@@ -230,7 +230,7 @@ public class RpcProxyInvokeHandler implements InvocationHandler {
         while (!RemotingUtil.channelIsAvailable(reverseInvokeChannel)) {
             // 获取channel
             reverseInvokeChannel = nettyConnectPool.getReverseInvokeChannel(ReverseInvokeHelper.instance().getServiceKey(consumerMeta, true));
-            Assert.notNull(reverseInvokeChannel, "no available reverse channel  to use , meta = " + JSONUtil.toJSONString(consumerMeta));
+            AssertUtil.notNull(reverseInvokeChannel, "no available reverse channel  to use , meta = " + JSONUtil.toJSONString(consumerMeta));
             // 连接有问题，关闭连接，抛出异常
             if (!RemotingUtil.channelIsAvailable(reverseInvokeChannel)) {
                 // 关闭channel

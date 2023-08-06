@@ -4,7 +4,7 @@ import com.google.common.collect.Maps;
 import com.mola.rpc.common.entity.RpcMetaData;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.util.Assert;
+import com.mola.rpc.common.utils.AssertUtil;
 
 import java.util.Map;
 
@@ -30,8 +30,8 @@ public class ConsumerLifeCycle implements ConsumerLifeCycleHandler {
     private Map<String, ConsumerLifeCycleHandler> listeners = Maps.newHashMap();
 
     public void addListener(ConsumerLifeCycleHandler listener) {
-        Assert.notNull(listener, "lo is null");
-        Assert.notNull(listener.getName(), "ConsumerLifeCycleListener's name is null");
+        AssertUtil.notNull(listener, "lo is null");
+        AssertUtil.notNull(listener.getName(), "ConsumerLifeCycleListener's name is null");
         if (listeners.containsKey(listener.getName())) {
             log.warn("ConsumerLifeCycleListener's name is duplicate, ignore " + listener.getName());
             return;
@@ -40,7 +40,7 @@ public class ConsumerLifeCycle implements ConsumerLifeCycleHandler {
     }
 
     public void removeListener(String name) {
-        Assert.notNull(name, "ConsumerLifeCycleListener's name is null");
+        AssertUtil.notNull(name, "ConsumerLifeCycleListener's name is null");
         if (!listeners.containsKey(name)) {
             throw new RuntimeException("can not find ConsumerLifeCycleListener by name " + name);
         }

@@ -9,7 +9,7 @@ import com.mola.rpc.core.proto.ProtoRpcConfigFactory;
 import com.mola.rpc.core.proto.RpcInvoker;
 import org.junit.Before;
 import org.junit.Test;
-import org.springframework.util.Assert;
+import com.mola.rpc.common.utils.AssertUtil;
 
 import java.math.BigDecimal;
 import java.nio.file.AccessMode;
@@ -65,12 +65,12 @@ public class ZookeeperGenericRpcServiceTest {
         // #result
         long code = (long) genericService.invoke("getOrderCode");
         long cost = System.currentTimeMillis() - code;
-        Assert.isTrue( cost < 100, "genericInvokeWithZk case 0 failed!");
+        AssertUtil.isTrue( cost < 100, "genericInvokeWithZk case 0 failed!");
         for (int i = 0; i < 100; i++) {
             Object getServerAddress = genericService.invoke("getServerAddress");
-            Assert.isTrue(getServerAddress instanceof String, "genericInvokeWithZk case 0 failed!");
-            Assert.isTrue(((String) getServerAddress).contains(":"), "genericInvokeWithZk case 0 failed!");
-            Assert.isTrue(((String) getServerAddress).contains(":9013")
+            AssertUtil.isTrue(getServerAddress instanceof String, "genericInvokeWithZk case 0 failed!");
+            AssertUtil.isTrue(((String) getServerAddress).contains(":"), "genericInvokeWithZk case 0 failed!");
+            AssertUtil.isTrue(((String) getServerAddress).contains(":9013")
                     || ((String) getServerAddress).contains(":9003"),"genericInvokeWithZk case 0 failed!" );
         }
     }
@@ -108,11 +108,11 @@ public class ZookeeperGenericRpcServiceTest {
         Map<String, Object> res = (Map<String, Object>) genericService.invoke(
         "specialObjectTransform",
         GenericParam.ofMap(param, "com.mola.rpc.client.SpecialObject"));
-        Assert.isTrue(new BigDecimal("3.14159").equals(res.get("bigDecimal")), "genericInvokeWithZk case 1 failed!");
-        Assert.isTrue(cur.equals(res.get("date")), "genericInvokeWithZk case 1 failed!");
-        Assert.isTrue(AccessMode.EXECUTE.equals(res.get("accessMode")), "genericInvokeWithZk case 1 failed!");
+        AssertUtil.isTrue(new BigDecimal("3.14159").equals(res.get("bigDecimal")), "genericInvokeWithZk case 1 failed!");
+        AssertUtil.isTrue(cur.equals(res.get("date")), "genericInvokeWithZk case 1 failed!");
+        AssertUtil.isTrue(AccessMode.EXECUTE.equals(res.get("accessMode")), "genericInvokeWithZk case 1 failed!");
         Map operateUser = (Map)res.get("operateUser");
-        Assert.isTrue("test-generic-id".equals(operateUser.get("id")), "genericInvokeWithZk case 1 failed!");
-        Assert.isTrue("test-generic-name".equals(operateUser.get("userName")), "genericInvokeWithZk case 1 failed!");
+        AssertUtil.isTrue("test-generic-id".equals(operateUser.get("id")), "genericInvokeWithZk case 1 failed!");
+        AssertUtil.isTrue("test-generic-name".equals(operateUser.get("userName")), "genericInvokeWithZk case 1 failed!");
     }
 }

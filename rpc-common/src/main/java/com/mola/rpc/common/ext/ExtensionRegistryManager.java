@@ -2,7 +2,7 @@ package com.mola.rpc.common.ext;
 
 import com.google.common.collect.Lists;
 import com.mola.rpc.common.interceptor.RpcInterceptor;
-import org.springframework.util.Assert;
+import com.mola.rpc.common.utils.AssertUtil;
 
 import java.util.Comparator;
 import java.util.List;
@@ -26,12 +26,12 @@ public class ExtensionRegistryManager {
      * @param interceptor
      */
     public void addInterceptor(RpcInterceptor interceptor) {
-        Assert.notNull(interceptor, "interceptor is null");
+        AssertUtil.notNull(interceptor, "interceptor is null");
         this.rpcInterceptors.add(interceptor);
     }
 
     public <T extends RpcInterceptor> List<T> getInterceptors(Class<T> clazz) {
-        Assert.notNull(clazz, "clazz is null");
+        AssertUtil.notNull(clazz, "clazz is null");
         List<T> interceptors = rpcInterceptors.stream()
                 .filter(rpcInterceptor -> clazz.isAssignableFrom(rpcInterceptor.getClass()))
                 .map(rpcInterceptor -> (T) rpcInterceptor)

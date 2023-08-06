@@ -6,7 +6,7 @@ import com.mola.rpc.core.util.RemotingUtil;
 import io.netty.channel.Channel;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.util.Assert;
+import com.mola.rpc.common.utils.AssertUtil;
 
 import java.util.ArrayList;
 import java.util.Map;
@@ -90,7 +90,7 @@ public class NettyConnectPool {
     public void clearBadReverseChannels() {
         // 移除所有有问题的连接
         for (Map<String, ChannelWrapper> cwm : reverseChannelsKeyMap.values()) {
-            Assert.isTrue(cwm instanceof ConcurrentHashMap, "channelWrapperMap not support concurrent modify");
+            AssertUtil.isTrue(cwm instanceof ConcurrentHashMap, "channelWrapperMap not support concurrent modify");
             cwm.forEach((address, cw) -> {
                 if (!cw.isOk()) {
                     log.warn("remove channel " + cw.getChannel() + " due to its bad status");

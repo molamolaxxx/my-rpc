@@ -2,7 +2,7 @@ package com.mola.rpc.core.loadbalance;
 
 import com.google.common.collect.Maps;
 import com.mola.rpc.common.entity.RpcMetaData;
-import org.springframework.util.Assert;
+import com.mola.rpc.common.utils.AssertUtil;
 
 import java.util.Collection;
 import java.util.Map;
@@ -20,7 +20,7 @@ public class LoadBalance implements LoadBalanceStrategy {
     @Override
     public String getTargetProviderAddress(RpcMetaData consumerMeta, Object[] args) {
         LoadBalanceStrategy loadBalanceStrategy = loadBalanceStrategyMap.get(consumerMeta.getLoadBalanceStrategy());
-        Assert.notNull(loadBalanceStrategy, "loadBalanceStrategy is null");
+        AssertUtil.notNull(loadBalanceStrategy, "loadBalanceStrategy is null");
         return loadBalanceStrategy.getTargetProviderAddress(consumerMeta, args);
     }
 

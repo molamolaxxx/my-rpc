@@ -1,6 +1,6 @@
 package com.mola.rpc.core.remoting;
 
-import org.springframework.util.Assert;
+import com.mola.rpc.common.utils.AssertUtil;
 
 import java.util.function.Consumer;
 
@@ -32,7 +32,7 @@ public class Async<T> {
     public static <T> Async<T> from(T result) {
         try {
             AsyncResponseFuture asyncResponseFuture = asyncFutureThreadLocal.get();
-            Assert.notNull(asyncResponseFuture, "responseFuture is null, please check if this method is an async method!");
+            AssertUtil.notNull(asyncResponseFuture, "responseFuture is null, please check if this method is an async method!");
             return new Async(asyncResponseFuture);
         } finally {
             asyncFutureThreadLocal.remove();

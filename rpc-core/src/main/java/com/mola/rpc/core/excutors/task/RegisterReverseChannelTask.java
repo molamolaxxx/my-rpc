@@ -9,7 +9,7 @@ import com.mola.rpc.core.remoting.netty.pool.NettyConnectPool;
 import com.mola.rpc.core.remoting.protocol.RemotingCommand;
 import com.mola.rpc.core.remoting.protocol.RemotingCommandCode;
 import io.netty.channel.Channel;
-import org.springframework.util.Assert;
+import com.mola.rpc.common.utils.AssertUtil;
 
 /**
  * @author : molamola
@@ -28,7 +28,7 @@ public class RegisterReverseChannelTask extends RpcTask {
     protected Object runTask() {
         // 解析出reverseKey
         Object[] args = invokeMethod.fetchArgs();
-        Assert.isTrue(args[0] instanceof String,"handleReverseInvokeCommand args[0] require String Type, " + invokeMethod.toString());
+        AssertUtil.isTrue(args[0] instanceof String,"handleReverseInvokeCommand args[0] require String Type, " + invokeMethod.toString());
         String reverseKey = (String) args[0];
         NettyConnectPool nettyConnectPool = ProtoRpcConfigFactory.fetch().getNettyConnectPool();
         // 写入连接池

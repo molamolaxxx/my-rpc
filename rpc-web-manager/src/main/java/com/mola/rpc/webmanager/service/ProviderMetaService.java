@@ -13,7 +13,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Example;
 import org.springframework.data.domain.ExampleMatcher;
 import org.springframework.stereotype.Service;
-import org.springframework.util.Assert;
+import com.mola.rpc.common.utils.AssertUtil;
 import org.springframework.util.CollectionUtils;
 
 import javax.annotation.Resource;
@@ -90,9 +90,9 @@ public class ProviderMetaService {
     }
 
     public ProviderInfoEntity updateProviderInfoStorage(ProviderInfoEntity entity) {
-        Assert.notNull(entity, "entity is null");
+        AssertUtil.notNull(entity, "entity is null");
         Optional<ProviderInfoEntity> optional = providerInfoRepository.findById(entity.getId());
-        Assert.isTrue(optional.isPresent(), "db is null, entity = " + JSONUtil.toJSONString(entity));
+        AssertUtil.isTrue(optional.isPresent(), "db is null, entity = " + JSONUtil.toJSONString(entity));
         ProviderInfoEntity fromDb = optional.get();
         entity.setId(fromDb.getId());
         entity.setModifier("sys");

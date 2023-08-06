@@ -7,7 +7,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.junit4.SpringRunner;
-import org.springframework.util.Assert;
+import com.mola.rpc.common.utils.AssertUtil;
 
 import javax.annotation.Resource;
 
@@ -31,7 +31,7 @@ public class LoopBackTest {
         Order order = new Order();
         order.setId("123");
         ServerResponse<Order> response = unitTestService.loopBackTest(order);
-        Assert.isTrue(response != null && response.isSuccess(), "loopBackTest001测试失败,调用失败");
-        Assert.isTrue(response.getData().getOperator().equals("test:123"), "loopBackTest001测试失败");
+        AssertUtil.isTrue(response != null && response.isSuccess(), "loopBackTest001测试失败,调用失败");
+        AssertUtil.isTrue(response.getData().getOperator().equals("test:123"), "loopBackTest001测试失败");
     }
 }

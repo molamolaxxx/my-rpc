@@ -17,6 +17,7 @@
 package com.mola.rpc.spring.postprocessor;
 
 import com.mola.rpc.common.annotation.RpcConsumer;
+import com.mola.rpc.common.utils.AssertUtil;
 import org.springframework.aop.TargetSource;
 import org.springframework.aop.framework.ProxyFactory;
 import org.springframework.beans.BeanUtils;
@@ -35,7 +36,10 @@ import org.springframework.core.MethodParameter;
 import org.springframework.core.Ordered;
 import org.springframework.jndi.support.SimpleJndiBeanFactory;
 import org.springframework.lang.Nullable;
-import org.springframework.util.*;
+import org.springframework.util.ClassUtils;
+import org.springframework.util.ReflectionUtils;
+import org.springframework.util.StringUtils;
+import org.springframework.util.StringValueResolver;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
@@ -104,7 +108,7 @@ public class RpcConsumerInjectBeanProcessor extends InitDestroyAnnotationBeanPos
      * @param resourceType the resource type to ignore
      */
     public void ignoreResourceType(String resourceType) {
-        Assert.notNull(resourceType, "Ignored resource type must not be null");
+        AssertUtil.notNull(resourceType, "Ignored resource type must not be null");
         this.ignoredResourceTypes.add(resourceType);
     }
 
@@ -148,7 +152,7 @@ public class RpcConsumerInjectBeanProcessor extends InitDestroyAnnotationBeanPos
      * @see #setAlwaysUseJndiLookup
      */
     public void setJndiFactory(BeanFactory jndiFactory) {
-        Assert.notNull(jndiFactory, "BeanFactory must not be null");
+        AssertUtil.notNull(jndiFactory, "BeanFactory must not be null");
         this.jndiFactory = jndiFactory;
     }
 
@@ -166,13 +170,13 @@ public class RpcConsumerInjectBeanProcessor extends InitDestroyAnnotationBeanPos
      * @see #setAlwaysUseJndiLookup
      */
     public void setResourceFactory(BeanFactory resourceFactory) {
-        Assert.notNull(resourceFactory, "BeanFactory must not be null");
+        AssertUtil.notNull(resourceFactory, "BeanFactory must not be null");
         this.resourceFactory = resourceFactory;
     }
 
     @Override
     public void setBeanFactory(BeanFactory beanFactory) {
-        Assert.notNull(beanFactory, "BeanFactory must not be null");
+        AssertUtil.notNull(beanFactory, "BeanFactory must not be null");
         this.beanFactory = beanFactory;
         if (this.resourceFactory == null) {
             this.resourceFactory = beanFactory;

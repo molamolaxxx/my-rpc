@@ -10,7 +10,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.junit4.SpringRunner;
-import org.springframework.util.Assert;
+import com.mola.rpc.common.utils.AssertUtil;
 
 import javax.annotation.Resource;
 
@@ -56,20 +56,20 @@ public class ReverseInvokeTest {
         Thread.sleep(100);
         String id = System.currentTimeMillis() + "";
         String res = unitTestServiceAppointZk.testReverseLoopBack(id);
-        Assert.isTrue(("reverse-proto-mode-"+id).equals(res), "ReverseInvokeTest case 1 failed");
+        AssertUtil.isTrue(("reverse-proto-mode-"+id).equals(res), "ReverseInvokeTest case 1 failed");
     }
 
     @Test
     public void testSyncInSpring() throws InterruptedException {
         String id = System.currentTimeMillis() + "";
         String res = unitTestServiceAppointZk.testReverseLoopBackInSpring(id);
-        Assert.isTrue(("reverse-spring-mode-"+id).equals(res), "ReverseInvokeTest case 2 failed");
+        AssertUtil.isTrue(("reverse-spring-mode-"+id).equals(res), "ReverseInvokeTest case 2 failed");
     }
 
     @Test
     public void testAsync() throws InterruptedException {
         String id = System.currentTimeMillis() + "";
         String res = unitTestServiceAppointZk.testReverseLoopBackInAsync(id);
-        Assert.isTrue("ok".equals(res), "ReverseInvokeTest case 3 failed");
+        AssertUtil.isTrue("ok".equals(res), "ReverseInvokeTest case 3 failed");
     }
 }

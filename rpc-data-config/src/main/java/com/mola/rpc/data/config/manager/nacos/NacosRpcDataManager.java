@@ -17,7 +17,7 @@ import com.mola.rpc.data.config.listener.NacosProviderConfigChangeListenerImpl;
 import com.mola.rpc.data.config.manager.BaseRpcDataManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.util.Assert;
+import com.mola.rpc.common.utils.AssertUtil;
 import org.springframework.util.CollectionUtils;
 
 import java.util.HashMap;
@@ -156,7 +156,7 @@ public class NacosRpcDataManager extends BaseRpcDataManager {
                 providerMetaData.getGroup(), providerMetaData.getVersion());
         try {
             String[] split = address.split(":");
-            Assert.isTrue(split.length == 2, "address format error!");
+            AssertUtil.isTrue(split.length == 2, "address format error!");
             this.namingService.deregisterInstance(
                     serviceName,
                     split[0], Integer.parseInt(split[1]), appName);
@@ -175,7 +175,7 @@ public class NacosRpcDataManager extends BaseRpcDataManager {
     private Instance buildInstance(RpcMetaData providerMetaData, String environment, String appName, String address) {
         Instance instance = new Instance();
         String[] split = address.split(":");
-        Assert.isTrue(split.length == 2, "address format error!");
+        AssertUtil.isTrue(split.length == 2, "address format error!");
         instance.setIp(split[0]);
         instance.setPort(Integer.parseInt(split[1]));
         String remoteProviderParentPath = getRemoteProviderPath(providerMetaData.getInterfaceClazz().getName(), providerMetaData.getGroup(),

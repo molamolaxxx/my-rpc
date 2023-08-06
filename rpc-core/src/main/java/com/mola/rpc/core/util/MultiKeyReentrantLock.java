@@ -1,6 +1,6 @@
 package com.mola.rpc.core.util;
 
-import org.springframework.util.Assert;
+import com.mola.rpc.common.utils.AssertUtil;
 
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.locks.ReentrantLock;
@@ -21,7 +21,7 @@ public class MultiKeyReentrantLock {
     private final int capacity;
 
     public MultiKeyReentrantLock(int capacity) {
-        Assert.isTrue(capacity > 0, "capacity can not smaller than zero");
+        AssertUtil.isTrue(capacity > 0, "capacity can not smaller than zero");
         this.capacity = capacity;
     }
 
@@ -36,7 +36,7 @@ public class MultiKeyReentrantLock {
 
     public void unlock(String key) {
         ReentrantLock reentrantLock = lockMap.get(getHash(key));
-        Assert.notNull(reentrantLock, "reentrantLock not exist");
+        AssertUtil.notNull(reentrantLock, "reentrantLock not exist");
         reentrantLock.unlock();
     }
 

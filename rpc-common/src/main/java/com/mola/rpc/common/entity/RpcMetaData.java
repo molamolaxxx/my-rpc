@@ -5,7 +5,7 @@ import com.mola.rpc.common.annotation.ConsumerSide;
 import com.mola.rpc.common.annotation.ProviderSide;
 import com.mola.rpc.common.constants.LoadBalanceConstants;
 import com.mola.rpc.common.context.InvokeContext;
-import org.springframework.util.Assert;
+import com.mola.rpc.common.utils.AssertUtil;
 import org.springframework.util.CollectionUtils;
 
 import java.util.List;
@@ -338,7 +338,7 @@ public class RpcMetaData {
                     .filter(e -> e.getAddress() != null).map(AddressInfo::getAddress)
                     .collect(Collectors.toList());
         }
-        Assert.notNull(addressList, "addressList is null");
+        AssertUtil.notNull(addressList, "addressList is null");
         return addressList;
     }
 }

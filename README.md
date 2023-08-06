@@ -322,7 +322,7 @@ public class InvokeMethod {
 
 	public Object invoke(Object providerBean) {
 		try {
-			Assert.notNull(providerBean, "providerBean is null, name = " + providerBean);
+			AssertUtil.notNull(providerBean, "providerBean is null, name = " + providerBean);
 			// 1、反序列化类型
 			Class<?>[] paramTypes = new Class<?>[this.parameterTypes.length];
 			for (int i = 0; i < this.parameterTypes.length; i++) {
@@ -464,7 +464,7 @@ public class Async<T> {
     public void register(Consumer<T> consumer) {
         try {
             AsyncResponseFuture<T> responseFuture = asyncFutureThreadLocal.get();
-            Assert.notNull(responseFuture, "responseFuture is null");
+            AssertUtil.notNull(responseFuture, "responseFuture is null");
             responseFuture.setConsumer(consumer);
         } finally {
             asyncFutureThreadLocal.remove();
@@ -474,7 +474,7 @@ public class Async<T> {
     public T sync(long timeout) {
         try {
             AsyncResponseFuture<T> responseFuture = asyncFutureThreadLocal.get();
-            Assert.notNull(responseFuture, "responseFuture is null");
+            AssertUtil.notNull(responseFuture, "responseFuture is null");
             return responseFuture.get(timeout);
         } catch (InterruptedException e) {
             throw new RuntimeException(e);

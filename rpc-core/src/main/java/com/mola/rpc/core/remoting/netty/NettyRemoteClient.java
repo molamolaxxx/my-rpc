@@ -20,7 +20,7 @@ import io.netty.handler.timeout.IdleStateHandler;
 import io.netty.util.concurrent.DefaultEventExecutorGroup;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.util.Assert;
+import com.mola.rpc.common.utils.AssertUtil;
 
 import java.lang.reflect.Method;
 import java.net.SocketAddress;
@@ -78,8 +78,8 @@ public class NettyRemoteClient {
 
 
     public NettyRemoteClient(NettyRpcRequestHandler requestHandler, NettyRpcResponseHandler responseHandler) {
-        Assert.notNull(requestHandler, "requestHandler is required");
-        Assert.notNull(responseHandler, "responseHandler is required");
+        AssertUtil.notNull(requestHandler, "requestHandler is required");
+        AssertUtil.notNull(responseHandler, "responseHandler is required");
         this.requestHandler = requestHandler;
         this.responseHandler = responseHandler;
         this.responseHandler.setNettyRemoteClient(this);

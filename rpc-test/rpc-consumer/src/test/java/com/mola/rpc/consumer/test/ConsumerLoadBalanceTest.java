@@ -13,7 +13,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.junit4.SpringRunner;
-import org.springframework.util.Assert;
+import com.mola.rpc.common.utils.AssertUtil;
 
 import javax.annotation.Resource;
 import java.util.List;
@@ -63,7 +63,7 @@ public class ConsumerLoadBalanceTest {
         List<PitchInvokeContext> getTargetProviderAddress = PitchingContext
                 .fetchInvokeContext("com.mola.rpc.core.loadbalance.LoadBalance",
                         "getTargetProviderAddress");
-        Assert.isTrue(getTargetProviderAddress.size() == 1000, "InvokeContext error");
+        AssertUtil.isTrue(getTargetProviderAddress.size() == 1000, "InvokeContext error");
         Map<String, Integer> cntMap = Maps.newHashMap();
         for (PitchInvokeContext invokeContext : getTargetProviderAddress) {
             String address = (String) invokeContext.getResult();
@@ -71,7 +71,7 @@ public class ConsumerLoadBalanceTest {
             cntMap.computeIfPresent(address, (k, v) -> v + 1);
         }
         for (Integer value : cntMap.values()) {
-            Assert.isTrue(value > 1000 / (cntMap.size() + 1), "cnt is error");
+            AssertUtil.isTrue(value > 1000 / (cntMap.size() + 1), "cnt is error");
         }
     }
 
@@ -86,7 +86,7 @@ public class ConsumerLoadBalanceTest {
         List<PitchInvokeContext> getTargetProviderAddress = PitchingContext
                 .fetchInvokeContext("com.mola.rpc.core.loadbalance.LoadBalance",
                         "getTargetProviderAddress");
-        Assert.isTrue(getTargetProviderAddress.size() == 1000, "InvokeContext error");
+        AssertUtil.isTrue(getTargetProviderAddress.size() == 1000, "InvokeContext error");
         Map<String, Integer> cntMap = Maps.newHashMap();
         for (PitchInvokeContext invokeContext : getTargetProviderAddress) {
             String address = (String) invokeContext.getResult();
@@ -94,8 +94,8 @@ public class ConsumerLoadBalanceTest {
             cntMap.computeIfPresent(address, (k, v) -> v + 1);
         }
         for (Integer value : cntMap.values()) {
-            Assert.isTrue(value >= 1000 / cntMap.size(), "cnt is error");
-            Assert.isTrue(value <= (1000 / cntMap.size()) + 1, "cnt is error");
+            AssertUtil.isTrue(value >= 1000 / cntMap.size(), "cnt is error");
+            AssertUtil.isTrue(value <= (1000 / cntMap.size()) + 1, "cnt is error");
         }
     }
 
@@ -110,16 +110,16 @@ public class ConsumerLoadBalanceTest {
                 .fetchInvokeContext("com.mola.rpc.core.loadbalance.LoadBalance",
                         "getTargetProviderAddress");
 
-        Assert.isTrue(getTargetProviderAddress.size() == 200, "InvokeContext error");
+        AssertUtil.isTrue(getTargetProviderAddress.size() == 200, "InvokeContext error");
         Map<String, Integer> cntMap = Maps.newHashMap();
         for (PitchInvokeContext invokeContext : getTargetProviderAddress) {
             String address = (String) invokeContext.getResult();
             cntMap.putIfAbsent(address, 0);
             cntMap.computeIfPresent(address, (k, v) -> v + 1);
         }
-        Assert.isTrue(cntMap.size() == 1, "cntMap is error");
+        AssertUtil.isTrue(cntMap.size() == 1, "cntMap is error");
         for (Integer value : cntMap.values()) {
-            Assert.isTrue(value == 200, "cntMap value is error");
+            AssertUtil.isTrue(value == 200, "cntMap value is error");
         }
     }
 
@@ -136,16 +136,16 @@ public class ConsumerLoadBalanceTest {
                 .fetchInvokeContext("com.mola.rpc.core.loadbalance.LoadBalance",
                         "getTargetProviderAddress");
 
-        Assert.isTrue(getTargetProviderAddress.size() == 200, "InvokeContext error");
+        AssertUtil.isTrue(getTargetProviderAddress.size() == 200, "InvokeContext error");
         Map<String, Integer> cntMap = Maps.newHashMap();
         for (PitchInvokeContext invokeContext : getTargetProviderAddress) {
             String address = (String) invokeContext.getResult();
             cntMap.putIfAbsent(address, 0);
             cntMap.computeIfPresent(address, (k, v) -> v + 1);
         }
-        Assert.isTrue(cntMap.size() == 1, "cntMap is error");
+        AssertUtil.isTrue(cntMap.size() == 1, "cntMap is error");
         for (Integer value : cntMap.values()) {
-            Assert.isTrue(value == 200, "cntMap value is error");
+            AssertUtil.isTrue(value == 200, "cntMap value is error");
         }
     }
 
@@ -170,7 +170,7 @@ public class ConsumerLoadBalanceTest {
                 .fetchInvokeContext("com.mola.rpc.core.loadbalance.LoadBalance",
                         "getTargetProviderAddress");
 
-        Assert.isTrue(getTargetProviderAddress.size() == 225, "InvokeContext error");
+        AssertUtil.isTrue(getTargetProviderAddress.size() == 225, "InvokeContext error");
         Map<String, Integer> cntMap = Maps.newHashMap();
         for (PitchInvokeContext invokeContext : getTargetProviderAddress) {
             String address = (String) invokeContext.getResult();
@@ -180,7 +180,7 @@ public class ConsumerLoadBalanceTest {
 
 
         for (Integer value : cntMap.values()) {
-            Assert.isTrue(value == 15, "cnt is error");
+            AssertUtil.isTrue(value == 15, "cnt is error");
         }
     }
 

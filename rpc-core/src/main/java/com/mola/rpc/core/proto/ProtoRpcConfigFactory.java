@@ -25,7 +25,7 @@ import com.mola.rpc.data.config.manager.zk.ZkRpcDataManager;
 import com.mola.rpc.data.config.spring.RpcProviderDataInitBean;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.util.Assert;
+import com.mola.rpc.common.utils.AssertUtil;
 
 import java.util.Collection;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -158,7 +158,7 @@ public class ProtoRpcConfigFactory {
         ReverseInvokeHelper.instance().shutdownMonitor();
         rpcProviderDataInitBean.shutdownMonitor();
         // 删除配置中心数据
-        Assert.notNull(this.rpcProperties, "rpcProperties is null");
+        AssertUtil.notNull(this.rpcProperties, "rpcProperties is null");
         if (!rpcProperties.getStartConfigServer()) {
             return;
         }
@@ -242,7 +242,7 @@ public class ProtoRpcConfigFactory {
         } else {
             rpcDataManager = rpcProperties.getRpcDataManager();
         }
-        Assert.notNull(rpcDataManager, "rpcDataManager is null");
+        AssertUtil.notNull(rpcDataManager, "rpcDataManager is null");
         rpcDataManager.init(rpcContext);
         rpcProviderDataInitBean.setRpcDataManager(rpcDataManager);
         // 负载均衡监听变化
@@ -272,6 +272,10 @@ public class ProtoRpcConfigFactory {
         this.providerObjectFetcher = providerObjectFetcher;
         // 覆盖老的provider获取器
         this.requestHandler.setProviderFetcher(providerObjectFetcher);
+    }
+
+    public boolean initialized() {
+        return INIT_FLAG.get();
     }
 
     /*

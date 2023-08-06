@@ -10,7 +10,7 @@ import com.mola.rpc.core.excutors.impl.SystemRpcProviderExecutor;
 import com.mola.rpc.core.properties.RpcProperties;
 import com.mola.rpc.core.proto.ObjectFetcher;
 import com.mola.rpc.core.proxy.InvokeMethod;
-import org.springframework.util.Assert;
+import com.mola.rpc.common.utils.AssertUtil;
 
 /**
  * @author : molamola
@@ -47,7 +47,7 @@ public class RpcExecutorFactory {
         if (SystemInvokerClazzInterfaceEnum.has(invokeMethod.getInterfaceClazz())) {
             return systemRpcProviderExecutor;
         }
-        Assert.notNull(providerMeta, "providerMeta not found");
+        AssertUtil.notNull(providerMeta, "providerMeta not found");
         if (Boolean.TRUE.equals(providerMeta.getInFiber())) {
             return fiberRpcProviderExecutor;
         }

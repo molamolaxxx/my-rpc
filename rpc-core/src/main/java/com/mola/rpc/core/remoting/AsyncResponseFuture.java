@@ -6,7 +6,7 @@ import com.mola.rpc.core.remoting.protocol.RemotingCommandCode;
 import com.mola.rpc.core.util.BytesUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.util.Assert;
+import com.mola.rpc.common.utils.AssertUtil;
 
 import java.util.function.Consumer;
 
@@ -48,7 +48,7 @@ public class AsyncResponseFuture<T> extends ResponseFuture {
         if (remotingCommand == null) {
             remotingCommand = super.waitResponse(timeout);
         }
-        Assert.notNull(remotingCommand, "remotingCommand is null, perhaps provider timeout, timeout = " + timeout);
+        AssertUtil.notNull(remotingCommand, "remotingCommand is null, perhaps provider timeout, timeout = " + timeout);
         // 服务端执行异常
         if (remotingCommand.getCode() == RemotingCommandCode.SYSTEM_ERROR) {
             throw new RuntimeException(remotingCommand.getRemark());

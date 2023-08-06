@@ -12,7 +12,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.stereotype.Component;
-import org.springframework.util.Assert;
+import com.mola.rpc.common.utils.AssertUtil;
 
 import javax.annotation.Resource;
 import java.util.Map;
@@ -74,7 +74,7 @@ public class ProviderRefreshAllHandler implements InitializingBean {
             log.warn("server will not refresh database");
             return;
         }
-        Assert.isTrue(linkedBlockingDeque.size() < 5, "队列处理任务过多，请稍后重试");
+        AssertUtil.isTrue(linkedBlockingDeque.size() < 5, "队列处理任务过多，请稍后重试");
         providerRefreshThreadPool.submit(() -> {
             // 读取/rpc/provider下全部数据，更新db
             Map<String, RpcMetaData> allProviderMetaData = providerMetaService.queryAllMetaDataFromConfigServer();

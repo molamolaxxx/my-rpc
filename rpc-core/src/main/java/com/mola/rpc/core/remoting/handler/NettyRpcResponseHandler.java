@@ -7,7 +7,7 @@ import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.util.Assert;
+import com.mola.rpc.common.utils.AssertUtil;
 
 /**
  * @author : molamola
@@ -29,7 +29,7 @@ public class NettyRpcResponseHandler extends SimpleChannelInboundHandler<Remotin
             ctx.fireChannelRead(msg);
             return;
         }
-        Assert.notNull(nettyRemoteClient, "require nettyRemoteClient");
+        AssertUtil.notNull(nettyRemoteClient, "require nettyRemoteClient");
         this.nettyRemoteClient.putResponse(msg);
     }
 

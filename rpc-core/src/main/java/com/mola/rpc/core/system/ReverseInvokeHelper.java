@@ -12,7 +12,7 @@ import com.mola.rpc.core.remoting.netty.pool.NettyConnectPool;
 import io.netty.channel.Channel;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.util.Assert;
+import com.mola.rpc.common.utils.AssertUtil;
 
 import java.util.List;
 import java.util.Map;
@@ -145,7 +145,7 @@ public class ReverseInvokeHelper {
 
     public void registerProviderToServer(RpcMetaData providerMeta) {
         // 反向代理模式下，向consumer端注册provider的key
-        Assert.notEmpty(providerMeta.getReverseModeConsumerAddress(),
+        AssertUtil.notEmpty(providerMeta.getReverseModeConsumerAddress(),
                 "provider in reverse mode, reverseModeConsumerAddress can not be empty! " + JSONUtil.toJSONString(providerMeta));
         SystemConsumer<SystemConsumer.ReverseInvokerCaller> systemConsumer = SystemConsumer.Multipart.reverseInvokerCaller;
         for (String reverseModeConsumerAddress : providerMeta.getReverseModeConsumerAddress()) {

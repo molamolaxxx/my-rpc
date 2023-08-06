@@ -1,11 +1,11 @@
 package com.mola.rpc.webmanager.service;
 
+import com.google.common.collect.Lists;
 import com.mola.rpc.spring.autoconfig.RpcSpringConfigurationProperties;
 import com.mola.rpc.webmanager.entity.GatewayMappingEntity;
 import com.mola.rpc.webmanager.repo.GatewayMappingRepository;
 import com.mola.rpc.webmanager.test.CsTestContext;
 import junit.framework.TestCase;
-import org.assertj.core.util.Lists;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;

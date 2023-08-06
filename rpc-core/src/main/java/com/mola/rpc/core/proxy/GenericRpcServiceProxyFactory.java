@@ -10,7 +10,7 @@ import com.mola.rpc.core.proto.ProtoRpcConfigFactory;
 import com.mola.rpc.core.proto.RpcInvoker;
 import com.mola.rpc.core.remoting.netty.NettyRemoteClient;
 import com.mola.rpc.data.config.spring.RpcProviderDataInitBean;
-import org.springframework.util.Assert;
+import com.mola.rpc.common.utils.AssertUtil;
 
 import java.lang.reflect.Proxy;
 import java.util.Map;
@@ -41,6 +41,8 @@ public class GenericRpcServiceProxyFactory {
             return genericRpcServiceMap.get(interfaceClazzName);
         }
         ProtoRpcConfigFactory protoRpcConfigFactory = ProtoRpcConfigFactory.fetch();
+        AssertUtil.isTrue(protoRpcConfigFactory.initialized(),
+                "protoRpcConfigFactory has not been start! please call ProtoRpcConfigFactory::init first");
         RpcProperties rpcProperties = protoRpcConfigFactory.getRpcProperties();
         // 订阅服务
         RpcContext rpcContext = protoRpcConfigFactory.getRpcContext();
@@ -50,7 +52,7 @@ public class GenericRpcServiceProxyFactory {
         rpcContext.addConsumerMeta(interfaceClazzName, GENERIC_MODE_CONSUMER, rpcMetaData);
         // 启动client
         NettyRemoteClient nettyRemoteClient = protoRpcConfigFactory.getNettyRemoteClient();
-        Assert.isTrue(nettyRemoteClient.isStart(), "nettyRemoteClient has not been start! please call ProtoRpcConfigFactory.configure first");
+        AssertUtil.isTrue(nettyRemoteClient.isStart(), "nettyRemoteClient has not been start! please call ProtoRpcConfigFactory::init first");
         // config server 动态注册
         if (rpcProperties.getStartConfigServer()) {
             RpcProviderDataInitBean rpcProviderDataInitBean = protoRpcConfigFactory.getRpcProviderDataInitBean();

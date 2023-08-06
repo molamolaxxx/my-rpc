@@ -10,7 +10,7 @@ import com.mola.rpc.core.remoting.netty.NettyRemoteClient;
 import com.mola.rpc.core.remoting.netty.NettyRemoteServer;
 import com.mola.rpc.core.system.ReverseInvokeHelper;
 import com.mola.rpc.data.config.spring.RpcProviderDataInitBean;
-import org.springframework.util.Assert;
+import com.mola.rpc.common.utils.AssertUtil;
 
 import java.lang.reflect.Proxy;
 import java.util.List;
@@ -74,6 +74,8 @@ public class RpcInvoker {
 
     public static <T> T consumer(Class<T> consumerInterface, RpcMetaData rpcMetaData, String consumerName) {
         ProtoRpcConfigFactory protoRpcConfigFactory = ProtoRpcConfigFactory.fetch();
+        AssertUtil.isTrue(protoRpcConfigFactory.initialized(),
+                "protoRpcConfigFactory has not been start! please call ProtoRpcConfigFactory::init first");
         RpcProperties rpcProperties = protoRpcConfigFactory.getRpcProperties();
         // 客户端超时时间检查
         if (rpcMetaData.getClientTimeout() > rpcProperties.getMaxClientTimeout()) {
@@ -86,7 +88,7 @@ public class RpcInvoker {
         rpcContext.addConsumerMeta(consumerInterface.getName(), consumerName, rpcMetaData);
         // 启动client
         NettyRemoteClient nettyRemoteClient = protoRpcConfigFactory.getNettyRemoteClient();
-        Assert.isTrue(nettyRemoteClient.isStart(), "nettyRemoteClient has not been start! please call ProtoRpcConfigFactory.configure first");
+        AssertUtil.isTrue(nettyRemoteClient.isStart(), "nettyRemoteClient has not been start! please call ProtoRpcConfigFactory::init first");
         // 反向调用，启动server
         if (rpcMetaData.getReverseMode()) {
             NettyRemoteServer nettyRemoteServer = protoRpcConfigFactory.getNettyRemoteServer();
@@ -128,6 +130,8 @@ public class RpcInvoker {
 
     public static <T> void provider(Class<T> consumerInterface, T providerObject, RpcMetaData rpcMetaData) {
         ProtoRpcConfigFactory protoRpcConfigFactory = ProtoRpcConfigFactory.fetch();
+        AssertUtil.isTrue(protoRpcConfigFactory.initialized(),
+                "protoRpcConfigFactory has not been start! please call ProtoRpcConfigFactory::init first");
         // 提供服务
         RpcContext rpcContext = protoRpcConfigFactory.getRpcContext();
         RpcProperties rpcProperties = protoRpcConfigFactory.getRpcProperties();

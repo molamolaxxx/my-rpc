@@ -1,7 +1,6 @@
 package com.mola.rpc.common.utils;
 
 import com.google.common.collect.Sets;
-import org.springframework.util.Assert;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
@@ -16,7 +15,7 @@ import java.util.Set;
 public class ClazzUtil {
 
     public static Set<String> getMethodNameFilterByAnnotation(Class<?> clazz, Class<? extends Annotation> annotation) {
-        Assert.notNull(clazz, "clazz is null");
+        AssertUtil.notNull(clazz, "clazz is null");
         Method[] methods = clazz.getMethods();
         if (methods == null || methods.length == 0) {
             return Sets.newHashSet();

@@ -4,7 +4,7 @@ import com.google.common.collect.Lists;
 import com.mola.rpc.client.*;
 import com.mola.rpc.common.annotation.RpcProvider;
 import com.mola.rpc.core.remoting.Async;
-import org.springframework.util.Assert;
+import com.mola.rpc.common.utils.AssertUtil;
 
 import javax.annotation.Resource;
 import java.util.List;
@@ -139,14 +139,14 @@ public class UnitTestServiceImpl implements UnitTestService {
         CountDownLatch cdl = new CountDownLatch(1);
         Async.from(userServiceReverseInSpring.queryUserNameAsync(id))
                 .consume(res -> {
-                    Assert.isTrue(res.equals("reverse-spring-mode-async-" + id), "testReverseLoopBackInAsync failed");
+                    AssertUtil.isTrue(res.equals("reverse-spring-mode-async-" + id), "testReverseLoopBackInAsync failed");
                     cdl.countDown();
                 });
         try {
             cdl.await(3000,  TimeUnit.MILLISECONDS);
         } catch (InterruptedException e) {
         }
-        Assert.isTrue(cdl.getCount() == 0, "testReverseLoopBackInAsync failed");
+        AssertUtil.isTrue(cdl.getCount() == 0, "testReverseLoopBackInAsync failed");
         return "ok";
     }
 

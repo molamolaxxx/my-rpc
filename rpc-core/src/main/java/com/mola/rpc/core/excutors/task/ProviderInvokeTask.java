@@ -6,7 +6,7 @@ import com.mola.rpc.core.proxy.InvokeMethod;
 import com.mola.rpc.core.remoting.protocol.RemotingCommand;
 import com.mola.rpc.core.remoting.protocol.RemotingCommandCode;
 import io.netty.channel.Channel;
-import org.springframework.util.Assert;
+import com.mola.rpc.common.utils.AssertUtil;
 
 /**
  * @author : molamola
@@ -23,7 +23,7 @@ public class ProviderInvokeTask extends RpcTask {
 
     @Override
     protected Object runTask() {
-        Assert.notNull(providerMeta, "providerMeta not found in ProviderInvokeTask");
+        AssertUtil.notNull(providerMeta, "providerMeta not found in ProviderInvokeTask");
         RemotingCommand response = null;
         Object result = null;
         // 反射调用
@@ -38,7 +38,7 @@ public class ProviderInvokeTask extends RpcTask {
             response = buildRemotingCommand(request, null, RemotingCommandCode.SYSTEM_ERROR, e.getMessage());
             log.error("server system error!, message = " + request.toString(), e);
         }
-        Assert.notNull(response, "response is null" + request.toString());
+        AssertUtil.notNull(response, "response is null" + request.toString());
         // 发送响应
         sendResponse(response);
         return result;

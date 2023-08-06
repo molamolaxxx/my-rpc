@@ -1,9 +1,9 @@
 package com.mola.rpc.webmanager.test;
 
+import com.google.common.collect.Lists;
 import com.mola.rpc.webmanager.entity.ProviderInfoEntity;
 import com.mola.rpc.webmanager.repo.ProviderInfoRepository;
 import junit.framework.TestCase;
-import org.assertj.core.util.Lists;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
