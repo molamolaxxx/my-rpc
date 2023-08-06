@@ -1,6 +1,6 @@
 package com.mola.rpc.core.remoting.handler;
 
-import com.alibaba.fastjson.JSONObject;
+import com.mola.rpc.common.utils.JSONUtil;
 import com.mola.rpc.common.context.RpcContext;
 import com.mola.rpc.common.entity.RpcMetaData;
 import com.mola.rpc.core.excutors.RpcExecutor;
@@ -57,7 +57,7 @@ public class NettyRpcRequestHandler extends SimpleChannelInboundHandler<Remoting
         // 获取执行器
         RpcExecutor executor = rpcExecutorFactory.getProviderExecutor(invokeMethod, providerMeta);
         if (Objects.isNull(executor)) {
-            throw new RuntimeException("executor not found, invokeMethod is " + JSONObject.toJSONString(invokeMethod));
+            throw new RuntimeException("executor not found, invokeMethod is " + JSONUtil.toJSONString(invokeMethod));
         }
         // 反射调用服务
         executor.process(rpcTaskFactory.getTask(

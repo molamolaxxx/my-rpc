@@ -1,6 +1,6 @@
 package com.mola.rpc.provider;
 
-import com.alibaba.fastjson.JSONObject;
+import com.mola.rpc.common.utils.JSONUtil;
 import com.mola.rpc.client.OperateUser;
 import com.mola.rpc.client.Order;
 import com.mola.rpc.client.OrderService;
@@ -47,7 +47,7 @@ public class OrderServiceGrayImpl implements OrderService {
     @Override
     public Boolean saveOrder(List<Order> orderList) {
         for (Order order : orderList) {
-            System.out.println(JSONObject.toJSONString(order));
+            System.out.println(JSONUtil.toJSONString(order));
         }
         return Boolean.TRUE;
     }

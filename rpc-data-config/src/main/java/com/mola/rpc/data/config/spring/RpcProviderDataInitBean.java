@@ -1,6 +1,6 @@
 package com.mola.rpc.data.config.spring;
 
-import com.alibaba.fastjson.JSONObject;
+import com.mola.rpc.common.utils.JSONUtil;
 import com.mola.rpc.common.context.RpcContext;
 import com.mola.rpc.common.entity.AddressInfo;
 import com.mola.rpc.common.entity.BaseRpcProperties;
@@ -178,7 +178,7 @@ public class RpcProviderDataInitBean {
                 // 判断服务是否存在
                 if (!rpcDataManager.isInstanceAvailable(rpcMetaData.getInterfaceClazz().getName(),
                         rpcMetaData.getGroup(), rpcMetaData.getVersion(), environment, rpcContext.getProviderAddress())) {
-                    log.warn("service is not exist! will never upload, meta = " + JSONObject.toJSONString(rpcMetaData));
+                    log.warn("service is not exist! will never upload, meta = " + JSONUtil.toJSONString(rpcMetaData));
                     continue;
                 }
                 // 获取主机运行状态

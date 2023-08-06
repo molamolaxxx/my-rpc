@@ -1,6 +1,6 @@
 package com.mola.rpc.consumer;
 
-import com.alibaba.fastjson.JSONObject;
+import com.mola.rpc.common.utils.JSONUtil;
 import com.google.common.collect.Lists;
 import com.mola.rpc.client.OperateUser;
 import com.mola.rpc.client.Order;
@@ -56,7 +56,7 @@ public class OrderController {
         if (orderId.contains("gray")) {
             Async.from(orderServiceGray.queryOrderList("test", Lists.newArrayList(orderId)))
                     .consume(list -> {
-                        System.out.println(JSONObject.toJSONString(list) + ":" + Thread.currentThread().getName());
+                        System.out.println(JSONUtil.toJSONString(list) + ":" + Thread.currentThread().getName());
                     });
         }
         return orderServiceGray.queryOrderList("test", Lists.newArrayList(orderId));
@@ -67,7 +67,7 @@ public class OrderController {
 //        Async.from(orderServiceGray.queryOrderList("test", Lists.newArrayList(orderId)))
 //                .consume(list -> {
 //                    System.out.println(Thread.currentThread());
-//                    System.out.println(JSONObject.toJSONString(list));
+//                    System.out.println(JSONUtil.toJSONString(list));
 //                });
         long start = System.currentTimeMillis();
         Async<List<Order>> async = Async.from(orderServiceGray.queryOrderList("test", Lists.newArrayList(orderId)));
@@ -102,7 +102,7 @@ public class OrderController {
             from.consume(response -> {
                 List<Order> data = response.getData();
                 for (Order datum : data) {
-                    System.out.println(JSONObject.toJSONString(datum));
+                    System.out.println(JSONUtil.toJSONString(datum));
                 }
             });
             return ServerResponse.createBySuccess();
@@ -111,7 +111,7 @@ public class OrderController {
         }
 //        List<Order> data = listServerResponse.getData();
 //        for (Order datum : data) {
-//            System.out.println(JSONObject.toJSONString(datum));
+//            System.out.println(JSONUtil.toJSONString(datum));
 //        }
         return listServerResponse;
     }

@@ -1,6 +1,6 @@
 package com.mola.rpc.common.entity;
 
-import com.alibaba.fastjson.JSONObject;
+import com.mola.rpc.common.utils.JSONUtil;
 
 import java.lang.management.ManagementFactory;
 import java.lang.management.OperatingSystemMXBean;
@@ -47,7 +47,7 @@ public class SystemInfo {
 
     public static SystemInfo get() {
         OperatingSystemMXBean operatingSystemMXBean = ManagementFactory.getOperatingSystemMXBean();
-        SystemInfo systemInfo = JSONObject.parseObject(JSONObject.toJSONString(operatingSystemMXBean), SystemInfo.class);
+        SystemInfo systemInfo = JSONUtil.parseObject(JSONUtil.toJSONString(operatingSystemMXBean), SystemInfo.class);
         return systemInfo;
     }
 

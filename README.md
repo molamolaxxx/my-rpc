@@ -126,7 +126,7 @@ public Object invoke(Object obj, Method method, Object[] args) throws Throwable 
     }
     List<AddressInfo> addressInfoList = consumerMeta.getAddressList();
     if (CollectionUtils.isEmpty(addressInfoList)) {
-        throw new RuntimeException("consumer invoke failed, addressList is empty, meta = " + JSONObject.toJSONString(consumerMeta));
+        throw new RuntimeException("consumer invoke failed, addressList is empty, meta = " + JSONUtil.toJSONString(consumerMeta));
     }
     // 地址过滤器
     List<String> addressList = addressInfoList.stream()
@@ -200,7 +200,7 @@ public class ConsistencyHashingBalance implements LoadBalanceStrategy, AddressCh
         if (null == virtualAddressNodeMap || virtualAddressNodeMap.size() == 0) {
             throw new RuntimeException("virtualAddressNodeMap is empty");
         }
-        int hash = getHash(JSONObject.toJSONString(args));
+        int hash = getHash(JSONUtil.toJSONString(args));
         SortedMap<Integer, String> tailMap = virtualAddressNodeMap.tailMap(hash);
         if (tailMap.size() == 0) {
             return getAddressFromVirtualNode(virtualAddressNodeMap.get(virtualAddressNodeMap.firstKey()));
@@ -394,7 +394,7 @@ private OrderService orderServiceGray;
 Async.from(orderServiceGray.queryOrderList(orderId))
                 .consume(list -> {
                     System.out.println(Thread.currentThread());
-                    System.out.println(JSONObject.toJSONString(list));
+                    System.out.println(JSONUtil.toJSONString(list));
                 });
 // 异步转同步
 Async<List<Order>> async = Async.from(orderServiceGray.queryOrderList(orderId));
@@ -426,7 +426,7 @@ my-rpc:
 Async.from(orderServiceGray.queryOrderList(orderId))
                 .consume(list -> {
                     System.out.println(Thread.currentThread());
-                    System.out.println(JSONObject.toJSONString(list));
+                    System.out.println(JSONUtil.toJSONString(list));
                 });
 // 2、异步转同步
 Async<List<Order>> async = Async.from(orderServiceGray.queryOrderList(orderId));

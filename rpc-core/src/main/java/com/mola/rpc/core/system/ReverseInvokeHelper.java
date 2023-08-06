@@ -1,6 +1,6 @@
 package com.mola.rpc.core.system;
 
-import com.alibaba.fastjson.JSONObject;
+import com.mola.rpc.common.utils.JSONUtil;
 import com.google.common.collect.Lists;
 import com.mola.rpc.common.context.RpcContext;
 import com.mola.rpc.common.entity.RpcMetaData;
@@ -146,7 +146,7 @@ public class ReverseInvokeHelper {
     public void registerProviderToServer(RpcMetaData providerMeta) {
         // 反向代理模式下，向consumer端注册provider的key
         Assert.notEmpty(providerMeta.getReverseModeConsumerAddress(),
-                "provider in reverse mode, reverseModeConsumerAddress can not be empty! " + JSONObject.toJSONString(providerMeta));
+                "provider in reverse mode, reverseModeConsumerAddress can not be empty! " + JSONUtil.toJSONString(providerMeta));
         SystemConsumer<SystemConsumer.ReverseInvokerCaller> systemConsumer = SystemConsumer.Multipart.reverseInvokerCaller;
         for (String reverseModeConsumerAddress : providerMeta.getReverseModeConsumerAddress()) {
             systemConsumer.setAppointedAddress(Lists.newArrayList(reverseModeConsumerAddress));

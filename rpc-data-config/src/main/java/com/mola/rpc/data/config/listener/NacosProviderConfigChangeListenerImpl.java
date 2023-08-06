@@ -1,6 +1,6 @@
 package com.mola.rpc.data.config.listener;
 
-import com.alibaba.fastjson.JSONObject;
+import com.mola.rpc.common.utils.JSONUtil;
 import com.alibaba.nacos.api.naming.listener.Event;
 import com.alibaba.nacos.api.naming.listener.EventListener;
 import com.alibaba.nacos.api.naming.listener.NamingEvent;
@@ -48,7 +48,7 @@ public class NacosProviderConfigChangeListenerImpl implements EventListener {
     public void onEvent(Event event) {
         if (event instanceof NamingEvent) {
             NamingEvent namingEvent = (NamingEvent) event;
-            log.info("remote address refresh from nacos, serviceName = {}, event = {}", namingEvent.getServiceName(), JSONObject.toJSONString(event));
+            log.info("remote address refresh from nacos, serviceName = {}, event = {}", namingEvent.getServiceName(), JSONUtil.toJSONString(event));
             List<Instance> instances = namingEvent.getInstances();
             this.addressListChangeLock.lock();
             try {
@@ -63,7 +63,7 @@ public class NacosProviderConfigChangeListenerImpl implements EventListener {
                         instance -> {
                             String addressStr = instance.getIp() + ":" + instance.getPort();
                             ProviderConfigData providerConfigData = ObjectUtils.parseMap(instance.getMetadata(), ProviderConfigData.class);
-                            SystemInfo systemInfo = JSONObject.parseObject(instance.getMetadata().get("systemInfoKey"), SystemInfo.class);
+                            SystemInfo systemInfo = JSONUtil.parseObject(instance.getMetadata().get("systemInfoKey"), SystemInfo.class);
                             providerConfigData.setSystemInfo(systemInfo);
                             if (!addressInfoMap.containsKey(addressStr)) {
                                 newAddressInfo.add(new AddressInfo(addressStr, providerConfigData));

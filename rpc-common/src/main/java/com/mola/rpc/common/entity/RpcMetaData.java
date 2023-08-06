@@ -1,6 +1,6 @@
 package com.mola.rpc.common.entity;
 
-import com.alibaba.fastjson.JSONObject;
+import com.mola.rpc.common.utils.JSONUtil;
 import com.mola.rpc.common.annotation.ConsumerSide;
 import com.mola.rpc.common.annotation.ProviderSide;
 import com.mola.rpc.common.constants.LoadBalanceConstants;
@@ -252,7 +252,7 @@ public class RpcMetaData {
 
     @Override
     public String toString() {
-        return JSONObject.toJSONString(this, true);
+        return JSONUtil.toJSONString(this, true);
     }
 
     public SortedMap<Integer, String> getVirtualAddressNodeMap() {

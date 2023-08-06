@@ -1,6 +1,6 @@
 package com.mola.rpc.data.config.manager.nacos;
 
-import com.alibaba.fastjson.JSONObject;
+import com.mola.rpc.common.utils.JSONUtil;
 import com.alibaba.nacos.api.PropertyKeyConst;
 import com.alibaba.nacos.api.exception.NacosException;
 import com.alibaba.nacos.api.naming.NamingFactory;
@@ -91,7 +91,7 @@ public class NacosRpcDataManager extends BaseRpcDataManager {
             return Lists.newCopyOnWriteArrayList(
                     allInstances.stream().map(instance -> {
                         ProviderConfigData providerConfigData = ObjectUtils.parseMap(instance.getMetadata(), ProviderConfigData.class);
-                        SystemInfo systemInfo = JSONObject.parseObject(instance.getMetadata().get("systemInfoKey"), SystemInfo.class);
+                        SystemInfo systemInfo = JSONUtil.parseObject(instance.getMetadata().get("systemInfoKey"), SystemInfo.class);
                         providerConfigData.setSystemInfo(systemInfo);
                         AddressInfo info = new AddressInfo(instance.getIp()+":" +instance.getPort(), providerConfigData);
                         return info;
@@ -184,7 +184,7 @@ public class NacosRpcDataManager extends BaseRpcDataManager {
                 appName, providerMetaData.getHost(), address, providerMetaData.getProto());
         providerConfigData.setSystemInfo(null);
         instance.setMetadata(ObjectUtils.parseObject(providerConfigData));
-        instance.getMetadata().put("systemInfoKey", JSONObject.toJSONString(SystemInfo.get()));
+        instance.getMetadata().put("systemInfoKey", JSONUtil.toJSONString(SystemInfo.get()));
         return instance;
     }
 

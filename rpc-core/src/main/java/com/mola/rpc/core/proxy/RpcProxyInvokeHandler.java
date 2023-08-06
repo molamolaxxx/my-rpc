@@ -1,6 +1,6 @@
 package com.mola.rpc.core.proxy;
 
-import com.alibaba.fastjson.JSONObject;
+import com.mola.rpc.common.utils.JSONUtil;
 import com.mola.rpc.common.context.InvokeContext;
 import com.mola.rpc.common.context.RpcContext;
 import com.mola.rpc.common.entity.AddressInfo;
@@ -80,7 +80,7 @@ public class RpcProxyInvokeHandler implements InvocationHandler {
             }
             List<AddressInfo> addressInfoList = consumerMeta.getAddressList();
             if (CollectionUtils.isEmpty(addressInfoList) && CollectionUtils.isEmpty(consumerMeta.getAppointedAddress())) {
-                throw new RuntimeException("consumer invoke failed, provider's addressList is empty, meta = " + JSONObject.toJSONString(consumerMeta));
+                throw new RuntimeException("consumer invoke failed, provider's addressList is empty, meta = " + JSONUtil.toJSONString(consumerMeta));
             }
             // 过滤掉无效的地址
             // 1、不可用服务（心跳超时、主动下线、规则下线）
@@ -89,7 +89,7 @@ public class RpcProxyInvokeHandler implements InvocationHandler {
 
             // 负载均衡策略
             String targetProviderAddress = loadBalance.getTargetProviderAddress(consumerMeta, args);
-            Assert.notNull(targetProviderAddress, "no available targetProviderAddress! meta = " + JSONObject.toJSONString(consumerMeta));
+            Assert.notNull(targetProviderAddress, "no available targetProviderAddress! meta = " + JSONUtil.toJSONString(consumerMeta));
             // 构建request
             InvokeMethod invokeMethod = assemblyInvokeMethod(method, args);
             RemotingCommand request = buildRemotingCommand(method, invokeMethod, consumerMeta.getClientTimeout(), targetProviderAddress, consumerMeta);
@@ -230,7 +230,7 @@ public class RpcProxyInvokeHandler implements InvocationHandler {
         while (!RemotingUtil.channelIsAvailable(reverseInvokeChannel)) {
             // 获取channel
             reverseInvokeChannel = nettyConnectPool.getReverseInvokeChannel(ReverseInvokeHelper.instance().getServiceKey(consumerMeta, true));
-            Assert.notNull(reverseInvokeChannel, "no available reverse channel  to use , meta = " + JSONObject.toJSONString(consumerMeta));
+            Assert.notNull(reverseInvokeChannel, "no available reverse channel  to use , meta = " + JSONUtil.toJSONString(consumerMeta));
             // 连接有问题，关闭连接，抛出异常
             if (!RemotingUtil.channelIsAvailable(reverseInvokeChannel)) {
                 // 关闭channel

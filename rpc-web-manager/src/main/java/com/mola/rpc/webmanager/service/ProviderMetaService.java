@@ -1,6 +1,6 @@
 package com.mola.rpc.webmanager.service;
 
-import com.alibaba.fastjson.JSONObject;
+import com.mola.rpc.common.utils.JSONUtil;
 import com.mola.rpc.common.entity.ProviderConfigData;
 import com.mola.rpc.common.entity.RpcMetaData;
 import com.mola.rpc.core.properties.RpcProperties;
@@ -92,7 +92,7 @@ public class ProviderMetaService {
     public ProviderInfoEntity updateProviderInfoStorage(ProviderInfoEntity entity) {
         Assert.notNull(entity, "entity is null");
         Optional<ProviderInfoEntity> optional = providerInfoRepository.findById(entity.getId());
-        Assert.isTrue(optional.isPresent(), "db is null, entity = " + JSONObject.toJSONString(entity));
+        Assert.isTrue(optional.isPresent(), "db is null, entity = " + JSONUtil.toJSONString(entity));
         ProviderInfoEntity fromDb = optional.get();
         entity.setId(fromDb.getId());
         entity.setModifier("sys");

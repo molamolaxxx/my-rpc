@@ -1,6 +1,6 @@
 package com.mola.rpc.data.config.manager.zk;
 
-import com.alibaba.fastjson.JSONObject;
+import com.mola.rpc.common.utils.JSONUtil;
 import com.google.common.collect.Lists;
 import com.mola.rpc.common.constants.CommonConstants;
 import com.mola.rpc.common.context.RpcContext;
@@ -95,7 +95,7 @@ public class ZkRpcDataManager extends BaseRpcDataManager {
         try {
             return Lists.newCopyOnWriteArrayList(
                     zkClient.getChildren(remoteProviderPath).stream().map(path -> new AddressInfo(path,
-                            JSONObject.parseObject(zkClient.readData(remoteProviderPath + "/" + path), ProviderConfigData.class)))
+                            JSONUtil.parseObject(zkClient.readData(remoteProviderPath + "/" + path), ProviderConfigData.class)))
                             .collect(Collectors.toList())
             );
         } catch (Exception e) {
@@ -142,7 +142,7 @@ public class ZkRpcDataManager extends BaseRpcDataManager {
             zkClient.create(childPath, providerConfigData.toString(), CreateMode.EPHEMERAL);
         }
         zkClient.updateDataSerialized(remoteProviderParentPath + "/" + address, data -> {
-            ProviderConfigData providerConfig = JSONObject.parseObject((String) data, ProviderConfigData.class);
+            ProviderConfigData providerConfig = JSONUtil.parseObject((String) data, ProviderConfigData.class);
             providerConfig.setProviderLastHeartBeatTime(System.currentTimeMillis());
             providerConfig.setSystemInfo(SystemInfo.get());
             return providerConfig.toString();
@@ -174,7 +174,7 @@ public class ZkRpcDataManager extends BaseRpcDataManager {
         for (String providerKey : providerKeys) {
             Object providerMetaData = zkClient.readData(this.providerRootPath + "/" + providerKey);
             if (providerMetaData instanceof String && !StringUtils.isEmpty(providerMetaData)) {
-                RpcMetaData rpcMetaData = JSONObject.parseObject((String) providerMetaData, RpcMetaData.class);
+                RpcMetaData rpcMetaData = JSONUtil.parseObject((String) providerMetaData, RpcMetaData.class);
                 rpcMetaDataMap.put(providerKey, rpcMetaData);
             }
         }
@@ -192,7 +192,7 @@ public class ZkRpcDataManager extends BaseRpcDataManager {
         for (String path : childrenPaths) {
             Object providerConfigDataJson = zkClient.readData(remoteProviderPath + "/" + path);
             if (providerConfigDataJson instanceof String && !StringUtils.isEmpty(providerConfigDataJson)) {
-                ProviderConfigData providerConfigData = JSONObject.parseObject((String) providerConfigDataJson, ProviderConfigData.class);
+                ProviderConfigData providerConfigData = JSONUtil.parseObject((String) providerConfigDataJson, ProviderConfigData.class);
                 providerConfigDataList.add(providerConfigData);
             }
         }

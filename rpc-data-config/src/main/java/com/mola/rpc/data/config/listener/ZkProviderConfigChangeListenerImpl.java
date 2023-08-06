@@ -1,6 +1,6 @@
 package com.mola.rpc.data.config.listener;
 
-import com.alibaba.fastjson.JSONObject;
+import com.mola.rpc.common.utils.JSONUtil;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.mola.rpc.common.entity.AddressInfo;
@@ -48,7 +48,7 @@ public class ZkProviderConfigChangeListenerImpl implements IZkChildListener {
 
     @Override
     public void handleChildChange(String parentPath, List<String> childList) throws Exception {
-        log.info("remote address refresh from zk , service is " + this.consumerMetaData.getInterfaceClazz() + ":" + JSONObject.toJSONString(childList));
+        log.info("remote address refresh from zk , service is " + this.consumerMetaData.getInterfaceClazz() + ":" + JSONUtil.toJSONString(childList));
         this.addressListChangeLock.lock();
         try {
             List<AddressInfo> addressList = consumerMetaData.getAddressList();
@@ -61,7 +61,7 @@ public class ZkProviderConfigChangeListenerImpl implements IZkChildListener {
                     addressStr -> {
                         if (!addressInfoMap.containsKey(addressStr)) {
                             newAddressInfo.add(new AddressInfo(addressStr,
-                                    JSONObject.parseObject(zkClient.readData(parentPath + "/" + addressStr), ProviderConfigData.class)));
+                                    JSONUtil.parseObject(zkClient.readData(parentPath + "/" + addressStr), ProviderConfigData.class)));
                         } else {
                             newAddressInfo.add(addressInfoMap.get(addressStr));
                         }

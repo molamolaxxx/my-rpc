@@ -1,6 +1,6 @@
 package com.mola.rpc.core.loadbalance;
 
-import com.alibaba.fastjson.JSONObject;
+import com.mola.rpc.common.utils.JSONUtil;
 import com.mola.rpc.common.constants.LoadBalanceConstants;
 import com.mola.rpc.common.context.InvokeContext;
 import com.mola.rpc.common.entity.AddressInfo;
@@ -35,7 +35,7 @@ public class ConsistencyHashingBalance implements LoadBalanceStrategy, ConsumerL
         if (virtualAddressNodeMap == null || virtualAddressNodeMap.size() == 0) {
             throw new RuntimeException("virtualAddressNodeMap is empty");
         }
-        int hash = HashUtil.getHash(JSONObject.toJSONString(args));
+        int hash = HashUtil.getHash(JSONUtil.toJSONString(args));
         SortedMap<Integer, String> tailMap = virtualAddressNodeMap.tailMap(hash);
         if (tailMap.size() == 0) {
             return getAddressFromVirtualNode(virtualAddressNodeMap.get(virtualAddressNodeMap.firstKey()));

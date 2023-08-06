@@ -1,6 +1,6 @@
 package com.mola.rpc.common.entity;
 
-import com.alibaba.fastjson.JSONObject;
+import com.mola.rpc.common.utils.JSONUtil;
 
 /**
  * @author : molamola
@@ -106,6 +106,6 @@ public class ProviderConfigData {
 
     @Override
     public String toString() {
-        return JSONObject.toJSONString(this);
+        return JSONUtil.toJSONString(this);
     }
 }

@@ -1,6 +1,6 @@
 package com.mola.rpc.consumer.test;
 
-import com.alibaba.fastjson.JSONObject;
+import com.mola.rpc.common.utils.JSONUtil;
 import com.mola.rpc.client.Order;
 import com.mola.rpc.client.ServerResponse;
 import com.mola.rpc.client.SpecialObject;
@@ -248,7 +248,7 @@ public class ConsumerInvokeTest {
 
         for (int i = 0; i < asyncList.size(); i++) {
             ServerResponse<String> res = asyncList.get(i).get();
-            Assert.isTrue(res != null && res.isSuccess(), "testAsyncConcurrentTimeLimit测试失败,调用失败, res = " + JSONObject.toJSONString(res));
+            Assert.isTrue(res != null && res.isSuccess(), "testAsyncConcurrentTimeLimit测试失败,调用失败, res = " + JSONUtil.toJSONString(res));
             Assert.isTrue((input + i).equals(res.getData()), "testAsyncConcurrentTimeLimit-case1测试失败");
         }
         long cost = System.currentTimeMillis() - start;

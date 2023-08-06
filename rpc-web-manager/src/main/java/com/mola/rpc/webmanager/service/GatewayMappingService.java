@@ -1,6 +1,6 @@
 package com.mola.rpc.webmanager.service;
 
-import com.alibaba.fastjson.JSONObject;
+import com.mola.rpc.common.utils.JSONUtil;
 import com.mola.rpc.webmanager.entity.GatewayMappingEntity;
 import com.mola.rpc.webmanager.repo.GatewayMappingRepository;
 import org.springframework.stereotype.Service;
@@ -23,6 +23,6 @@ public class GatewayMappingService {
     public void loadGatewayMappingToCache() {
         // code
         List<GatewayMappingEntity> all = gatewayMappingRepository.findAll();
-        System.out.println(JSONObject.toJSONString(all));
+        System.out.println(JSONUtil.toJSONString(all));
     }
 }

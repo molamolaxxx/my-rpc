@@ -1,6 +1,6 @@
 package com.mola.rpc.consumer.test;
 
-import com.alibaba.fastjson.JSONObject;
+import com.mola.rpc.common.utils.JSONUtil;
 import com.mola.rpc.common.context.RpcContext;
 import com.mola.rpc.common.entity.AddressInfo;
 import com.mola.rpc.common.entity.RpcMetaData;
@@ -53,7 +53,7 @@ public class ConsumerConfigServerTest {
                 Assert.isTrue(addressList.size() == remoteProviderAddress.size(), "cs地址个数与本地不相同，请检查cs同步地址功能是否被修改");
                 Set<String> addressSet = addressList.stream().map(e -> e.getAddress()).collect(Collectors.toSet());
                 for (AddressInfo addressInfo : remoteProviderAddress) {
-                    System.out.println(JSONObject.toJSONString(addressSet) + ":" + addressInfo.getAddress());
+                    System.out.println(JSONUtil.toJSONString(addressSet) + ":" + addressInfo.getAddress());
                     Assert.isTrue(addressSet.contains(addressInfo.getAddress()), "cs本地地址个数与远程不相同，请检查cs同步地址功能是否被修改");
                 }
             }
