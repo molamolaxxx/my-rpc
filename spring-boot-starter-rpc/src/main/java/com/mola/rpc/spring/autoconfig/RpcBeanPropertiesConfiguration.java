@@ -16,6 +16,7 @@ import com.mola.rpc.spring.postprocessor.RpcConsumerInjectBeanProcessor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.config.BeanFactoryPostProcessor;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
@@ -32,6 +33,7 @@ import java.util.Map;
  **/
 @Configuration
 @EnableConfigurationProperties(RpcSpringConfigurationProperties.class)
+@ConditionalOnProperty(name = "rpc.enable", matchIfMissing = true)
 @Import({RpcConsumerImportBeanDefinitionRegistrar.class})
 public class RpcBeanPropertiesConfiguration {
 
