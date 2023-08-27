@@ -65,7 +65,6 @@ public class ReverseInvokeHelper {
         ProtoRpcConfigFactory protoRpcConfigFactory = ProtoRpcConfigFactory.fetch();
         RpcContext rpcContext = protoRpcConfigFactory.getRpcContext();
         NettyConnectPool nettyConnectPool = protoRpcConfigFactory.getNettyConnectPool();
-        ExtensionRegistryManager extensionRegistryManager = protoRpcConfigFactory.getExtensionRegistryManager();
 
         this.reverseProviderConnectMonitorThread = Executors.newScheduledThreadPool(1,
                 new ThreadFactory() {
@@ -80,19 +79,13 @@ public class ReverseInvokeHelper {
 
         this.reverseProviderConnectMonitorThread.scheduleAtFixedRate(() -> {
             try {
-                List<ReverseProxyRegisterInterceptor> interceptors = extensionRegistryManager
-                        .getInterceptors(ReverseProxyRegisterInterceptor.class);
 
                 // 单个代理注册方法句柄
                 Consumer<RpcMetaData> singleRegisterMethodHandle = (rpcMetaData) -> {
                     if (!rpcMetaData.getReverseMode()) {
                         return;
                     }
-                    for (ReverseProxyRegisterInterceptor interceptor : interceptors) {
-                        if (interceptor.intercept(rpcMetaData)) {
-                            return;
-                        }
-                    }
+
                     List<String> reverseModeConsumerAddress = rpcMetaData.getReverseModeConsumerAddress();
                     for (String consumerAddress : reverseModeConsumerAddress) {
                         Channel channel = nettyConnectPool.getChannel(consumerAddress);
@@ -144,6 +137,14 @@ public class ReverseInvokeHelper {
     }
 
     public void registerProviderToServer(RpcMetaData providerMeta) {
+        ExtensionRegistryManager extensionRegistryManager = ProtoRpcConfigFactory.fetch().getExtensionRegistryManager();
+        List<ReverseProxyRegisterInterceptor> interceptors = extensionRegistryManager
+                .getInterceptors(ReverseProxyRegisterInterceptor.class);
+        for (ReverseProxyRegisterInterceptor interceptor : interceptors) {
+            if (interceptor.intercept(providerMeta)) {
+                return;
+            }
+        }
         // 反向代理模式下，向consumer端注册provider的key
         AssertUtil.notEmpty(providerMeta.getReverseModeConsumerAddress(),
                 "provider in reverse mode, reverseModeConsumerAddress can not be empty! " + JSONUtil.toJSONString(providerMeta));
