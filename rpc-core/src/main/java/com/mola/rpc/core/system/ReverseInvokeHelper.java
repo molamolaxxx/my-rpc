@@ -47,11 +47,11 @@ public class ReverseInvokeHelper {
      */
     private ScheduledExecutorService reverseProviderConnectMonitorThread;
 
-    private AtomicBoolean startFlag = new AtomicBoolean(false);
+    private final AtomicBoolean startFlag = new AtomicBoolean(false);
 
     private ReverseInvokeHelper(){}
     private static class Singleton{
-        private static ReverseInvokeHelper reverseInvokeHelper = new ReverseInvokeHelper();
+        private static final ReverseInvokeHelper reverseInvokeHelper = new ReverseInvokeHelper();
     }
 
     public static ReverseInvokeHelper instance() {
@@ -68,7 +68,7 @@ public class ReverseInvokeHelper {
 
         this.reverseProviderConnectMonitorThread = Executors.newScheduledThreadPool(1,
                 new ThreadFactory() {
-                    AtomicInteger threadIndex = new AtomicInteger(0);
+                    final AtomicInteger threadIndex = new AtomicInteger(0);
                     @Override
                     public Thread newThread(Runnable r) {
                         Thread thread = new Thread(r, "reverse-provider-connect-monitor-thread-" + this.threadIndex.incrementAndGet());

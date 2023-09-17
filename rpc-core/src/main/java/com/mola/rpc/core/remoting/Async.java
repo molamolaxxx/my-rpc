@@ -17,9 +17,9 @@ public class Async<T> {
     /**
      * 单次异步调用的future
      */
-    private AsyncResponseFuture asyncResponseFuture;
+    private final AsyncResponseFuture<T> asyncResponseFuture;
 
-    public Async(AsyncResponseFuture asyncResponseFuture) {
+    public Async(AsyncResponseFuture<T> asyncResponseFuture) {
         this.asyncResponseFuture = asyncResponseFuture;
     }
 
@@ -31,15 +31,16 @@ public class Async<T> {
      */
     public static <T> Async<T> from(T result) {
         try {
-            AsyncResponseFuture asyncResponseFuture = asyncFutureThreadLocal.get();
-            AssertUtil.notNull(asyncResponseFuture, "responseFuture is null, please check if this method is an async method!");
-            return new Async(asyncResponseFuture);
+            AsyncResponseFuture<T> asyncResponseFuture = asyncFutureThreadLocal.get();
+            AssertUtil.notNull(asyncResponseFuture,
+                    "responseFuture is null, please check if this method is an async method!");
+            return new Async<>(asyncResponseFuture);
         } finally {
             asyncFutureThreadLocal.remove();
         }
     }
 
-    public static void addFuture(AsyncResponseFuture responseFuture) {
+    public static void addFuture(AsyncResponseFuture<?> responseFuture) {
         asyncFutureThreadLocal.set(responseFuture);
     }
 
@@ -56,8 +57,7 @@ public class Async<T> {
 
     public T get() {
         try {
-            AsyncResponseFuture<T> responseFuture = this.asyncResponseFuture;
-            return responseFuture.get();
+            return this.asyncResponseFuture.get();
         } catch (InterruptedException e) {
             throw new RuntimeException(e);
         }

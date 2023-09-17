@@ -2,13 +2,13 @@ package com.mola.rpc.core.remoting.netty.pool;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+import com.mola.rpc.common.utils.AssertUtil;
 import com.mola.rpc.core.util.RemotingUtil;
 import io.netty.channel.Channel;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import com.mola.rpc.common.utils.AssertUtil;
 
-import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 import java.util.Random;
 import java.util.concurrent.ConcurrentHashMap;
@@ -127,7 +127,7 @@ public class NettyConnectPool {
         // 优先使用指定地址
         // 随机取一个
         Random random = new Random();
-        ArrayList<ChannelWrapper> channels = Lists.newArrayList(addressChannelMap.values());
+        List<ChannelWrapper> channels = Lists.newArrayList(addressChannelMap.values());
         ChannelWrapper availableChannel = null;
         while (channels.size() > 0) {
             int pos = random.nextInt(channels.size());

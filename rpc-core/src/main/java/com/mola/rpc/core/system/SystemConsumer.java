@@ -15,9 +15,9 @@ import java.util.List;
  **/
 public class SystemConsumer<T> {
 
-    private T consumerInner;
+    private final T consumerInner;
 
-    private RpcMetaData rpcMetaData;
+    private final RpcMetaData rpcMetaData;
 
     private SystemConsumer(Class<T> consumerInterface) {
         String consumerName = "systemConsumer";

@@ -17,7 +17,7 @@ public class SystemRpcConfigFactory extends ProtoRpcConfigFactory {
 
     protected SystemRpcConfigFactory(){}
     private static class Singleton{
-        private static SystemRpcConfigFactory systemRpcConfigFactory = new SystemRpcConfigFactory();
+        private final static SystemRpcConfigFactory systemRpcConfigFactory = new SystemRpcConfigFactory();
     }
 
     public static SystemRpcConfigFactory initAndGet(){
