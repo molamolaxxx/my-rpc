@@ -66,6 +66,13 @@ public class ConsumerInvokeTest {
         AssertUtil.notEmpty(remoteProviderAddress, "UnitTestService的provider不存在可用地址，请检查是否启动");
     }
 
+
+    @Test
+    public void syncInvokeTest() {
+        String input1 = "input1:" + System.currentTimeMillis();
+        ServerResponse<String> response = unitTestService.test001(input1);
+    }
+
     @Test
     public void syncInvokeTest001() {
         String input1 = "input1:" + System.currentTimeMillis();

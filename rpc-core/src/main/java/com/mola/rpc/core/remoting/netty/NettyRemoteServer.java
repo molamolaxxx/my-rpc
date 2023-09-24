@@ -133,8 +133,8 @@ public class NettyRemoteServer {
                     public void initChannel(SocketChannel ch) throws Exception {
                         ch.pipeline().addLast(
                                 defaultEventExecutorGroup,
-                                new NettyEncoder(),
-                                new NettyDecoder(),
+                                new NettyEncoder(), // out
+                                new NettyDecoder(), // int
                                 new IdleStateHandler(300, 300, 300),
                                 new NettyServerConnectManageHandler(), // 监听与连接相关的事件
                                 requestHandler, // in

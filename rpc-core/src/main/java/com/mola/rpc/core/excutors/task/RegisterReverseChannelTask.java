@@ -8,6 +8,7 @@ import com.mola.rpc.core.remoting.netty.pool.ChannelWrapper;
 import com.mola.rpc.core.remoting.netty.pool.NettyConnectPool;
 import com.mola.rpc.core.remoting.protocol.RemotingCommand;
 import com.mola.rpc.core.remoting.protocol.RemotingCommandCode;
+import com.mola.rpc.core.util.RemotingUtil;
 import io.netty.channel.Channel;
 import com.mola.rpc.common.utils.AssertUtil;
 
@@ -37,9 +38,9 @@ public class RegisterReverseChannelTask extends RpcTask {
             return null;
         }
         // 构建响应
-        RemotingCommand response = buildRemotingCommand(request, null, RemotingCommandCode.SUCCESS, null);
+        RemotingCommand response = RemotingCommand.build(request, null, RemotingCommandCode.SUCCESS, null);
         // 发送响应
-        sendResponse(response);
+        RemotingUtil.sendResponse(response, channel);
         return null;
     }
 }

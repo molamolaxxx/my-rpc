@@ -1,5 +1,6 @@
 package com.mola.rpc.core.util;
 
+import com.mola.rpc.core.remoting.protocol.RemotingCommand;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelFutureListener;
 import org.slf4j.Logger;
@@ -103,5 +104,25 @@ public class RemotingUtil {
         sb.append(":");
         sb.append(inetSocketAddress.getPort());
         return sb.toString();
+    }
+
+
+    /**
+     * 发送响应报文
+     * @param response
+     */
+    public static void sendResponse(RemotingCommand response, Channel channel) {
+        final String responseStr = response.toString();
+        final SocketAddress remoteAddress = channel.remoteAddress();
+        // 写入channel,发送返回到客户端
+        channel.writeAndFlush(response).addListener(future -> {
+            // 返回结果成功
+            if (future.isSuccess()) {
+                return;
+            }
+            Throwable cause = future.cause();
+            // 返回结果失败
+            logger.warn("send a request command to channel <" + remoteAddress + "> failed. response = " + responseStr, cause);
+        });
     }
 }

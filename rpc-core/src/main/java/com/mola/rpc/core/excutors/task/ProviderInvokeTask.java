@@ -5,6 +5,7 @@ import com.mola.rpc.core.proto.ObjectFetcher;
 import com.mola.rpc.core.proxy.InvokeMethod;
 import com.mola.rpc.core.remoting.protocol.RemotingCommand;
 import com.mola.rpc.core.remoting.protocol.RemotingCommandCode;
+import com.mola.rpc.core.util.RemotingUtil;
 import io.netty.channel.Channel;
 import com.mola.rpc.common.utils.AssertUtil;
 
@@ -33,14 +34,14 @@ public class ProviderInvokeTask extends RpcTask {
             if (request.isOnewayInvoke()) {
                 return null;
             }
-            response = buildRemotingCommand(request, result, RemotingCommandCode.SUCCESS, null);
+            response = RemotingCommand.build(request, result, RemotingCommandCode.SUCCESS, null);
         } catch (Exception e) {
-            response = buildRemotingCommand(request, null, RemotingCommandCode.SYSTEM_ERROR, e.getMessage());
+            response = RemotingCommand.build(request, null, RemotingCommandCode.SYSTEM_ERROR, e.getMessage());
             log.error("server system error!, message = " + request.toString(), e);
         }
         AssertUtil.notNull(response, "response is null" + request.toString());
         // 发送响应
-        sendResponse(response);
+        RemotingUtil.sendResponse(response, channel);
         return result;
     }
 }

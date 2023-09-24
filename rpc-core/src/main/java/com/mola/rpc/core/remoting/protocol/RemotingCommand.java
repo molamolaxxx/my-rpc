@@ -2,11 +2,15 @@ package com.mola.rpc.core.remoting.protocol;
 
 
 import com.mola.rpc.common.constants.RemotingCommandType;
+import com.mola.rpc.core.util.BytesUtil;
 import com.mola.rpc.core.util.RemotingSerializableUtil;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.nio.ByteBuffer;
 import java.util.HashMap;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.zip.CRC32;
 
 
 /**
@@ -14,6 +18,8 @@ import java.util.concurrent.atomic.AtomicInteger;
  * Remoting模块中，服务器与客户端通过传递RemotingCommand来交互
  */
 public class RemotingCommand {
+
+    protected static final Logger log = LoggerFactory.getLogger(RemotingCommand.class);
 
     private static AtomicInteger RequestId = new AtomicInteger(0);
 
@@ -45,45 +51,18 @@ public class RemotingCommand {
     private transient byte[] body;
 
 
+    /**
+     * crc校验 部分
+     */
+    private transient long crc32;
+
+
     public RemotingCommand() {
     }
 
-    public static RemotingCommand createResponseCommand(int code, String remark) {
-        RemotingCommand cmd = new RemotingCommand();
-        cmd.setCode(code);
-        cmd.setRemark(remark);
-
-        return cmd;
-    }
 
     private byte[] buildHeader() {
         return RemotingSerializableUtil.encode(this);
-    }
-
-    public ByteBuffer encode() {
-        // 头部长度占用4字节
-        int length = 4;
-        // header data length
-        byte[] headerData = this.buildHeader();
-        length += headerData.length;
-        // body data length
-        if (this.body != null) {
-            length += body.length;
-        }
-        // 主体内容
-        ByteBuffer result = ByteBuffer.allocate(4 + length);
-        // 1、报文总长度
-        result.putInt(length);
-        // 2、头部长度
-        result.putInt(headerData.length);
-        // 3、报文头
-        result.put(headerData);
-        // 4、报文体
-        if (this.body != null) {
-            result.put(this.body);
-        }
-        result.flip();
-        return result;
     }
 
 
@@ -106,7 +85,11 @@ public class RemotingCommand {
         // 3> body data length
         length += bodyLength;
 
-        ByteBuffer result = ByteBuffer.allocate(4 + length - bodyLength);
+        // 4> crc32
+        length += (bodyLength == 0 ? 0 : 8);
+
+        // 4（总长度int）+ 4（header长度int）+ header
+        ByteBuffer result = ByteBuffer.allocate(8 + headerData.length);
 
         // length，头部32位整形（4byte）表示长度，用于tcp分包
         result.putInt(length);
@@ -123,12 +106,6 @@ public class RemotingCommand {
     }
 
 
-    public static RemotingCommand decode(final byte[] array) {
-        ByteBuffer byteBuffer = ByteBuffer.wrap(array);
-        return decode(byteBuffer);
-    }
-
-
     public static RemotingCommand decode(final ByteBuffer byteBuffer) {
         int length = byteBuffer.limit();
 
@@ -138,23 +115,56 @@ public class RemotingCommand {
         byte[] headerData = new byte[headerLength];
         byteBuffer.get(headerData);
 
-        // limit取数组长度，需要减去长度域
-        int bodyLength = length - 4 - headerLength;
+        RemotingCommand cmd = RemotingSerializableUtil.decode(headerData, RemotingCommand.class);
+
+        // limit取数组长度，需要减去长度域（12字节 = crc32(8字节) + 记录headerLength的int位）
+        int bodyLength = length - 12 - headerLength;
         byte[] bodyData = null;
         if (bodyLength > 0) {
             bodyData = new byte[bodyLength];
             byteBuffer.get(bodyData);
-        }
 
-        RemotingCommand cmd = RemotingSerializableUtil.decode(headerData, RemotingCommand.class);
-        cmd.body = bodyData;
+            // 报文体
+            cmd.body = bodyData;
+
+            // crc校验码
+            cmd.crc32 = byteBuffer.getLong();
+        }
 
         return cmd;
     }
 
-    public static RemotingCommand decodeBody(final ByteBuffer byteBuffer) {
+    public boolean crc32Check() {
+        if (body == null || body.length == 0) {
+            return true;
+        }
+        CRC32 crc32 = new CRC32();
+        crc32.update(body);
+        return crc32.getValue() == this.crc32;
+    }
+
+    /**
+     * 构建协议包
+     * @param result 返回的结果
+     * @return
+     */
+    public static RemotingCommand build(RemotingCommand request, Object result, int commandCode, String remark) {
         RemotingCommand cmd = new RemotingCommand();
-        cmd.body = byteBuffer.array();
+        cmd.setCode(commandCode);
+        cmd.setRemark(remark);
+        cmd.setOpaque(request.getOpaque());
+        // 1、构建body
+        byte[] body = null;
+        try {
+            body = BytesUtil.objectToBytes(result);
+        } catch (Throwable e) {
+            log.error("[NettyServerHandler]: objectToBytes error"
+                    + ", result:" + RemotingSerializableUtil.toJson(result, false), e);
+            throw e;
+        }
+
+        cmd.setCode(commandCode);
+        cmd.setBody(body);
         return cmd;
     }
 
@@ -224,6 +234,9 @@ public class RemotingCommand {
         this.body = body;
     }
 
+    public long getCrc32() {
+        return crc32;
+    }
 
     public HashMap<String, String> getExtFields() {
         return extFields;

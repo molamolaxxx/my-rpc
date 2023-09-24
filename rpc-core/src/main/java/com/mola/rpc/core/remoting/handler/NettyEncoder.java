@@ -10,6 +10,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.nio.ByteBuffer;
+import java.util.zip.CRC32;
 
 /**
  * @author : molamola
@@ -31,6 +32,11 @@ public class NettyEncoder extends MessageToByteEncoder<RemotingCommand> {
             byte[] body = remotingCommand.getBody();
             if (body != null) {
                 out.writeBytes(body);
+
+                // 获取crc校验码
+                CRC32 crc32 = new CRC32();
+                crc32.update(body);
+                out.writeLong(crc32.getValue());
             }
         } catch (Throwable t) {
             log.error("encode exception, " + RemotingHelper.parseChannelRemoteAddress(ctx.channel()), t);

@@ -2,6 +2,7 @@ package com.mola.rpc.core.remoting.handler;
 
 import com.mola.rpc.core.remoting.netty.NettyRemoteClient;
 import com.mola.rpc.core.remoting.protocol.RemotingCommand;
+import com.mola.rpc.core.remoting.protocol.RemotingCommandCode;
 import io.netty.channel.ChannelHandler;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
@@ -28,6 +29,12 @@ public class NettyRpcResponseHandler extends SimpleChannelInboundHandler<Remotin
         if (!msg.isResponseType()) {
             ctx.fireChannelRead(msg);
             return;
+        }
+        // 直接在consumer端抛出异常
+        if (!msg.crc32Check()) {
+            log.error("response crc32 check failed, msg = " + msg);
+            msg.setCode(RemotingCommandCode.SYSTEM_ERROR);
+            msg.setRemark("response crc32 check failed");
         }
         AssertUtil.notNull(nettyRemoteClient, "require nettyRemoteClient");
         this.nettyRemoteClient.putResponse(msg);

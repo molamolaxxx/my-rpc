@@ -10,7 +10,9 @@ import com.mola.rpc.core.proto.ObjectFetcher;
 import com.mola.rpc.core.proto.ProtoRpcConfigFactory;
 import com.mola.rpc.core.proxy.InvokeMethod;
 import com.mola.rpc.core.remoting.protocol.RemotingCommand;
+import com.mola.rpc.core.remoting.protocol.RemotingCommandCode;
 import com.mola.rpc.core.util.BytesUtil;
+import com.mola.rpc.core.util.RemotingUtil;
 import io.netty.channel.ChannelHandler;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
@@ -52,6 +54,15 @@ public class NettyRpcRequestHandler extends SimpleChannelInboundHandler<Remoting
             ctx.fireChannelRead(request);
             return;
         }
+        // crc32校验
+        if (!request.crc32Check()) {
+            InvokeMethod invokeMethod = InvokeMethod.newInstance((String) BytesUtil.bytesToObject(request.getBody()));
+            log.error("request crc32 check failed, invokeMethod = " + invokeMethod.toString());
+            RemotingUtil.sendResponse(RemotingCommand.build(request, null,
+                    RemotingCommandCode.SYSTEM_ERROR, "request crc32 check failed"), ctx.channel());
+            return;
+        }
+
         InvokeMethod invokeMethod = InvokeMethod.newInstance((String) BytesUtil.bytesToObject(request.getBody()));
         RpcMetaData providerMeta = rpcContext.getProviderMeta(invokeMethod.getInterfaceClazz(), invokeMethod.getGroup(), invokeMethod.getVersion());
         // 获取执行器

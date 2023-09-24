@@ -4,14 +4,10 @@ import com.mola.rpc.common.entity.RpcMetaData;
 import com.mola.rpc.core.proto.ObjectFetcher;
 import com.mola.rpc.core.proxy.InvokeMethod;
 import com.mola.rpc.core.remoting.protocol.RemotingCommand;
-import com.mola.rpc.core.util.BytesUtil;
-import com.mola.rpc.core.util.RemotingSerializableUtil;
 import io.netty.channel.Channel;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import sun.reflect.generics.reflectiveObjects.NotImplementedException;
-
-import java.net.SocketAddress;
 
 public abstract class RpcTask implements Runnable {
 
@@ -48,49 +44,4 @@ public abstract class RpcTask implements Runnable {
         throw new NotImplementedException();
     }
 
-    /**
-     * 构建协议包
-     * @param result 返回的结果
-     * @return
-     */
-    protected RemotingCommand buildRemotingCommand(RemotingCommand request, Object result, int commandCode, String remark) {
-        RemotingCommand response = RemotingCommand.createResponseCommand(commandCode, remark);
-        response.setOpaque(request.getOpaque());
-        // 1、构建body
-        byte[] responseBody = null;
-        try {
-            responseBody = BytesUtil.objectToBytes(result);
-        } catch (Throwable e) {
-            log.error("[NettyServerHandler]: objectToBytes error"
-                    + ", result:" + RemotingSerializableUtil.toJson(result, false), e);
-            return null;
-        }
-        if(responseBody == null) {
-            log.error("[NettyServerHandler]: responseBody is null"
-                    + ", result:" + RemotingSerializableUtil.toJson(result, false));
-            return null;
-        }
-        response.setCode(commandCode);
-        response.setBody(responseBody);
-        return response;
-    }
-
-    /**
-     * 发送响应报文
-     * @param response
-     */
-    protected void sendResponse(RemotingCommand response) {
-        final String responseStr = response.toString();
-        final SocketAddress remoteAddress = channel.remoteAddress();
-        // 写入channel,发送返回到客户端
-        channel.writeAndFlush(response).addListener(future -> {
-            // 返回结果成功
-            if (future.isSuccess()) {
-                return;
-            }
-            Throwable cause = future.cause();
-            // 返回结果失败
-            log.warn("send a request command to channel <" + remoteAddress + "> failed. response = " + responseStr, cause);
-        });
-    }
 }

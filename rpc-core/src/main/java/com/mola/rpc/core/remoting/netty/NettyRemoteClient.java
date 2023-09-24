@@ -428,7 +428,7 @@ public class NettyRemoteClient {
             return;
         }
         // 异步缓存
-        AsyncResponseFuture asyncResponseFuture = this.responseFutureManager.getAsyncResponseFuture(responseCommand.getOpaque());
+        AsyncResponseFuture<?> asyncResponseFuture = this.responseFutureManager.getAsyncResponseFuture(responseCommand.getOpaque());
         if (asyncResponseFuture != null) {
             asyncResponseFuture.putResponse(responseCommand);
             this.responseFutureManager.removeAsyncResponseFuture(responseCommand.getOpaque());
