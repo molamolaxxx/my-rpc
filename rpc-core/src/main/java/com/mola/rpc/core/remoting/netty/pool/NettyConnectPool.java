@@ -74,7 +74,7 @@ public class NettyConnectPool {
         String remoteAddress = channelWrapper.getRemoteAddress();
         ChannelWrapper pre = reverseAddress2ChannelMap.get(remoteAddress);
         if (pre == null) {
-            log.warn("channel register successful, ignore, remote address = " + remoteAddress + ", key = " + serviceKey);
+            log.warn("channel register successful, remote address = " + remoteAddress + ", key = " + serviceKey);
             reverseAddress2ChannelMap.put(remoteAddress, channelWrapper);
             reverseAddress2ProviderMap.put(remoteAddress, providerRpcMeta);
             return;
@@ -83,11 +83,10 @@ public class NettyConnectPool {
             log.warn("channel is exist but not writable, change it, remote address = " + channelWrapper.getChannel().remoteAddress().toString());
             pre.closeChannel();
             reverseAddress2ChannelMap.put(remoteAddress, channelWrapper);
-            reverseAddress2ProviderMap.put(remoteAddress, providerRpcMeta);
-            return;
         }
         pre.setLastAliveTime(System.currentTimeMillis());
-        log.warn("channel has been registered, remote address = " + channelWrapper.getRemoteAddress());
+        log.warn("channel has been registered, refresh providerMeta, remote address = " + channelWrapper.getRemoteAddress());
+        reverseAddress2ProviderMap.put(remoteAddress, providerRpcMeta);
     }
 
     public void clearBadReverseChannels() {

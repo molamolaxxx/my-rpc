@@ -1,6 +1,7 @@
 package com.mola.rpc.consumer.test.proto;
 
 import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 import com.mola.rpc.client.UnitTestService;
 import com.mola.rpc.client.UserService;
 import com.mola.rpc.common.entity.RpcMetaData;
@@ -38,7 +39,7 @@ public class ReverseInvokeTest {
         rpcMetaData.setReverseMode(Boolean.TRUE);
         rpcMetaData.setGroup("reverse_proto");
         rpcMetaData.setReverseModeConsumerAddress(Lists.newArrayList("127.0.0.1:9003"));
-        rpcMetaData.setRouteTag("tag1");
+        rpcMetaData.setRouteTags(Sets.newHashSet("tag1"));
         RpcInvoker.provider(
                 UserService.class,
                 new UserService() {

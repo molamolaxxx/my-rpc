@@ -151,7 +151,7 @@ public class RpcMetaData {
      * service1 - tag2 -[ip3,ip4]
      */
     @ProviderSide
-    private String routeTag;
+    private Set<String> routeTags;
 
 
     public static RpcMetaData of(String group, String version, Class<?> clazzType) {
@@ -327,12 +327,12 @@ public class RpcMetaData {
         return reverseModeConsumerAddress;
     }
 
-    public void setRouteTag(String routeTag) {
-        this.routeTag = routeTag;
+    public void setRouteTags(Set<String> routeTags) {
+        this.routeTags = routeTags;
     }
 
-    public String getRouteTag() {
-        return routeTag;
+    public Set<String> getRouteTags() {
+        return routeTags;
     }
 
     /**
