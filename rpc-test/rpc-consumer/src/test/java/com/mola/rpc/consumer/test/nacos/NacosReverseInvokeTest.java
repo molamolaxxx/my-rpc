@@ -55,7 +55,7 @@ public class NacosReverseInvokeTest extends ReverseInvokeTest {
         );
         Thread.sleep(500);
         String id = System.currentTimeMillis() + "";
-        String res = unitTestServiceAppointNacos.testReverseLoopBack(id);
+        String res = unitTestServiceAppointNacos.testReverseLoopBack(id, null);
         AssertUtil.isTrue(("reverse-proto-mode-nacos-"+id).equals(res), "ReverseInvokeTest case 1 failed");
     }
 

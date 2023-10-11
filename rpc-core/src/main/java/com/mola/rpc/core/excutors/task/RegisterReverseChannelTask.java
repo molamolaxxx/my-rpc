@@ -29,11 +29,11 @@ public class RegisterReverseChannelTask extends RpcTask {
     protected Object runTask() {
         // 解析出reverseKey
         Object[] args = invokeMethod.fetchArgs();
-        AssertUtil.isTrue(args[0] instanceof String,"handleReverseInvokeCommand args[0] require String Type, " + invokeMethod.toString());
-        String reverseKey = (String) args[0];
+        AssertUtil.isTrue(args[0] instanceof RpcMetaData,"handleReverseInvokeCommand args[0] require Class Type RpcMetaData, " + invokeMethod.toString());
+        RpcMetaData providerRpcMeta = (RpcMetaData) args[0];
         NettyConnectPool nettyConnectPool = ProtoRpcConfigFactory.fetch().getNettyConnectPool();
         // 写入连接池
-        nettyConnectPool.registerReverseInvokeChannel(reverseKey, ChannelWrapper.of(channel));
+        nettyConnectPool.registerReverseInvokeChannel(providerRpcMeta, ChannelWrapper.of(channel));
         if (request.isOnewayInvoke()) {
             return null;
         }

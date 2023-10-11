@@ -1,7 +1,5 @@
 package com.mola.rpc.common.context;
 
-import com.google.common.collect.Lists;
-
 import java.util.List;
 
 /**
@@ -15,18 +13,27 @@ public class InvokeContext {
     private static final ThreadLocal<InvokeContext> ctxHolder = new ThreadLocal<>();
 
     /**
-     * 指定服务端地址信息，ip:port
+     * 指定provider地址信息，ip:port
      */
     private List<String> addressList;
+
+    /**
+     * 指定provider路由标示，不为空时，永远只会路由到相同routeTag的服务
+     * beta:目前只对反向代理生效，正向没有tag路由功能，且不支持注解接入
+     */
+    private String routeTag;
 
     public List<String> getAddressList() {
         return addressList;
     }
 
+    public String getRouteTag() {
+        return routeTag;
+    }
 
     /*
-     static method
-     */
+         static method
+         */
     public static InvokeContext fetch() {
         InvokeContext ctx = ctxHolder.get();
         if (ctx == null) {
@@ -36,11 +43,7 @@ public class InvokeContext {
     }
 
     public static void clear() {
-        InvokeContext invokeContext = ctxHolder.get();
-        if (invokeContext == null) {
-            return;
-        }
-        invokeContext.addressList = null;
+        ctxHolder.remove();
     }
 
     public static void appointProviderAddressList(List<String> addressList) {
@@ -48,8 +51,8 @@ public class InvokeContext {
         context.addressList = addressList;
     }
 
-    public static void appointProviderAddress(String address) {
+    public static void routeTag(String routeTag) {
         InvokeContext context = fetch();
-        context.addressList = Lists.newArrayList(address);
+        context.routeTag = routeTag;
     }
 }

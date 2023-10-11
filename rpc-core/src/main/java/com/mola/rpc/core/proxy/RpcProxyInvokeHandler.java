@@ -1,10 +1,11 @@
 package com.mola.rpc.core.proxy;
 
-import com.mola.rpc.common.utils.JSONUtil;
 import com.mola.rpc.common.context.InvokeContext;
 import com.mola.rpc.common.context.RpcContext;
 import com.mola.rpc.common.entity.AddressInfo;
 import com.mola.rpc.common.entity.RpcMetaData;
+import com.mola.rpc.common.utils.AssertUtil;
+import com.mola.rpc.common.utils.JSONUtil;
 import com.mola.rpc.core.loadbalance.LoadBalance;
 import com.mola.rpc.core.remoting.Async;
 import com.mola.rpc.core.remoting.AsyncResponseFuture;
@@ -12,7 +13,6 @@ import com.mola.rpc.core.remoting.netty.NettyRemoteClient;
 import com.mola.rpc.core.remoting.netty.pool.NettyConnectPool;
 import com.mola.rpc.core.remoting.protocol.RemotingCommand;
 import com.mola.rpc.core.remoting.protocol.RemotingCommandCode;
-import com.mola.rpc.core.system.ReverseInvokeHelper;
 import com.mola.rpc.core.util.BytesUtil;
 import com.mola.rpc.core.util.RemotingHelper;
 import com.mola.rpc.core.util.RemotingUtil;
@@ -20,7 +20,6 @@ import com.mola.rpc.core.util.TypeUtil;
 import io.netty.channel.Channel;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import com.mola.rpc.common.utils.AssertUtil;
 import org.springframework.util.CollectionUtils;
 
 import java.lang.reflect.InvocationHandler;
@@ -229,14 +228,17 @@ public class RpcProxyInvokeHandler implements InvocationHandler {
         Channel reverseInvokeChannel = null;
         while (!RemotingUtil.channelIsAvailable(reverseInvokeChannel)) {
             // 获取channel
-            reverseInvokeChannel = nettyConnectPool.getReverseInvokeChannel(ReverseInvokeHelper.instance().getServiceKey(consumerMeta, true));
+            reverseInvokeChannel = nettyConnectPool.getReverseInvokeChannel(consumerMeta.fetchReverseServiceKey(),
+                    InvokeContext.fetch().getRouteTag());
             AssertUtil.notNull(reverseInvokeChannel, "no available reverse channel  to use , meta = " + JSONUtil.toJSONString(consumerMeta));
             // 连接有问题，关闭连接，抛出异常
             if (!RemotingUtil.channelIsAvailable(reverseInvokeChannel)) {
                 // 关闭channel
                 RemotingUtil.closeChannel(reverseInvokeChannel);
-                nettyConnectPool.removeReverseChannel(ReverseInvokeHelper.instance().getServiceKey(consumerMeta, true),
-                        RemotingHelper.parseChannelRemoteAddress(reverseInvokeChannel));
+                nettyConnectPool.removeReverseChannel(
+                        consumerMeta.fetchReverseServiceKey(),
+                        RemotingHelper.parseChannelRemoteAddress(reverseInvokeChannel)
+                );
             }
         }
         // 构建request

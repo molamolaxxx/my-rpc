@@ -1,17 +1,13 @@
 package com.mola.rpc.core.remoting.netty.pool;
 
-import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
-import com.mola.rpc.common.utils.AssertUtil;
+import com.mola.rpc.common.entity.RpcMetaData;
 import com.mola.rpc.core.util.RemotingUtil;
 import io.netty.channel.Channel;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.List;
 import java.util.Map;
-import java.util.Random;
-import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * @author : molamola
@@ -30,9 +26,9 @@ public class NettyConnectPool {
 
     /**
      * key : client指定的key
-     * value : 远端地址-》channel映射
+     * value : 反向代理组
      */
-    private final Map<String, Map<String, ChannelWrapper>> reverseChannelsKeyMap = Maps.newConcurrentMap();
+    private final Map<String, ReverseProviderChannelGroup> reverseChannelsKeyMap = Maps.newConcurrentMap();
 
     public Channel getChannel(String address) {
         ChannelFutureWrapper channelWrapper = channelWrapperMap.get(address);
@@ -62,25 +58,32 @@ public class NettyConnectPool {
 
     /**
      * 注册反向调用的tcp通道
-     * @param serviceKey
+     * @param providerRpcMeta
      * @param channelWrapper
      */
-    public void registerReverseInvokeChannel(String serviceKey, ChannelWrapper channelWrapper) {
+    public void registerReverseInvokeChannel(RpcMetaData providerRpcMeta, ChannelWrapper channelWrapper) {
+        String serviceKey = providerRpcMeta.fetchReverseServiceKey();
         if (!reverseChannelsKeyMap.containsKey(serviceKey)) {
-            reverseChannelsKeyMap.put(serviceKey, Maps.newConcurrentMap());
+            reverseChannelsKeyMap.put(serviceKey, new ReverseProviderChannelGroup());
         }
-        Map<String, ChannelWrapper> addressChannelMap = reverseChannelsKeyMap.get(serviceKey);
+
+        ReverseProviderChannelGroup reverseProviderChannelGroup = reverseChannelsKeyMap.get(serviceKey);
+        Map<String, ChannelWrapper> reverseAddress2ChannelMap = reverseProviderChannelGroup.getReverseAddress2ChannelMap();
+        Map<String, RpcMetaData> reverseAddress2ProviderMap = reverseProviderChannelGroup.getReverseAddress2ProviderMap();
+
         String remoteAddress = channelWrapper.getRemoteAddress();
-        ChannelWrapper pre = addressChannelMap.get(remoteAddress);
+        ChannelWrapper pre = reverseAddress2ChannelMap.get(remoteAddress);
         if (pre == null) {
             log.warn("channel register successful, ignore, remote address = " + remoteAddress + ", key = " + serviceKey);
-            addressChannelMap.put(remoteAddress, channelWrapper);
+            reverseAddress2ChannelMap.put(remoteAddress, channelWrapper);
+            reverseAddress2ProviderMap.put(remoteAddress, providerRpcMeta);
             return;
         }
         if (!pre.isOk()) {
             log.warn("channel is exist but not writable, change it, remote address = " + channelWrapper.getChannel().remoteAddress().toString());
             pre.closeChannel();
-            addressChannelMap.put(remoteAddress, channelWrapper);
+            reverseAddress2ChannelMap.put(remoteAddress, channelWrapper);
+            reverseAddress2ProviderMap.put(remoteAddress, providerRpcMeta);
             return;
         }
         pre.setLastAliveTime(System.currentTimeMillis());
@@ -89,59 +92,37 @@ public class NettyConnectPool {
 
     public void clearBadReverseChannels() {
         // 移除所有有问题的连接
-        for (Map<String, ChannelWrapper> cwm : reverseChannelsKeyMap.values()) {
-            AssertUtil.isTrue(cwm instanceof ConcurrentHashMap, "channelWrapperMap not support concurrent modify");
-            cwm.forEach((address, cw) -> {
-                if (!cw.isOk()) {
-                    log.warn("remove channel " + cw.getChannel() + " due to its bad status");
-                    cwm.remove(address);
-                    cw.closeChannel();
-                }
-            });
-        }
+        reverseChannelsKeyMap.values().forEach(ReverseProviderChannelGroup::clearBadReverseChannels);
     }
 
     public void removeReverseChannel(String serviceKey, String remoteAddress) {
-        Map<String, ChannelWrapper> addressChannelMap = reverseChannelsKeyMap.get(serviceKey);
-        if (addressChannelMap.containsKey(remoteAddress)) {
-            addressChannelMap.remove(remoteAddress);
+        ReverseProviderChannelGroup gp = reverseChannelsKeyMap.get(serviceKey);
+        if (gp != null) {
+            gp.removeReverseChannel(remoteAddress);
         }
     }
 
     public void removeClosedReverseChannel(String remoteAddress) {
-        for (Map<String, ChannelWrapper> map : reverseChannelsKeyMap.values()) {
-            ChannelWrapper cw = map.get(remoteAddress);
-            if (cw != null && !cw.isOk()) {
-                cw.closeChannel();
-                map.remove(remoteAddress);
-            }
+        for (ReverseProviderChannelGroup gp : reverseChannelsKeyMap.values()) {
+            gp.removeClosedReverseChannel(remoteAddress);
         }
     }
 
-    public Channel getReverseInvokeChannel(String serviceKey) {
-        Map<String, ChannelWrapper> addressChannelMap = reverseChannelsKeyMap.get(serviceKey);
-        if (addressChannelMap == null || addressChannelMap.size() == 0) {
-            log.warn("there are no available channel to be use, key = " + serviceKey);
+    public Channel getReverseInvokeChannel(String serviceKey, String routeTag) {
+        ReverseProviderChannelGroup gp = reverseChannelsKeyMap.get(serviceKey);
+        if (gp == null) {
             return null;
         }
-        // 优先使用指定地址
-        // 随机取一个
-        Random random = new Random();
-        List<ChannelWrapper> channels = Lists.newArrayList(addressChannelMap.values());
-        ChannelWrapper availableChannel = null;
-        while (channels.size() > 0) {
-            int pos = random.nextInt(channels.size());
-            availableChannel = channels.get(pos);
-            if (availableChannel != null && availableChannel.isOk()) {
-                return availableChannel.getChannel();
-            }
-            channels.remove(pos);
+
+        Channel reverseInvokeChannel = gp.getReverseInvokeChannel(routeTag);
+        if (reverseInvokeChannel == null) {
+            log.error("can not get reverse invoke channel! serviceKey = " + serviceKey);
+            return null;
         }
-        log.error("can not get reverse invoke channel! serviceKey = " + serviceKey);
-        return null;
+        return reverseInvokeChannel;
     }
 
-    public Map<String, Map<String, ChannelWrapper>> getReverseChannelsKeyMap() {
+    public Map<String, ReverseProviderChannelGroup> getReverseChannelsKeyMap() {
         return reverseChannelsKeyMap;
     }
 
@@ -151,12 +132,7 @@ public class NettyConnectPool {
                 RemotingUtil.closeChannel(channelWrapper.getChannel());
             }
         }
-        for (Map<String, ChannelWrapper> map : reverseChannelsKeyMap.values()) {
-            for (ChannelWrapper channelWrapper : map.values()) {
-                RemotingUtil.closeChannel(channelWrapper.getChannel());
-            }
-            map.clear();
-        }
+        reverseChannelsKeyMap.values().forEach(ReverseProviderChannelGroup::shutdown);
         // for gc
         channelWrapperMap.clear();
         reverseChannelsKeyMap.clear();

@@ -9,6 +9,7 @@ import com.mola.rpc.common.interceptor.ReverseProxyRegisterInterceptor;
 import com.mola.rpc.core.proto.ProtoRpcConfigFactory;
 import com.mola.rpc.core.remoting.netty.pool.ChannelWrapper;
 import com.mola.rpc.core.remoting.netty.pool.NettyConnectPool;
+import com.mola.rpc.core.remoting.netty.pool.ReverseProviderChannelGroup;
 import io.netty.channel.Channel;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -129,11 +130,11 @@ public class ReverseInvokeHelper {
     public Map<String, ChannelWrapper> fetchAvailableProxyService(String serviceKey) {
         ProtoRpcConfigFactory protoRpcConfigFactory = ProtoRpcConfigFactory.fetch();
         NettyConnectPool nettyConnectPool = protoRpcConfigFactory.getNettyConnectPool();
-        Map<String, Map<String, ChannelWrapper>> reverseChannelsKeyMap = nettyConnectPool.getReverseChannelsKeyMap();
-        if (reverseChannelsKeyMap == null) {
+        Map<String, ReverseProviderChannelGroup> reverseChannelsKeyMap = nettyConnectPool.getReverseChannelsKeyMap();
+        if (!reverseChannelsKeyMap.containsKey(serviceKey)) {
             return null;
         }
-        return reverseChannelsKeyMap.get(serviceKey);
+        return reverseChannelsKeyMap.get(serviceKey).getReverseAddress2ChannelMap();
     }
 
     public void registerProviderToServer(RpcMetaData providerMeta) {
@@ -151,7 +152,7 @@ public class ReverseInvokeHelper {
         SystemConsumer<SystemConsumer.ReverseInvokerCaller> systemConsumer = SystemConsumer.Multipart.reverseInvokerCaller;
         for (String reverseModeConsumerAddress : providerMeta.getReverseModeConsumerAddress()) {
             systemConsumer.setAppointedAddress(Lists.newArrayList(reverseModeConsumerAddress));
-            systemConsumer.fetch().register(getServiceKey(providerMeta, false));
+            systemConsumer.fetch().register(providerMeta);
         }
     }
 }

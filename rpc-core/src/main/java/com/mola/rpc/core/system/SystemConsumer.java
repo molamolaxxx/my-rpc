@@ -43,6 +43,6 @@ public class SystemConsumer<T> {
     public interface ReverseInvokerCaller {
 
         @OnewayInvoke
-        void register(String channelKey);
+        void register(RpcMetaData rpcMetaData);
     }
 }

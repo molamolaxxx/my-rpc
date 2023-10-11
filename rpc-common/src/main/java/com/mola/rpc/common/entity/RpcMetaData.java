@@ -77,7 +77,7 @@ public class RpcMetaData {
      * 服务提供者对象
      */
     @ProviderSide
-    private Object providerObject;
+    private transient Object providerObject;
 
     /**
      * 服务提供者类名
@@ -144,6 +144,14 @@ public class RpcMetaData {
      */
     @ProviderSide
     private Boolean proto = Boolean.FALSE;
+
+    /**
+     * provider指定的路由tag，相同服务可以通过路由tag来区分调用组
+     * service1 - tag1 -[ip1,ip2]
+     * service1 - tag2 -[ip3,ip4]
+     */
+    @ProviderSide
+    private String routeTag;
 
 
     public static RpcMetaData of(String group, String version, Class<?> clazzType) {
@@ -319,6 +327,14 @@ public class RpcMetaData {
         return reverseModeConsumerAddress;
     }
 
+    public void setRouteTag(String routeTag) {
+        this.routeTag = routeTag;
+    }
+
+    public String getRouteTag() {
+        return routeTag;
+    }
+
     /**
      * 客户端取服务端地址，优先级如下
      * 1、执行上下文
@@ -340,5 +356,9 @@ public class RpcMetaData {
         }
         AssertUtil.notNull(addressList, "addressList is null");
         return addressList;
+    }
+
+    public String fetchReverseServiceKey() {
+        return String.format("%s:%s:%s", interfaceClazz.getName(), group, version);
     }
 }

@@ -3,6 +3,7 @@ package com.mola.rpc.provider;
 import com.google.common.collect.Lists;
 import com.mola.rpc.client.*;
 import com.mola.rpc.common.annotation.RpcProvider;
+import com.mola.rpc.common.context.InvokeContext;
 import com.mola.rpc.core.remoting.Async;
 import com.mola.rpc.common.utils.AssertUtil;
 
@@ -125,7 +126,8 @@ public class UnitTestServiceImpl implements UnitTestService {
     }
 
     @Override
-    public String testReverseLoopBack(String id) {
+    public String testReverseLoopBack(String id, String routeTag) {
+        InvokeContext.routeTag(routeTag);
         return userServiceReverse.queryUserName(id);
     }
 

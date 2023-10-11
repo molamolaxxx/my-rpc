@@ -38,6 +38,7 @@ public class ReverseInvokeTest {
         rpcMetaData.setReverseMode(Boolean.TRUE);
         rpcMetaData.setGroup("reverse_proto");
         rpcMetaData.setReverseModeConsumerAddress(Lists.newArrayList("127.0.0.1:9003"));
+        rpcMetaData.setRouteTag("tag1");
         RpcInvoker.provider(
                 UserService.class,
                 new UserService() {
@@ -55,8 +56,23 @@ public class ReverseInvokeTest {
         );
         Thread.sleep(100);
         String id = System.currentTimeMillis() + "";
-        String res = unitTestServiceAppointZk.testReverseLoopBack(id);
+        String res = unitTestServiceAppointZk.testReverseLoopBack(id, null);
         AssertUtil.isTrue(("reverse-proto-mode-"+id).equals(res), "ReverseInvokeTest case 1 failed");
+
+        // with tag
+        res = unitTestServiceAppointZk.testReverseLoopBack(id, "tag1");
+        AssertUtil.isTrue(("reverse-proto-mode-"+id).equals(res), "ReverseInvokeTest case 2 failed");
+
+        boolean throwExp = false;
+        try {
+            res = unitTestServiceAppointZk.testReverseLoopBack(id, "tag2");
+        } catch (Exception e) {
+            if (e.getMessage().contains("no available reverse channel")) {
+                throwExp = true;
+            }
+        }
+
+        AssertUtil.isTrue(throwExp, "ReverseInvokeTest case 2 failed");
     }
 
     @Test
