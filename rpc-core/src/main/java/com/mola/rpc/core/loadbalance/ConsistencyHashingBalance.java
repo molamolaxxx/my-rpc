@@ -7,6 +7,7 @@ import com.mola.rpc.common.context.InvokeContext;
 import com.mola.rpc.common.entity.AddressInfo;
 import com.mola.rpc.common.entity.RpcMetaData;
 import com.mola.rpc.common.lifecycle.ConsumerLifeCycleHandler;
+import com.mola.rpc.common.utils.ConcurrentHashSetBuilder;
 import com.mola.rpc.common.utils.JSONUtil;
 import com.mola.rpc.core.util.HashUtil;
 import org.slf4j.Logger;
@@ -29,6 +30,7 @@ public class ConsistencyHashingBalance implements LoadBalanceStrategy, ConsumerL
     private static final Logger log = LoggerFactory.getLogger(ConsistencyHashingBalance.class);
 
     private static final Map<Class<?>, Method> consistencyHashMethodMapping = Maps.newConcurrentMap();
+    private static final Set<Class<?>> noMethodSet = ConcurrentHashSetBuilder.build(16);
 
     /**
      * 总节点个数 = 实际节点个数 * (VIRTUAL_NODE_RATE + 1)
@@ -67,6 +69,9 @@ public class ConsistencyHashingBalance implements LoadBalanceStrategy, ConsumerL
     }
 
     private String fetchKeyToHashFromMethods(Object arg) {
+        if (noMethodSet.contains(arg.getClass())) {
+            return null;
+        }
         Method fetchMethod = consistencyHashMethodMapping.get(arg.getClass());
         if (fetchMethod == null) {
             for (Method method : arg.getClass().getMethods()) {
@@ -78,6 +83,7 @@ public class ConsistencyHashingBalance implements LoadBalanceStrategy, ConsumerL
             }
         }
         if (fetchMethod == null) {
+            noMethodSet.add(arg.getClass());
             return null;
         }
         try {
