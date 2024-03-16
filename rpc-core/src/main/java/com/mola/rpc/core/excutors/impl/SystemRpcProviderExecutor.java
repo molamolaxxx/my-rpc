@@ -22,18 +22,18 @@ public class SystemRpcProviderExecutor implements RpcExecutor {
     /**
      * 线程池
      */
-    private ThreadPoolExecutor tp;
+    private final ThreadPoolExecutor tp;
 
     /**
      * 阻塞队列
      */
-    private BlockingQueue<Runnable> blockingQueue;
+    private final BlockingQueue<Runnable> blockingQueue;
 
     public SystemRpcProviderExecutor(RpcProperties rpcProperties){
         this.blockingQueue = new LinkedBlockingDeque<>(256);
         this.tp = new ThreadPoolExecutor(rpcProperties.getSystemThreadNum(), rpcProperties.getSystemThreadNum()
                 ,200, TimeUnit.MILLISECONDS, blockingQueue, new ThreadFactory() {
-            private AtomicInteger threadIndex = new AtomicInteger(0);
+            private final AtomicInteger threadIndex = new AtomicInteger(0);
             @Override
             public Thread newThread(Runnable r) {
                 return new Thread(r, String.format("system-provider-process-thread-%d", this.threadIndex.incrementAndGet()));

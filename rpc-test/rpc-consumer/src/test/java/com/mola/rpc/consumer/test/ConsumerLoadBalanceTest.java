@@ -2,6 +2,7 @@ package com.mola.rpc.consumer.test;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+import com.mola.rpc.client.Order;
 import com.mola.rpc.client.ServerResponse;
 import com.mola.rpc.client.UnitTestService;
 import com.mola.rpc.common.context.InvokeContext;
@@ -18,6 +19,7 @@ import com.mola.rpc.common.utils.AssertUtil;
 import javax.annotation.Resource;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 
 /**
  * @author : molamola
@@ -104,6 +106,33 @@ public class ConsumerLoadBalanceTest {
         String input1 = "input1:" + System.currentTimeMillis();
         for (int i = 0; i < 200; i++) {
             ServerResponse<String> response = unitTestServiceUseHash.test001(input1);
+        }
+
+        List<PitchInvokeContext> getTargetProviderAddress = PitchingContext
+                .fetchInvokeContext("com.mola.rpc.core.loadbalance.LoadBalance",
+                        "getTargetProviderAddress");
+
+        AssertUtil.isTrue(getTargetProviderAddress.size() == 200, "InvokeContext error");
+        Map<String, Integer> cntMap = Maps.newHashMap();
+        for (PitchInvokeContext invokeContext : getTargetProviderAddress) {
+            String address = (String) invokeContext.getResult();
+            cntMap.putIfAbsent(address, 0);
+            cntMap.computeIfPresent(address, (k, v) -> v + 1);
+        }
+        AssertUtil.isTrue(cntMap.size() == 1, "cntMap is error");
+        for (Integer value : cntMap.values()) {
+            AssertUtil.isTrue(value == 200, "cntMap value is error");
+        }
+    }
+
+
+    @Test
+    public void testConsistencyHashMethod() {
+        Order order = new Order();
+        order.setId(UUID.randomUUID().toString());
+        for (int i = 0; i < 200; i++) {
+            order.setCode(i + "");
+            ServerResponse<Order> response = unitTestServiceUseHash.test002(order);
         }
 
         List<PitchInvokeContext> getTargetProviderAddress = PitchingContext

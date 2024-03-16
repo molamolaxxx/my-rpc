@@ -1,6 +1,7 @@
 package com.mola.rpc.client;
 
 import com.google.common.base.Objects;
+import com.mola.rpc.common.annotation.ConsistencyHashKey;
 import lombok.Data;
 
 import java.util.Date;
@@ -45,5 +46,11 @@ public class Order {
     @Override
     public int hashCode() {
         return Objects.hashCode(id, gmtCreate, desc, code, operator);
+    }
+
+
+    @ConsistencyHashKey
+    public String hash() {
+        return id;
     }
 }

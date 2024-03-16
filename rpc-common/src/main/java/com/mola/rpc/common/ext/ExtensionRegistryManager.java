@@ -19,7 +19,7 @@ public class ExtensionRegistryManager {
     /**
      * 反向代理服务注册拦截器
      */
-    private List<RpcInterceptor> rpcInterceptors = Lists.newArrayList();
+    private final List<RpcInterceptor> rpcInterceptors = Lists.newArrayList();
 
     /**
      * 添加拦截器

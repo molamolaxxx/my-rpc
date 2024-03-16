@@ -102,7 +102,7 @@ public class RpcProxyInvokeHandler implements InvocationHandler {
 
             // 执行远程调用
             if (isAsyncExecute(consumerMeta, method)) {
-                AsyncResponseFuture asyncResponseFuture = nettyRemoteClient.asyncInvoke(
+                AsyncResponseFuture<?> asyncResponseFuture = nettyRemoteClient.asyncInvoke(
                         targetProviderAddress, request, invokeMethod,
                         method, consumerMeta.getClientTimeout());
                 Async.addFuture(asyncResponseFuture);

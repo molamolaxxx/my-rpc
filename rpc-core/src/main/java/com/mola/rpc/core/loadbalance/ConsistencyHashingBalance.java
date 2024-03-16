@@ -1,19 +1,21 @@
 package com.mola.rpc.core.loadbalance;
 
-import com.mola.rpc.common.utils.JSONUtil;
+import com.google.common.collect.Maps;
+import com.mola.rpc.common.annotation.ConsistencyHashKey;
 import com.mola.rpc.common.constants.LoadBalanceConstants;
 import com.mola.rpc.common.context.InvokeContext;
 import com.mola.rpc.common.entity.AddressInfo;
 import com.mola.rpc.common.entity.RpcMetaData;
 import com.mola.rpc.common.lifecycle.ConsumerLifeCycleHandler;
+import com.mola.rpc.common.utils.JSONUtil;
 import com.mola.rpc.core.util.HashUtil;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
 
-import java.util.List;
-import java.util.SortedMap;
-import java.util.TreeMap;
-import java.util.UUID;
+import java.lang.reflect.Method;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -23,6 +25,10 @@ import java.util.stream.Collectors;
  * @date : 2022-10-04 12:29
  **/
 public class ConsistencyHashingBalance implements LoadBalanceStrategy, ConsumerLifeCycleHandler {
+
+    private static final Logger log = LoggerFactory.getLogger(ConsistencyHashingBalance.class);
+
+    private static final Map<Class<?>, Method> consistencyHashMethodMapping = Maps.newConcurrentMap();
 
     /**
      * 总节点个数 = 实际节点个数 * (VIRTUAL_NODE_RATE + 1)
@@ -35,12 +41,59 @@ public class ConsistencyHashingBalance implements LoadBalanceStrategy, ConsumerL
         if (virtualAddressNodeMap == null || virtualAddressNodeMap.size() == 0) {
             throw new RuntimeException("virtualAddressNodeMap is empty");
         }
-        int hash = HashUtil.getHash(JSONUtil.toJSONString(args));
+        int hash = HashUtil.getHash(fetchKeyToHashFromArgs(args));
         SortedMap<Integer, String> tailMap = virtualAddressNodeMap.tailMap(hash);
         if (tailMap.size() == 0) {
             return getAddressFromVirtualNode(virtualAddressNodeMap.get(virtualAddressNodeMap.firstKey()));
         }
         return getAddressFromVirtualNode(tailMap.get(tailMap.firstKey()));
+    }
+
+    /**
+     * 从参数中获取待hash的key
+     * @param args
+     * @return
+     */
+    private String fetchKeyToHashFromArgs(Object[] args) {
+        // 从方法中获取
+        for (Object arg : args) {
+            String rawKey = fetchKeyToHashFromMethods(arg);
+            if (rawKey == null || rawKey.length() == 0) {
+                continue;
+            }
+            return rawKey;
+        }
+        return JSONUtil.toJSONString(args);
+    }
+
+    private String fetchKeyToHashFromMethods(Object arg) {
+        Method fetchMethod = consistencyHashMethodMapping.get(arg.getClass());
+        if (fetchMethod == null) {
+            for (Method method : arg.getClass().getMethods()) {
+                if (method.isAnnotationPresent(ConsistencyHashKey.class)) {
+                    consistencyHashMethodMapping.putIfAbsent(arg.getClass(), method);
+                    fetchMethod = method;
+                    break;
+                }
+            }
+        }
+        if (fetchMethod == null) {
+            return null;
+        }
+        try {
+            Object res = fetchMethod.invoke(arg);
+            if (!(res instanceof String)) {
+                log.warn("consistency hash from method failed, return not str!" +
+                                " clazz = {}, method = {}",
+                        arg.getClass(), fetchMethod);
+                return null;
+            }
+            return (String) res;
+        } catch (Exception e) {
+            log.warn("consistency hash from method failed, clazz = {}, method = {}",
+                    arg.getClass(), fetchMethod);
+        }
+        return null;
     }
 
     /**

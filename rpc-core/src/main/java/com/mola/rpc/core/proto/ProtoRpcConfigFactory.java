@@ -92,7 +92,7 @@ public class ProtoRpcConfigFactory {
     private NettyRpcRequestHandler requestHandler;
     private NettyRpcResponseHandler responseHandler;
 
-    private ObjectFetcher providerObjectFetcher = providerMeta -> providerMeta.getProviderObject();
+    private ObjectFetcher providerObjectFetcher = RpcMetaData::getProviderObject;
 
     private ExtensionRegistryManager extensionRegistryManager;
     protected ProtoRpcConfigFactory(){}
@@ -165,7 +165,7 @@ public class ProtoRpcConfigFactory {
             return;
         }
         RpcContext rpcContext = rpcProviderDataInitBean.getRpcContext();
-        RpcDataManager rpcDataManager = rpcProviderDataInitBean.getRpcDataManager();
+        RpcDataManager<RpcMetaData> rpcDataManager = rpcProviderDataInitBean.getRpcDataManager();
         Collection<RpcMetaData> providerMetaDataCollection = rpcContext.getProviderMetaMap().values();
         for (RpcMetaData providerMetaData : providerMetaDataCollection) {
             rpcDataManager.deleteRemoteProviderData(providerMetaData,

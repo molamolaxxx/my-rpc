@@ -17,15 +17,12 @@ public class FiberRpcProviderExecutor implements RpcExecutor {
 
     private static final Logger log = LoggerFactory.getLogger(FiberRpcProviderExecutor.class);
 
-    private RpcProperties rpcProperties;
-
     public FiberRpcProviderExecutor(RpcProperties rpcProperties){
-        this.rpcProperties = rpcProperties;
     }
 
     @Override
     public void process(RpcTask rpcTask) {
-        Fiber fiber = new Fiber<>(rpcTask::run);
+        Fiber<?> fiber = new Fiber<>(rpcTask::run);
         fiber.start();
     }
 }
