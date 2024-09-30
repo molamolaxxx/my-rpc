@@ -45,7 +45,10 @@ public class ProviderConfigData {
      */
     private Boolean proto;
 
-    public static ProviderConfigData create(String parentPath, String appName, String host, String address, Boolean proto) {
+    private String description;
+
+    public static ProviderConfigData create(String parentPath, String appName, String description,
+                                            String host, String address, Boolean proto) {
         ProviderConfigData providerConfigData = new ProviderConfigData();
         providerConfigData.servicePath = parentPath;
         providerConfigData.appName = appName;
@@ -53,6 +56,7 @@ public class ProviderConfigData {
         providerConfigData.host = host;
         providerConfigData.address = address;
         providerConfigData.proto = proto;
+        providerConfigData.description = description;
         return providerConfigData;
     }
 
@@ -102,6 +106,14 @@ public class ProviderConfigData {
 
     public void setSystemInfo(SystemInfo systemInfo) {
         this.systemInfo = systemInfo;
+    }
+
+    public void setDescription(String description) {
+        this.description = description;
+    }
+
+    public String getDescription() {
+        return description;
     }
 
     @Override

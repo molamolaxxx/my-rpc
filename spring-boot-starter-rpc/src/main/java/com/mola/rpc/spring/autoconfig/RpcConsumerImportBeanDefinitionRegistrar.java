@@ -49,6 +49,8 @@ public class RpcConsumerImportBeanDefinitionRegistrar implements ImportBeanDefin
                     RpcMetaData providerMeta = RpcMetaData.of((String) annotationAttributes.get("group"),
                             (String) annotationAttributes.get("version"),
                             (Class<?>) annotationAttributes.get("interfaceClazz"));
+                    // 描述
+                    providerMeta.setDescription((String) annotationAttributes.get("description"));
                     // 是否使用协程
                     providerMeta.setInFiber((Boolean) annotationAttributes.get("inFiber"));
                     // 反向模式

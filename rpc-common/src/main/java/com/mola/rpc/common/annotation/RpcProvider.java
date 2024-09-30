@@ -16,6 +16,8 @@ public @interface RpcProvider {
 
     String group() default "default";
 
+    String description() default "";
+
     Class<?> interfaceClazz();
 
     boolean inFiber() default false;

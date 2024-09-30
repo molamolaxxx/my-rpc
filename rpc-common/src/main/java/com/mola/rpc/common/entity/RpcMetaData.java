@@ -153,6 +153,12 @@ public class RpcMetaData {
     @ProviderSide
     private Set<String> routeTags;
 
+    /**
+     * provider的描述
+     */
+    @ProviderSide
+    private String description;
+
 
     public static RpcMetaData of(String group, String version, Class<?> clazzType) {
         RpcMetaData rpcMetaData = new RpcMetaData();
@@ -333,6 +339,14 @@ public class RpcMetaData {
 
     public Set<String> getRouteTags() {
         return routeTags;
+    }
+
+    public void setDescription(String description) {
+        this.description = description;
+    }
+
+    public String getDescription() {
+        return description;
     }
 
     /**

@@ -136,7 +136,8 @@ public class ZkRpcDataManager extends BaseRpcDataManager {
             return;
         }
         ProviderConfigData providerConfigData = ProviderConfigData.create(remoteProviderParentPath,
-                appName, providerMetaData.getHost(), address, providerMetaData.getProto());
+                appName,providerMetaData.getDescription(),
+                providerMetaData.getHost(), address, providerMetaData.getProto());
         String childPath = remoteProviderParentPath + "/" + address;
         if (!zkClient.exists(childPath)) {
             zkClient.create(childPath, providerConfigData.toString(), CreateMode.EPHEMERAL);

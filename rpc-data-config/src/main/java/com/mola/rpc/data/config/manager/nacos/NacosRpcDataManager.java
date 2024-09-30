@@ -181,7 +181,8 @@ public class NacosRpcDataManager extends BaseRpcDataManager {
         String remoteProviderParentPath = getRemoteProviderPath(providerMetaData.getInterfaceClazz().getName(), providerMetaData.getGroup(),
                 providerMetaData.getVersion(), environment);
         ProviderConfigData providerConfigData = ProviderConfigData.create(remoteProviderParentPath,
-                appName, providerMetaData.getHost(), address, providerMetaData.getProto());
+                appName,providerMetaData.getDescription(),
+                providerMetaData.getHost(), address, providerMetaData.getProto());
         providerConfigData.setSystemInfo(null);
         instance.setMetadata(ObjectUtils.parseObject(providerConfigData));
         instance.getMetadata().put("systemInfoKey", JSONUtil.toJSONString(SystemInfo.get()));

@@ -18,7 +18,7 @@ import java.util.concurrent.TimeUnit;
  * @Description: 单元测试provider
  * @date : 2023-01-22 21:41
  **/
-@RpcProvider(interfaceClazz = UnitTestService.class)
+@RpcProvider(interfaceClazz = UnitTestService.class, description = "单元测试rpc服务")
 public class UnitTestServiceImpl implements UnitTestService {
 
     @Resource
